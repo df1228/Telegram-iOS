@@ -55,7 +55,7 @@ jobs:
             build \
             --configurationPath="build-system/appstore-configuration.json" \
             --codesigningInformationPath=build-system/fake-codesigning \
-            --configuration=debugls_arm64 \
+            --configuration=debug_arm64 \
             --buildNumber="$BUILD_NUMBER"
 
           # collect ipa
