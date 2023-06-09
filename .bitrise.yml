@@ -1,0 +1,78 @@
+---
+format_version: '11'
+default_step_lib_source: https://github.com/bitrise-io/bitrise-steplib.git
+project_type: other
+trigger_map:
+- push_branch: "*"
+  workflow: primary
+- pull_request_source_branch: "*"
+  workflow: primary
+workflows:
+  primary:
+    steps:
+    - activate-ssh-key@4:
+        run_if: '{{getenv "SSH_RSA_PRIVATE_KEY" | ne ""}}'
+    - git-clone@8: {}
+    - script:
+        title: Set active Xcode path
+        inputs:
+        - content: |-
+            #!/bin/bash
+            XCODE_VERSION=$(cat versions.json | python3 -c 'import json,sys;obj=json.load(sys.stdin);print(obj["xcode"]);')
+            sudo xcode-select -s /Applications/Xcode_$XCODE_VERSION.app/Contents/Developer
+
+    - script:
+        title: Create canonical source directory
+        inputs:
+        - content: |-
+            #!/bin/bash
+            set -x
+            sudo mkdir -p /Users/Shared
+            cp -R $BITRISE_SOURCE_DIR /Users/Shared/
+            mv /Users/Shared/$(basename $BITRISE_SOURCE_DIR) /Users/Shared/telegram-ios
+      
+    - script:
+        title: Build the App
+        inputs:
+        - content: |-
+            #!/bin/bash
+            set -x
+
+            # source code paths are included in the final binary, so we need to make them stable across builds
+            SOURCE_DIR=/Users/Shared/telegram-ios
+
+            # use canonical bazel root
+            BAZEL_USER_ROOT="/private/var/tmp/_bazel_containerhost"
+
+            cd $SOURCE_DIR
+
+            BUILD_NUMBER_OFFSET="$(cat build_number_offset)"
+
+            export APP_VERSION=$(cat versions.json | python3 -c 'import json,sys;obj=json.load(sys.stdin);print(obj["app"]);')
+            export COMMIT_COUNT=$(git rev-list --count HEAD)
+            export COMMIT_COUNT="$(($COMMIT_COUNT+$BUILD_NUMBER_OFFSET))"
+            export BUILD_NUMBER="$COMMIT_COUNT"
+            echo "BUILD_NUMBER=$(echo $BUILD_NUMBER)" >> $GITHUB_ENV
+            echo "APP_VERSION=$(echo $APP_VERSION)" >> $GITHUB_ENV
+
+            python3 build-system/Make/ImportCertificates.py --path build-system/fake-codesigning/certs
+            python3 -u build-system/Make/Make.py \
+              --bazelUserRoot="$BAZEL_USER_ROOT" \
+              build \
+              --configurationPath="build-system/appstore-configuration.json" \
+              --codesigningInformationPath=build-system/fake-codesigning \
+              --configuration=debug_arm64 \
+              --buildNumber="$BUILD_NUMBER"
+
+            # collect ipa
+            OUTPUT_PATH="build/artifacts"
+            rm -rf "$OUTPUT_PATH"
+            mkdir -p "$OUTPUT_PATH"
+            for f in bazel-out/applebin_ios-ios_arm*-dbg-ST-*/bin/Telegram/Telegram.ipa; do
+              cp "$f" $OUTPUT_PATH/
+            done
+
+    - deploy-to-bitrise-io@2: {}
+meta:
+  bitrise.io:
+    stack: osx-xcode-14.2.x-ventura
