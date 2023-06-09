@@ -457,11 +457,11 @@ official_unrestricted_voip_fragment = """
 """
 unrestricted_voip_fragment = official_unrestricted_voip_fragment if telegram_bundle_id in official_bundle_ids else ""
 
-official_carplay_fragment = """
-<key>com.apple.developer.carplay-messaging</key>
-<true/>
-"""
-carplay_fragment = official_carplay_fragment if telegram_bundle_id in official_bundle_ids else ""
+# official_carplay_fragment = """
+# <key>com.apple.developer.carplay-messaging</key>
+# <true/>
+# """
+# carplay_fragment = official_carplay_fragment if telegram_bundle_id in official_bundle_ids else ""
 
 icloud_fragment = "" if not telegram_enable_icloud else """
 <key>com.apple.developer.icloud-services</key>
@@ -537,11 +537,11 @@ plist_fragment(
         siri_fragment,
         associated_domains_fragment,
         icloud_fragment,
-        apple_pay_merchants_fragment,
+        # apple_pay_merchants_fragment,
         unrestricted_voip_fragment,
-        carplay_fragment,
-        communication_notifications_fragment,
-        signin_fragment,
+        # carplay_fragment,
+        # communication_notifications_fragment,
+        # signin_fragment,
     ])
 )
 
