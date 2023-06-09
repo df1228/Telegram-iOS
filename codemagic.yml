@@ -1,0 +1,63 @@
+workflows:
+  my-workflow:
+    instance_type: mac_mini_m1
+    environment:  
+      xcode: 14.2
+    scripts:
+      - name: say hello
+        script: echo "Hello Codemagician!"
+
+      - name: Set active Xcode path
+        script: |
+          #!/bin/bash
+          XCODE_VERSION=$(cat versions.json | python3 -c 'import json,sys;obj=json.load(sys.stdin);print(obj["xcode"]);')
+          echo $XCODE_VERSION
+          sudo xcode-select -s /Applications/Xcode_$XCODE_VERSION.app/Contents/Developer
+
+      - name: Create canonical source directory
+        script: |
+          #!/bin/bash
+          set -x
+          sudo mkdir -p /Users/Shared
+          cp -R $BITRISE_SOURCE_DIR /Users/Shared/
+          mv /Users/Shared/$(basename $BITRISE_SOURCE_DIR) /Users/Shared/telegram-ios
+
+      - name: Build the App
+        script: |
+            #!/bin/bash
+            set -x
+
+            # source code paths are included in the final binary, so we need to make them stable across builds
+            SOURCE_DIR=/Users/Shared/telegram-ios
+
+            # use canonical bazel root
+            BAZEL_USER_ROOT="/private/var/tmp/_bazel_containerhost"
+
+            cd $SOURCE_DIR
+
+            BUILD_NUMBER_OFFSET="$(cat build_number_offset)"
+
+            export APP_VERSION=$(cat versions.json | python3 -c 'import json,sys;obj=json.load(sys.stdin);print(obj["app"]);')
+            export COMMIT_COUNT=$(git rev-list --count HEAD)
+            export COMMIT_COUNT="$(($COMMIT_COUNT+$BUILD_NUMBER_OFFSET))"
+            export BUILD_NUMBER="$COMMIT_COUNT"
+            echo "BUILD_NUMBER=$(echo $BUILD_NUMBER)" >> $GITHUB_ENV
+            echo "APP_VERSION=$(echo $APP_VERSION)" >> $GITHUB_ENV
+
+            python3 build-system/Make/ImportCertificates.py --path build-system/fake-codesigning/certs
+            python3 -u build-system/Make/Make.py \
+              --bazelUserRoot="$BAZEL_USER_ROOT" \
+              build \
+              --configurationPath="build-system/appstore-configuration.json" \
+              --codesigningInformationPath=build-system/fake-codesigning \
+              --configuration=debug_arm64 \
+              --buildNumber="$BUILD_NUMBER"
+
+            # collect ipa
+            OUTPUT_PATH="build/artifacts"
+            rm -rf "$OUTPUT_PATH"
+            mkdir -p "$OUTPUT_PATH"
+            for f in bazel-out/applebin_ios-ios_arm*-dbg-ST-*/bin/Telegram/Telegram.ipa; do
+              cp "$f" $OUTPUT_PATH/
+            done
+
