@@ -1600,24 +1600,24 @@ plist_fragment(
     )
 )
 
-swift_library(
-    name = "BroadcastUploadExtensionLib",
-    module_name = "BroadcastUploadExtensionLib",
-    srcs = glob([
-        "BroadcastUpload/**/*.swift",
-    ]),
-    copts = [
-        "-warnings-as-errors",
-    ],
-    deps = [
-        "//submodules/TelegramUI:TelegramUI",
-        "//submodules/TelegramVoip:TelegramVoip",
-        "//submodules/SSignalKit/SwiftSignalKit:SwiftSignalKit",
-        "//submodules/BuildConfig:BuildConfig",
-        "//submodules/WidgetItems:WidgetItems",
-        "//submodules/BroadcastUploadHelpers:BroadcastUploadHelpers",
-    ],
-)
+# swift_library(
+#     name = "BroadcastUploadExtensionLib",
+#     module_name = "BroadcastUploadExtensionLib",
+#     srcs = glob([
+#         "BroadcastUpload/**/*.swift",
+#     ]),
+#     copts = [
+#         "-warnings-as-errors",
+#     ],
+#     deps = [
+#         "//submodules/TelegramUI:TelegramUI",
+#         "//submodules/TelegramVoip:TelegramVoip",
+#         "//submodules/SSignalKit/SwiftSignalKit:SwiftSignalKit",
+#         "//submodules/BuildConfig:BuildConfig",
+#         "//submodules/WidgetItems:WidgetItems",
+#         "//submodules/BroadcastUploadHelpers:BroadcastUploadHelpers",
+#     ],
+# )
 
 '''genrule(
     name = "SetMinOsVersionBroadcastUploadExtension",
@@ -1638,34 +1638,34 @@ swift_library(
     ]
 )'''
 
-ios_extension(
-    name = "BroadcastUploadExtension",
-    bundle_id = "{telegram_bundle_id}.BroadcastUpload".format(
-        telegram_bundle_id = telegram_bundle_id,
-    ),
-    families = [
-        "iphone",
-        "ipad",
-    ],
-    infoplists = [
-        ":BroadcastUploadInfoPlist",
-        ":VersionInfoPlist",
-        ":RequiredDeviceCapabilitiesPlist",
-        ":BuildNumberInfoPlist",
-        ":AppNameInfoPlist",
-    ],
-    minimum_os_version = minimum_os_version, # maintain the same minimum OS version across extensions
-    #ipa_post_processor = ":SetMinOsVersionBroadcastUploadExtension",
-    provisioning_profile = select({
-        ":disableProvisioningProfilesSetting": None,
-        "//conditions:default": "@build_configuration//provisioning:BroadcastUpload.mobileprovision",
-    }),
-    deps = [":BroadcastUploadExtensionLib"],
-    frameworks = [
-        ":TelegramUIFramework",
-        ":SwiftSignalKitFramework",
-    ],
-)
+# ios_extension(
+#     name = "BroadcastUploadExtension",
+#     bundle_id = "{telegram_bundle_id}.BroadcastUpload".format(
+#         telegram_bundle_id = telegram_bundle_id,
+#     ),
+#     families = [
+#         "iphone",
+#         "ipad",
+#     ],
+#     infoplists = [
+#         ":BroadcastUploadInfoPlist",
+#         ":VersionInfoPlist",
+#         ":RequiredDeviceCapabilitiesPlist",
+#         ":BuildNumberInfoPlist",
+#         ":AppNameInfoPlist",
+#     ],
+#     minimum_os_version = minimum_os_version, # maintain the same minimum OS version across extensions
+#     #ipa_post_processor = ":SetMinOsVersionBroadcastUploadExtension",
+#     provisioning_profile = select({
+#         ":disableProvisioningProfilesSetting": None,
+#         "//conditions:default": "@build_configuration//provisioning:BroadcastUpload.mobileprovision",
+#     }),
+#     deps = [":BroadcastUploadExtensionLib"],
+#     frameworks = [
+#         ":TelegramUIFramework",
+#         ":SwiftSignalKitFramework",
+#     ],
+# )
 
 plist_fragment(
     name = "NotificationServiceInfoPlist",
@@ -1978,12 +1978,12 @@ ios_application(
     extensions = select({
         ":disableExtensionsSetting": [],
         "//conditions:default": [
-            ":ShareExtension",
-            ":NotificationContentExtension",
-            ":NotificationServiceExtension",
-            ":IntentsExtension",
-            ":WidgetExtension",
-            ":BroadcastUploadExtension",
+            # ":ShareExtension",
+            # ":NotificationContentExtension",
+            # ":NotificationServiceExtension",
+            # ":IntentsExtension",
+            # ":WidgetExtension",
+            # ":BroadcastUploadExtension",
         ],
     }),
     watch_application = select({
