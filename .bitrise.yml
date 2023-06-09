@@ -19,7 +19,12 @@ workflows:
         - content: |-
             #!/bin/bash
             XCODE_VERSION=$(cat versions.json | python3 -c 'import json,sys;obj=json.load(sys.stdin);print(obj["xcode"]);')
-            sudo xcode-select -s /Applications/Xcode_$XCODE_VERSION.app/Contents/Developer
+            echo $XCODE_VERSION
+            ls /Applications
+            xcode-select --print-path
+            xcode-select --version
+            xcodebuild -version
+            # sudo xcode-select -s /Applications/Xcode_$XCODE_VERSION.app/Contents/Developer
 
     - script:
         title: Create canonical source directory
