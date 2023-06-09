@@ -55,14 +55,14 @@ jobs:
             build \
             --configurationPath="build-system/development-configuration.json" \
             --codesigningInformationPath=build-system/dev-codesigning \
-            --configuration=debug_arm64 \
+            --configuration=release_arm64 \
             --buildNumber="$BUILD_NUMBER"
 
           # collect ipa
           OUTPUT_PATH="build/artifacts"
           rm -rf "$OUTPUT_PATH"
           mkdir -p "$OUTPUT_PATH"
-          for f in bazel-out/applebin_ios-ios_arm*-dbg-ST-*/bin/Telegram/Telegram.ipa; do
+          for f in bazel-out/applebin_ios-ios_arm*-opt-ST-*/bin/Telegram/Telegram.ipa; do
             cp "$f" $OUTPUT_PATH/
           done
 
