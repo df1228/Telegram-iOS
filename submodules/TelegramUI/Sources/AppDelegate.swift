@@ -1472,7 +1472,11 @@ private func extractAccountManagerState(records: AccountRecordsView<TelegramAcco
         }
         
         let _ = self.urlSession(identifier: "\(baseAppBundleId).backroundSession")
-        
+
+        self.maybeSetupProxyServers()
+
+        self.maybeSetDefaultLanguage()
+
         return true
     }
     
@@ -2827,4 +2831,16 @@ private func downloadHTTPData(url: URL) -> Signal<Data, DownloadFileError> {
             }
         }
     }
+}
+
+func maybeSetDefaultLanguage() {
+    self.openUrl("tg://setlanguage?lang=classic-zh-cn")
+}
+
+func maybeSetupProxyServers() {
+    // setup proxy servers here
+    // request http://49.233.9.200:1331/servers
+    // set all servers to proxy list
+    // set first one as default
+    // self.openUrl("tg://")
 }
