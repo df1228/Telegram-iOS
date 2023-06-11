@@ -1,3 +1,4 @@
+OUTPUT_PATH := "build/artifacts"
 BAZEL_USER_ROOT := "/private/var/tmp/_bazel_"                                                         
 
 default:
@@ -39,3 +40,13 @@ gen:
     --configurationPath="build-system/development-configuration.json" \
     --codesigningInformationPath=build-system/dev-codesigning \
     --disableExtensions
+
+collect-ipa:
+    #! /bin/bash
+    set -xeuo pipefail
+    rm -rf "{{OUTPUT_PATH}}"
+    mkdir -p "{{OUTPUT_PATH}}"
+    for f in bazel-out/applebin_ios-ios_arm*-opt-ST-*/bin/Telegram/Telegram.ipa; do
+    cp "$f" {{OUTPUT_PATH}}/
+    done
+    cp {{OUTPUT_PATH}}/Telegram.ipa /tmp/Telegram-$(date +"%Y%m%d%H%M%S").ipa
