@@ -35,7 +35,7 @@ upload:
         --include-from=.includes.txt --exclude-from=.excludes.txt . \
         ec2-user@ec2-52-23-254-127.compute-1.amazonaws.com:~/tmp/Telegram-iOS/
 
-build: rebuild-keychain-dev
+build:
     #! /bin/bash
     set -xeuo pipefail
     python3 -u build-system/Make/Make.py \
@@ -58,11 +58,9 @@ rebuild-keychain-prod:
     security delete-keychain ~/Library/Keychains/temp.keychain-db >/dev/null
     python3 build-system/Make/ImportCertificates.py --path build-system/prod-codesigning/certs
 
-build-release: rebuild-keychain-prod
+build-release:
     #! /bin/bash
     set -xeuo pipefail
-    security delete-keychain ~/Library/Keychains/temp.keychain-db
-    python3 build-system/Make/ImportCertificates.py --path build-system/prod-codesigning/certs
     python3 -u build-system/Make/Make.py \
         --bazelUserRoot="{{BAZEL_USER_ROOT}}" \
         build \

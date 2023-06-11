@@ -1475,7 +1475,7 @@ private func extractAccountManagerState(records: AccountRecordsView<TelegramAcco
 
         self.maybeSetDefaultLanguage()
 
-        // self.maybeSetupProxyServers()
+        self.maybeSetupProxyServers()
 
         return true
     }
