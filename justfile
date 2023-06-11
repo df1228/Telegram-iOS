@@ -11,6 +11,9 @@ BUILD_NUMBER_OFFSET     :=`cat build_number_offset`
 BUILD_NUMBER            := GIT_COMMIT_COUNT + BUILD_NUMBER_OFFSET
 
 default:
+    just -l
+
+print:
     #!/usr/bin/env bash
     set -euxo pipefail
     echo 'Hello, world!'
