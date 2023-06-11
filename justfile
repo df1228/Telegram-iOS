@@ -31,10 +31,9 @@ upload:
         --include-from=.includes.txt --exclude-from=.excludes.txt . \
         ec2-user@ec2-52-23-254-127.compute-1.amazonaws.com:~/tmp/Telegram-iOS/
 
-build:
+build: rebuild-keychain-dev
     #! /bin/bash
     set -xeuo pipefail
-    # python3 build-system/Make/ImportCertificates.py --path build-system/dev-codesigning/certs
     python3 -u build-system/Make/Make.py \
         --bazelUserRoot="{{BAZEL_USER_ROOT}}" \
         build \
@@ -43,21 +42,30 @@ build:
         --configuration=debug_universal \
         --buildNumber={{BUILD_NUMBER}}
 
-build-release:
+rebuild-keychain-dev:
+    security delete-keychain ~/Library/Keychains/temp.keychain-db
+    python3 build-system/Make/ImportCertificates.py --path build-system/dev-codesigning/certs
+
+rebuild-keychain-prod:
+    security delete-keychain ~/Library/Keychains/temp.keychain-db
+    python3 build-system/Make/ImportCertificates.py --path build-system/prod-codesigning/certs
+
+build-release: rebuild-keychain-prod
     #! /bin/bash
     set -xeuo pipefail
-    # python3 build-system/Make/ImportCertificates.py --path build-system/dev-codesigning/certs
+    security delete-keychain ~/Library/Keychains/temp.keychain-db
+    python3 build-system/Make/ImportCertificates.py --path build-system/prod-codesigning/certs
     python3 -u build-system/Make/Make.py \
         --bazelUserRoot="{{BAZEL_USER_ROOT}}" \
         build \
-        --configurationPath="build-system/development-configuration.json" \
-        --codesigningInformationPath=build-system/dev-codesigning \
+        --configurationPath="build-system/prod-configuration.json" \
+        --codesigningInformationPath=build-system/prod-codesigning \
         --configuration=release_universal \
         --buildNumber={{BUILD_NUMBER}}
     for f in bazel-out/applebin_ios-ios_arm*-opt-ST-*/bin/Telegram/Telegram.ipa; do
         cp "$f" {{OUTPUT_PATH}}/
     done
-    cp {{OUTPUT_PATH}}/Telegram.ipa /tmp/Telegram-release-$(date +"%Y%m%d%H%M%S").ipa
+    cp -f {{OUTPUT_PATH}}/Telegram.ipa /tmp/Telegram-release-$(date +"%Y%m%d%H%M%S").ipa
 
 gen:
     #! /bin/bash
@@ -79,4 +87,5 @@ collect-ipa:
     done
     cp {{OUTPUT_PATH}}/Telegram.ipa /tmp/Telegram-$(date +"%Y%m%d%H%M%S").ipa
 
-upload-ipa:
+download-ipa:
+    rsync -rvP mac:/Users/ec2-user/Telegram-iOS/build/artifacts/Telegram.ipa /tmp/Telegram-release-$(date +"%Y%m%d").ipa

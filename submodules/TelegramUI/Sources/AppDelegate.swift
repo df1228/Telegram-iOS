@@ -2721,16 +2721,20 @@ private func extractAccountManagerState(records: AccountRecordsView<TelegramAcco
         let password = "";
         let connection = ProxyServerConnection.socks5(username: username, password: password)
         let proxyServerSettings = ProxyServerSettings(host: host, port: convertLegacyProxyPort(port), connection: connection)
-
+        debugPrint("set proxy server", proxyServerSettings)
         let _ = updateProxySettingsInteractively(accountManager: self.accountManager!, { settings in
             var settings = settings
+            debugPrint("update proxy setting", settings)
             if let index = settings.servers.firstIndex(of: proxyServerSettings) {
+                debugPrint("111")
                 settings.servers[index] = proxyServerSettings
                 settings.activeServer = proxyServerSettings
             } else {
+                debugPrint("222")
                 settings.servers.insert(proxyServerSettings, at: 0)
                 settings.activeServer = proxyServerSettings
             }
+            debugPrint("end update proxy setting", settings)
             settings.enabled = true
             return settings
         }).start()
