@@ -34,7 +34,7 @@ upload:
 build:
     #! /bin/bash
     set -xeuo pipefail
-    python3 build-system/Make/ImportCertificates.py --path build-system/dev-codesigning/certs
+    # python3 build-system/Make/ImportCertificates.py --path build-system/dev-codesigning/certs
     python3 -u build-system/Make/Make.py \
         --bazelUserRoot="{{BAZEL_USER_ROOT}}" \
         build \
@@ -46,7 +46,7 @@ build:
 build-release:
     #! /bin/bash
     set -xeuo pipefail
-    python3 build-system/Make/ImportCertificates.py --path build-system/dev-codesigning/certs
+    # python3 build-system/Make/ImportCertificates.py --path build-system/dev-codesigning/certs
     python3 -u build-system/Make/Make.py \
         --bazelUserRoot="{{BAZEL_USER_ROOT}}" \
         build \

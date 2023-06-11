@@ -13,10 +13,16 @@ def import_certificates(certificatesPath):
     keychain_password = 'secret'
 
     existing_keychains = run_executable_with_output('security', arguments=['list-keychains'], check_result=True)
+    # keychain_path = os.path.expanduser('~') + "/Library/Keychains/" + keychain_name + "-db"
+    # if keychain_path in existing_keychains:
+    #     # keychain_path = os.path.expanduser('~') + "/Library/Keychains/" + keychain_name + "-db"
+    #     # print("keychain_path:", keychain_path)
+    #     run_executable_with_output('security', arguments=['delete-keychain', keychain_path], check_result=True)
+
     if keychain_name in existing_keychains:
-        keychain_path = os.path.expanduser('~') + "/Library/Keychains/" + keychain_name + "-db"
-        print(keychain_path)
-        run_executable_with_output('security', arguments=['delete-keychain', keychain_path], check_result=True, print_command=True)
+        # keychain_path = os.path.expanduser('~') + "/Library/Keychains/" + keychain_name + "-db"
+        # print("keychain_path:", keychain_path)
+        run_executable_with_output('security', arguments=['delete-keychain'], check_result=True)
 
     run_executable_with_output('security', arguments=[
         'create-keychain',
