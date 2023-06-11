@@ -356,7 +356,7 @@ swift_library(
         "//submodules/OverlayStatusController:OverlayStatusControllerResources",
         "//submodules/PasswordSetupUI:PasswordSetupUIResources",
         "//submodules/PasswordSetupUI:PasswordSetupUIAssets",
-        "//submodules/PremiumUI:PremiumUIResources",
+        # "//submodules/PremiumUI:PremiumUIResources",
         "//submodules/DrawingUI:DrawingUIResources",
         "//submodules/TelegramUI:TelegramUIResources",
         "//submodules/TelegramUI:TelegramUIAssets",
