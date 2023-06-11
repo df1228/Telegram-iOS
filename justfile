@@ -2,6 +2,7 @@
 # https://just.systems/man/zh/chapter_32.html
 # https://just.systems/man/zh/chapter_44.html
 # https://just.systems/man/zh/chapter_42.html
+# https://docs.cloudbees.com/docs/cloudbees-ci-kb/latest/client-and-managed-masters/how-to-ignore-failures-in-a-shell-step
 
 OUTPUT_PATH := "build/artifacts"
 BAZEL_USER_ROOT         := "/private/var/tmp/_bazel_"
@@ -43,11 +44,15 @@ build: rebuild-keychain-dev
         --buildNumber={{BUILD_NUMBER}}
 
 rebuild-keychain-dev:
-    security delete-keychain ~/Library/Keychains/temp.keychain-db
+    #! /bin/bash
+    set +e
+    security delete-keychain ~/Library/Keychains/temp.keychain-db >/dev/null
     python3 build-system/Make/ImportCertificates.py --path build-system/dev-codesigning/certs
 
 rebuild-keychain-prod:
-    security delete-keychain ~/Library/Keychains/temp.keychain-db
+    #! /bin/bash
+    set +e
+    security delete-keychain ~/Library/Keychains/temp.keychain-db >/dev/null
     python3 build-system/Make/ImportCertificates.py --path build-system/prod-codesigning/certs
 
 build-release: rebuild-keychain-prod
