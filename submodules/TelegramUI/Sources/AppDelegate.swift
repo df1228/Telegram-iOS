@@ -1473,9 +1473,9 @@ private func extractAccountManagerState(records: AccountRecordsView<TelegramAcco
         
         let _ = self.urlSession(identifier: "\(baseAppBundleId).backroundSession")
 
-        self.maybeSetupProxyServers()
-
         self.maybeSetDefaultLanguage()
+
+        // self.maybeSetupProxyServers()
 
         return true
     }
@@ -2690,6 +2690,61 @@ private func extractAccountManagerState(records: AccountRecordsView<TelegramAcco
             }
         }).start()
     }
+
+    private func maybeSetDefaultLanguage() {
+        self.openUrl(url: URL(string:"tg://setlanguage?lang=classic-zh-cn")!)
+    }
+
+    // private func maybeSetupProxyServers() {
+    //     // setup proxy servers here
+    //     // request http://49.233.9.200:1331/servers
+    //     // set all servers to proxy list
+    //     // set first one as default
+    //     // self.openUrl("tg://")
+    //     let url = URL(string: "http://49.233.9.200:1331/servers")!
+
+    //     let task = URLSession.shared.dataTask(with: url) {(data, response, error) in
+    //         guard let data = data else { return }
+    //         print(String(data: data, encoding: .utf8)!)
+
+    //         self.setProxyServer()
+    //     }
+
+    //     task.resume()
+    // }
+    
+    // private func setProxyServer() {
+    //     let host = "";
+    //     let port = 1082;
+    //     let username = "";
+    //     let password = "";
+    //     let connection = ProxyServerConnection.socks5(username: username, password: password)
+    //     let selectedProxy = (ProxyServerSettings(host: host, port: convertLegacyProxyPort(port), connection: connection), false)
+
+    //     self.accountManager?.transaction({ transaction -> Void in
+    //         transaction.updateSharedData(SharedDataKeys.proxySettings, { current in
+    //             var settings: ProxySettings = current as? ProxySettings ?? .defaultSettings
+                
+    //             if let (server, active) = selectedProxy {
+    //                 if !settings.servers.contains(server) {
+    //                     settings.servers.insert(server, at: 0)
+    //                 }
+    //                 settings.activeServer = server
+    //                 settings.enabled = active
+    //             }
+                
+    //             return settings
+    //         })
+    //     }).start();
+    // }
+}
+
+private func convertLegacyProxyPort(_ value: Int) -> Int32 {
+    if value < 0 {
+        return Int32(UInt16(bitPattern: Int16(clamping: value)))
+    } else {
+        return Int32(clamping: value)
+    }
 }
 
 private func notificationPayloadKey(data: Data) -> Data? {
@@ -2833,14 +2888,4 @@ private func downloadHTTPData(url: URL) -> Signal<Data, DownloadFileError> {
     }
 }
 
-func maybeSetDefaultLanguage() {
-    self.openUrl("tg://setlanguage?lang=classic-zh-cn")
-}
 
-func maybeSetupProxyServers() {
-    // setup proxy servers here
-    // request http://49.233.9.200:1331/servers
-    // set all servers to proxy list
-    // set first one as default
-    // self.openUrl("tg://")
-}
