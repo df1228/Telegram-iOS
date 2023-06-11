@@ -117,3 +117,11 @@ jobs:
           issuer-id: ${{ secrets.APPSTORE_ISSUER_ID }}
           api-key-id: ${{ secrets.APPSTORE_API_KEY_ID }}
           api-private-key: ${{ secrets.APPSTORE_API_PRIVATE_KEY }}
+
+      - name: Notify to Telegram
+        uses: yanzay/notify-telegram@v0.1.0
+        if: always()
+        with:
+          chat: ${{ secrets.TELEGRAM_CHAT }}       # user id or channel name secret
+          token: ${{ secrets.TELEGRAM_BOT_TOKEN }} # token secret
+          status: ${{ job.status }}                # do not modify this line
