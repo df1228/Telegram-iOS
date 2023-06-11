@@ -100,7 +100,7 @@ swift_library(
         "//submodules/FetchManagerImpl:FetchManagerImpl",
         "//submodules/ListMessageItem:ListMessageItem",
         "//submodules/PaymentMethodUI:PaymentMethodUI",
-        # "//submodules/PremiumUI:PremiumUI",
+        "//submodules/PremiumUI:PremiumUI",
         "//submodules/InviteLinksUI:InviteLinksUI",
         "//submodules/HorizontalPeerItem:HorizontalPeerItem",
         "//submodules/TelegramUI/Components/EntityKeyboard:EntityKeyboard",
