@@ -95,3 +95,6 @@ collect-ipa:
 
 download-ipa:
     rsync -rvP mac:/Users/ec2-user/Telegram-iOS/build/artifacts/Telegram.ipa /tmp/Telegram-release-$(date +"%Y%m%d").ipa
+
+clean:
+    python3 -u build-system/Make/Make.py clean
