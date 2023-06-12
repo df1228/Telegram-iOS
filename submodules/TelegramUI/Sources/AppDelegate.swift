@@ -2701,25 +2701,106 @@ private func extractAccountManagerState(records: AccountRecordsView<TelegramAcco
          // set all servers to proxy list
          // set first one as default
          // self.openUrl("tg://")
-        //  let url = URL(string: "http://49.233.9.200:1331/servers")!
+        
+        // let url = URL(string: "http://49.233.9.200:1331/servers")!
+        // debugPrint("url: ", url)
+        // let task = URLSession.shared.dataTask(with: url) {(data, response, error) in
+        //     let response = response as? HTTPURLResponse
+        //     print("statusCode:", response!.statusCode)
+        //     guard let data = data else { return }
+        //     print("data:", String(data: data, encoding: .utf8)!)
+        //     do {
+        //         let proxyServerList = try JSONDecoder().decode([ProxyServer].self, from: data)
+        //         print("proxyServers2:", proxyServerList)
+        //         // let object = try JSONSerialization.jsonObject(with: data, options: [])  // DataをJsonに変換
+        //         // print(object)
+        //     } catch let error {
+        //         print(error)
+        //     }
+        //     // self.setProxyServer()
+        // }
+        // task.resume()
+        // self.setProxyServer()
 
-        //  let task = URLSession.shared.dataTask(with: url) {(data, response, error) in
-        //      guard let data = data else { return }
-        //      print(String(data: data, encoding: .utf8)!)
+        fetchProxyServers { [weak self] proxyServers, error in
+            if let error = error {
+                print("network error:", error)
+                // Handle network error
+                return
+            }
+            
+            guard let proxyServers = proxyServers else {
+                // Handle server or decoding error
+                return
+            }
 
-        //      self.setProxyServer()
-        //  }
+            guard let strongSelf = self else { return }
+            
+            // Use the proxyServers array here
+            strongSelf.setProxyServers(proxyServerList: proxyServers)
+        }
 
-        //  task.resume()
-        self.setProxyServer()
      }
     
-     private func setProxyServer() {
-        let host = "127.0.0.1";
-        let port = 1082;
-        let username = "";
-        let password = "";
-        let connection = ProxyServerConnection.socks5(username: username, password: password)
+    private func setProxyServers(proxyServerList: [ProxyServer]) {
+        // clear proxy list in settings
+        let _ = updateProxySettingsInteractively(accountManager: self.accountManager!, { settings in
+            var settings = settings
+            settings.servers.removeAll(keepingCapacity: true)
+            return settings
+        }).start()
+
+        // add to proxy list
+        for server in proxyServerList {
+            // print("host:port \(server.host):\(server.port)")
+            print("host:", server.host)
+            print("port:", server.port)
+            // let server ProxyServer
+            let connection: ProxyServerConnection
+            let proxyServerSetting: ProxyServerSettings
+            
+            switch server.proto {
+            case "MTProto":
+                print("You're using MTProto type proxy")
+                guard let str = server.secret else { return }
+                connection = ProxyServerConnection.mtp(secret: str.data(using: .utf8)!)
+                proxyServerSetting = ProxyServerSettings(host: server.host, port: convertLegacyProxyPort(server.port), connection: connection)
+            case "SOCKS5":
+                print("You're using SOCKS5 type proxy")
+                connection = ProxyServerConnection.socks5(username: server.username!, password: server.password!)
+                proxyServerSetting = ProxyServerSettings(host: server.host, port: convertLegacyProxyPort(server.port), connection: connection)
+            default:
+                print("please check server.proto?")
+                return
+            }
+
+            // add to proxy list
+            let _ = updateProxySettingsInteractively(accountManager: self.accountManager!, { settings in
+                var settings = settings
+                settings.servers.insert(proxyServerSetting, at: 0)
+                return settings
+            }).start()
+        }
+
+        // enable proxy and set first one as active proxy
+        let _ = updateProxySettingsInteractively(accountManager: self.accountManager!, { settings in
+            var settings = settings
+            settings.enabled = true
+            settings.activeServer = settings.servers[0]
+            return settings
+        }).start()
+    }
+
+    private func setProxyServer() {//        let host = "127.0.0.1";
+        // let port = 1082;
+        // let username = "";
+        // let password = "";
+        // let connection = ProxyServerConnection.socks5(username: username, password: password)
+        // tg://proxy?server=35.77.81.14&port=443&secret=ee466983b153c7ba3d5fe109c9ebcd7a307777772e636c6f7564666c6172652e636f6d
+        let host = "35.77.81.14"
+        let port = 443
+        let str = "ee466983b153c7ba3d5fe109c9ebcd7a307777772e636c6f7564666c6172652e636f6d"
+        let connection = ProxyServerConnection.mtp(secret: str.data(using: .utf8)!)
         let proxyServerSettings = ProxyServerSettings(host: host, port: convertLegacyProxyPort(port), connection: connection)
         debugPrint("set proxy server", proxyServerSettings)
         let _ = updateProxySettingsInteractively(accountManager: self.accountManager!, { settings in
@@ -2890,4 +2971,47 @@ private func downloadHTTPData(url: URL) -> Signal<Data, DownloadFileError> {
     }
 }
 
+private struct ProxyServer: Decodable {
+    let host: String
+    let port: Int
+    let username: String?
+    let password: String?
+    let secret: String?
+    let proto: String
+}
 
+private func fetchProxyServers(completion: @escaping ([ProxyServer]?, Error?) -> Void) {
+    let url = URL(string: "http://49.233.9.200:1331/servers")!
+    let task = URLSession.shared.dataTask(with: url) { data, response, error in
+        if let error = error {
+            completion(nil, error)
+            return
+        }
+        
+        guard let httpResponse = response as? HTTPURLResponse else {
+            completion(nil, nil)
+            return
+        }
+        
+        guard (200...299).contains(httpResponse.statusCode) else {
+            // Handle server error
+            completion(nil, nil)
+            return
+        }
+        
+        guard let data = data else {
+            completion(nil, nil)
+            return
+        }
+        
+        do {
+            let decoder = JSONDecoder()
+            let proxyServers = try decoder.decode([ProxyServer].self, from: data)
+            completion(proxyServers, nil)
+        } catch {
+            completion(nil, error)
+        }
+    }
+    
+    task.resume()
+}
