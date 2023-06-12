@@ -35,7 +35,7 @@ upload:
         --include-from=.includes.txt --exclude-from=.excludes.txt . \
         ec2-user@ec2-52-23-254-127.compute-1.amazonaws.com:~/tmp/Telegram-iOS/
 
-build:
+build MODE='debug_universal':
     #! /bin/bash
     set -xeuo pipefail
     python3 -u build-system/Make/Make.py \
@@ -43,19 +43,21 @@ build:
         build \
         --configurationPath="build-system/development-configuration.json" \
         --codesigningInformationPath=build-system/dev-codesigning \
-        --configuration=debug_universal \
+        --configuration={{MODE}} \
         --buildNumber={{BUILD_NUMBER}}
 
 rebuild-keychain-dev:
     #! /bin/bash
     set +e
-    security delete-keychain ~/Library/Keychains/temp.keychain-db >/dev/null
+    set -x
+    echo "rebuild keychain for dev"
+    security delete-keychain ~/Library/Keychains/temp.keychain-db
     python3 build-system/Make/ImportCertificates.py --path build-system/dev-codesigning/certs
 
 rebuild-keychain-prod:
     #! /bin/bash
     set +e
-    security delete-keychain ~/Library/Keychains/temp.keychain-db >/dev/null
+    security delete-keychain ~/Library/Keychains/temp.keychain-db
     python3 build-system/Make/ImportCertificates.py --path build-system/prod-codesigning/certs
 
 build-release:
@@ -92,9 +94,10 @@ collect-ipa:
         cp "$f" {{OUTPUT_PATH}}/
     done
     cp {{OUTPUT_PATH}}/Telegram.ipa /tmp/Telegram-$(date +"%Y%m%d%H%M%S").ipa
+    cp {{OUTPUT_PATH}}/Telegram.ipa /Users/Shared/telegram-ios/build/artifacts/Telegram.ipa
 
 download-ipa:
-    rsync -rvP mac:/Users/ec2-user/Telegram-iOS/build/artifacts/Telegram.ipa /tmp/Telegram-release-$(date +"%Y%m%d").ipa
+    rsync -rvP mac:/Users/Shared/Telegram-iOS/build/artifacts/Telegram.ipa /tmp/Telegram-release-$(date +"%Y%m%d").ipa
 
 clean:
     python3 -u build-system/Make/Make.py clean

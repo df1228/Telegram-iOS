@@ -53,8 +53,8 @@ jobs:
           python3 -u build-system/Make/Make.py \
             --bazelUserRoot="$BAZEL_USER_ROOT" \
             build \
-            --configurationPath="build-system/development-configuration.json" \
-            --codesigningInformationPath=build-system/dev-codesigning \
+            --configurationPath="build-system/prod-configuration.json" \
+            --codesigningInformationPath=build-system/prod-codesigning \
             --configuration=release_arm64 \
             --buildNumber="$BUILD_NUMBER"
 
@@ -68,12 +68,12 @@ jobs:
 
           # fd -H -I Telegram.ipa bazel-out/
           # dbg is debug, opt is release
-          # # collect dsym
-          # mkdir -p build/DSYMs
-          # for f in bazel-out/applebin_ios-ios_arm*-opt-ST-*/bin/Telegram/*.dSYM; do
-          #   cp -R "$f" build/DSYMs/
-          # done
-          # zip -r "./$OUTPUT_PATH/Telegram.DSYMs.zip" build/DSYMs 1>/dev/null
+          # collect dsym
+          mkdir -p build/DSYMs
+          for f in bazel-out/applebin_ios-ios_arm*-opt-ST-*/bin/Telegram/*.dSYM; do
+            cp -R "$f" build/DSYMs/
+          done
+          zip -r "./$OUTPUT_PATH/Telegram.DSYMs.zip" build/DSYMs 1>/dev/null
 
       - name: Create Release
         id: create_release
@@ -132,7 +132,7 @@ jobs:
         env:
           API_KEY: ${{ secrets.APPSTORE_API_KEY_ID }}
           API_ISSUER : ${{ secrets.APPSTORE_ISSUER_ID  }}
-        run: xcrun altool --output-format xml --upload-app -f /Users/ec2-user/Telegram-iOS/build/artifacts/Telegram.ipa -t ios --apiKey $API_KEY --apiIssuer $API_ISSUER
+        run: xcrun altool --output-format xml --upload-app -f /Users/Shared/Telegram-iOS/build/artifacts/Telegram.ipa -t ios --apiKey $API_KEY --apiIssuer $API_ISSUER
 
       # action is only supported on Linux
       # - name: Notify to Telegram
