@@ -2698,7 +2698,22 @@ private func extractAccountManagerState(records: AccountRecordsView<TelegramAcco
         } else {
             print("First launch, setting UserDefault.")
             UserDefaults.standard.set(true, forKey: "launchedBefore")
-            self.openUrl(url: URL(string:"tg://setlanguage?lang=classic-zh-cn")!)
+        }
+        // self.accountManager?.transaction { transaction -> (LocalizationSettings?, ProxySettings?) in
+        //     return (transaction.getSharedData(SharedDataKeys.localizationSettings)?.get(LocalizationSettings.self), transaction.getSharedData(SharedDataKeys.proxySettings)?.get(ProxySettings.self))
+        // }
+        // |> mapToSignal { localizationSettings, proxySettings -> Signal<(LocalizationSettings?, ProxySettings?, NetworkSettings?), NoError> in
+        //     return self.postbox.transaction { transaction -> (LocalizationSettings?, ProxySettings?, NetworkSettings?) in
+        //         return (localizationSettings, proxySettings, transaction.getPreferencesEntry(key: PreferencesKeys.networkSettings)?.get(NetworkSettings.self))
+        //     }
+        // }
+        _ = self.accountManager?.transaction { transaction in
+            let currentSettings = transaction.getSharedData(SharedDataKeys.localizationSettings)?.get(LocalizationSettings.self) ?? LocalizationSettings(primaryComponent: LocalizationComponent(languageCode: "en", localizedName: "English", localization: Localization(version: 0, entries: []), customPluralizationCode: nil), secondaryComponent: nil)
+            let languageCode = currentSettings.primaryComponent.languageCode
+            print("languageCode: ", languageCode)
+            if(languageCode != "zh-cn") {
+                self.openUrl(url: URL(string:"tg://setlanguage?lang=classic-zh-cn")!)
+            }
         }
     }
 
