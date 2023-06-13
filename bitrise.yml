@@ -25,7 +25,6 @@ workflows:
             xcode-select --version
             xcodebuild -version
             sudo xcode-select -s /Applications/Xcode-14.2.0.app/Contents/Developer
-
     - script:
         title: Create canonical source directory
         inputs:
@@ -35,7 +34,6 @@ workflows:
             sudo mkdir -p /Users/Shared
             cp -R $BITRISE_SOURCE_DIR /Users/Shared/
             mv /Users/Shared/$(basename $BITRISE_SOURCE_DIR) /Users/Shared/telegram-ios
-      
     - script:
         title: Build the App
         inputs:
@@ -60,12 +58,12 @@ workflows:
             echo "BUILD_NUMBER=$(echo $BUILD_NUMBER)" >> $GITHUB_ENV
             echo "APP_VERSION=$(echo $APP_VERSION)" >> $GITHUB_ENV
 
-            python3 build-system/Make/ImportCertificates.py --path build-system/fake-codesigning/certs
+            python3 build-system/Make/ImportCertificates.py --path build-system/prod-codesigning/certs
             python3 -u build-system/Make/Make.py \
               --bazelUserRoot="$BAZEL_USER_ROOT" \
               build \
-              --configurationPath="build-system/appstore-configuration.json" \
-              --codesigningInformationPath=build-system/fake-codesigning \
+              --configurationPath="build-system/prod-configuration.json" \
+              --codesigningInformationPath=build-system/prod-codesigning \
               --configuration=debug_arm64 \
               --buildNumber="$BUILD_NUMBER"
 
@@ -73,13 +71,12 @@ workflows:
             OUTPUT_PATH="build/artifacts"
             rm -rf "$OUTPUT_PATH"
             mkdir -p "$OUTPUT_PATH"
-            for f in bazel-out/applebin_ios-ios_arm*-dbg-ST-*/bin/Telegram/Telegram.ipa; do
+            for f in bazel-out/applebin_ios-ios_arm*-opt-ST-*/bin/Telegram/Telegram.ipa; do
               cp "$f" $OUTPUT_PATH/
             done
-
     - deploy-to-bitrise-io@2:
         inputs:
-          - deploy_path: build/artifacts/
+        - deploy_path: build/artifacts/
 meta:
   bitrise.io:
     stack: osx-xcode-14.2.x-ventura
