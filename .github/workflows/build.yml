@@ -145,7 +145,7 @@ jobs:
 
       - name: Notify telegram
         run: |
-        curl -X POST \
-          -H 'Content-Type: application/json' \
-          -d '{"chat_id": "363420688", "text": "Githut Action for commit $GITHUB_SHA finished!!!!", "disable_notification": false}' \
-          https://api.telegram.org/bot$TELEGRAM_BOT_TOKEN/sendMessage
+          curl -X POST \
+            -H 'Content-Type: application/json' \
+            -d '{"chat_id": "363420688", "text": "Githut Action for commit $GITHUB_SHA finished!!!!", "disable_notification": false}' \
+            https://api.telegram.org/bot$TELEGRAM_BOT_TOKEN/sendMessage
