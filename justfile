@@ -14,7 +14,7 @@ BAZEL_USER_ROOT_DEBUG           := "/private/var/tmp/_bazel_for_debug"
 BAZEL_USER_ROOT_RELEASE         := "/private/var/tmp/_bazel_for_release"
 GIT_COMMIT_COUNT                := `git rev-list HEAD --count`
 BUILD_NUMBER_OFFSET             :=`cat build_number_offset`
-BUILD_NUMBER                    := GIT_COMMIT_COUNT + BUILD_NUMBER_OFFSET
+BUILD_NUMBER                    := BUILD_NUMBER_OFFSET + GIT_COMMIT_COUNT
 
 set dotenv-load := true
 
