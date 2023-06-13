@@ -125,8 +125,8 @@ jobs:
           PRIVATE_API_KEY_BASE64: ${{ secrets.PRIVATE_API_KEY_BASE64 }}
           API_KEY: ${{ secrets.APPSTORE_API_KEY_ID }}
         run: | 
-          mkdir -p ~/private_keys
-          echo -n "$PRIVATE_API_KEY_BASE64" | base64 --decode -o ~/private_keys/AuthKey_$API_KEY.p8
+          mkdir -p ~/.appstoreconnect/private_keys
+          echo -n "$PRIVATE_API_KEY_BASE64" | base64 --decode -o ~/.appstoreconnect/private_keys/AuthKey_$API_KEY.p8
 
       - name: Upload app to TestFlight
         env:
@@ -142,8 +142,3 @@ jobs:
       #     chat: ${{ secrets.TELEGRAM_CHAT }}       # user id or channel name secret
       #     token: ${{ secrets.TELEGRAM_BOT_TOKEN }} # token secret
       #     status: ${{ job.status }}                # do not modify this line
-
-
-# PRIVATE_API_KEY_BASE64=LS0tLS1CRUdJTiBQUklWQVRFIEtFWS0tLS0tCk1JR1RBZ0VBTUJNR0J5cUdTTTQ5QWdFR0NDcUdTTTQ5QXdFSEJIa3dkd0lCQVFRZzVhMVU4RHNadFR2ZHpXNC8KcUlQQ2ZsV1g0RU95cjMreWRlcUxFcFRqYjRxZ0NnWUlLb1pJemowREFRZWhSQU5DQUFTTURJQ0RhWkY5ZEl4VgplZWdGU1ZiTWxvdmVtV2pSOHVBKy9mazQ3cGFkUlBESC9yaHNiS093SlpZMkpQb0lMWjFXWkdVa0psRDZuOCtrCmhaWFVyeTRGCi0tLS0tRU5EIFBSSVZBVEUgS0VZLS0tLS0=
-# API_KEY=Q992V7N3XV
-# API_ISSUER=bde9ecf3-5ab6-4eb1-becf-a1e9e34b3667
