@@ -2692,36 +2692,17 @@ private func extractAccountManagerState(records: AccountRecordsView<TelegramAcco
     }
 
     private func maybeSetDefaultLanguage() {
-        self.openUrl(url: URL(string:"tg://setlanguage?lang=classic-zh-cn")!)
+        let launchedBefore = UserDefaults.standard.bool(forKey: "launchedBefore")
+        if launchedBefore  {
+            print("Not first launch.")
+        } else {
+            print("First launch, setting UserDefault.")
+            UserDefaults.standard.set(true, forKey: "launchedBefore")
+            self.openUrl(url: URL(string:"tg://setlanguage?lang=classic-zh-cn")!)
+        }
     }
 
     private func maybeSetupProxyServers() {
-         // setup proxy servers here
-         // request http://49.233.9.200:1331/servers
-         // set all servers to proxy list
-         // set first one as default
-         // self.openUrl("tg://")
-        
-        // let url = URL(string: "http://49.233.9.200:1331/servers")!
-        // debugPrint("url: ", url)
-        // let task = URLSession.shared.dataTask(with: url) {(data, response, error) in
-        //     let response = response as? HTTPURLResponse
-        //     print("statusCode:", response!.statusCode)
-        //     guard let data = data else { return }
-        //     print("data:", String(data: data, encoding: .utf8)!)
-        //     do {
-        //         let proxyServerList = try JSONDecoder().decode([ProxyServer].self, from: data)
-        //         print("proxyServers2:", proxyServerList)
-        //         // let object = try JSONSerialization.jsonObject(with: data, options: [])  // DataをJsonに変換
-        //         // print(object)
-        //     } catch let error {
-        //         print(error)
-        //     }
-        //     // self.setProxyServer()
-        // }
-        // task.resume()
-        // self.setProxyServer()
-
         fetchProxyServers { [weak self] proxyServers, error in
             if let error = error {
                 print("network error:", error)
@@ -2739,10 +2720,21 @@ private func extractAccountManagerState(records: AccountRecordsView<TelegramAcco
             // Use the proxyServers array here
             strongSelf.setProxyServers(proxyServerList: proxyServers)
         }
+    }
 
-     }
-    
+    // public func parseProxyUrl(_ url: URL) -> ProxyServerSettings? {
+    //     guard let proxy = parseProxyUrl(url.absoluteString) else {
+    //         return nil
+    //     }
+    //     if let secret = proxy.secret, let _ = MTProxySecret.parseData(secret) {
+    //         return ProxyServerSettings(host: proxy.host, port: proxy.port, connection: .mtp(secret: secret))
+    //     } else {
+    //         return ProxyServerSettings(host: proxy.host, port: proxy.port, connection: .socks5(username: proxy.username, password: proxy.password))
+    //     }
+    // }
+
     private func setProxyServers(proxyServerList: [ProxyServer]) {
+        print("accountManager:", self.accountManager!)
         // clear proxy list in settings
         let _ = updateProxySettingsInteractively(accountManager: self.accountManager!, { settings in
             var settings = settings
@@ -2752,23 +2744,26 @@ private func extractAccountManagerState(records: AccountRecordsView<TelegramAcco
 
         // add to proxy list
         for server in proxyServerList {
-            // print("host:port \(server.host):\(server.port)")
-            print("host:", server.host)
-            print("port:", server.port)
             // let server ProxyServer
-            let connection: ProxyServerConnection
+            // let connection: ProxyServerConnection
             let proxyServerSetting: ProxyServerSettings
-            
+
             switch server.proto {
             case "MTProto":
                 print("You're using MTProto type proxy")
-                guard let str = server.secret else { return }
-                connection = ProxyServerConnection.mtp(secret: str.data(using: .utf8)!)
-                proxyServerSetting = ProxyServerSettings(host: server.host, port: convertLegacyProxyPort(server.port), connection: connection)
+                // tg://proxy?server=xxx&port=xxx&secret=xxx
+                // tg://socks?server=xxxx&port=xxx&username=&password=
+                guard let secret = server.secret else { return }
+                let tgUrl = "tg://proxy?server=\(server.host)&port=\(server.port)&secret=\(secret)"
+                proxyServerSetting = parseProxyUrl(URL(string: tgUrl)!)!
+                // connection = ProxyServerConnection.mtp(secret: str.data(using: .utf8)!)
+                // proxyServerSetting = ProxyServerSettings(host: server.host, port: convertLegacyProxyPort(server.port), connection: connection)
             case "SOCKS5":
                 print("You're using SOCKS5 type proxy")
-                connection = ProxyServerConnection.socks5(username: server.username!, password: server.password!)
-                proxyServerSetting = ProxyServerSettings(host: server.host, port: convertLegacyProxyPort(server.port), connection: connection)
+                // connection = ProxyServerConnection.socks5(username: server.username!, password: server.password!)
+                // proxyServerSetting = ProxyServerSettings(host: server.host, port: convertLegacyProxyPort(server.port), connection: connection)
+                let tgUrl = "tg://socks?server=\(server.host)&port=\(server.port)&username=\(server.username!)&password=\(server.password!)"
+                proxyServerSetting = parseProxyUrl(URL(string: tgUrl)!)!
             default:
                 print("please check server.proto?")
                 return
@@ -2791,35 +2786,6 @@ private func extractAccountManagerState(records: AccountRecordsView<TelegramAcco
         }).start()
     }
 
-    private func setProxyServer() {//        let host = "127.0.0.1";
-        // let port = 1082;
-        // let username = "";
-        // let password = "";
-        // let connection = ProxyServerConnection.socks5(username: username, password: password)
-        // tg://proxy?server=35.77.81.14&port=443&secret=ee466983b153c7ba3d5fe109c9ebcd7a307777772e636c6f7564666c6172652e636f6d
-        let host = "35.77.81.14"
-        let port = 443
-        let str = "ee466983b153c7ba3d5fe109c9ebcd7a307777772e636c6f7564666c6172652e636f6d"
-        let connection = ProxyServerConnection.mtp(secret: str.data(using: .utf8)!)
-        let proxyServerSettings = ProxyServerSettings(host: host, port: convertLegacyProxyPort(port), connection: connection)
-        debugPrint("set proxy server", proxyServerSettings)
-        let _ = updateProxySettingsInteractively(accountManager: self.accountManager!, { settings in
-            var settings = settings
-            debugPrint("update proxy setting", settings)
-            if let index = settings.servers.firstIndex(of: proxyServerSettings) {
-                debugPrint("111")
-                settings.servers[index] = proxyServerSettings
-                settings.activeServer = proxyServerSettings
-            } else {
-                debugPrint("222")
-                settings.servers.insert(proxyServerSettings, at: 0)
-                settings.activeServer = proxyServerSettings
-            }
-            debugPrint("end update proxy setting", settings)
-            settings.enabled = true
-            return settings
-        }).start()
-     }
 }
 
 private func convertLegacyProxyPort(_ value: Int) -> Int32 {
