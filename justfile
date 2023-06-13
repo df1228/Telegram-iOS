@@ -19,7 +19,7 @@ BUILD_NUMBER                    := GIT_COMMIT_COUNT + BUILD_NUMBER_OFFSET
 set dotenv-load := true
 
 default:
-    just -l
+    @just -l
 
 print:
     #!/usr/bin/env bash
@@ -31,6 +31,10 @@ print:
     echo {{GIT_COMMIT_COUNT}}
     echo {{BUILD_NUMBER_OFFSET}}
     echo {{BUILD_NUMBER}}
+
+prepare:
+    mkdir -p build/artifacts/
+    chmod -R 777 build/artifacts/
 
 bash-test:
     #!/usr/bin/env bash
@@ -63,7 +67,7 @@ build MODE='debug_universal':
         --configuration={{MODE}} \
         --buildNumber={{BUILD_NUMBER}}
 
-build-release:
+build-release: prepare
     #! /bin/bash
     set -xeuo pipefail
     python3 -u build-system/Make/Make.py \
@@ -88,7 +92,7 @@ gen:
         --codesigningInformationPath=build-system/dev-codesigning \
         --disableExtensions
 
-collect-ipa:
+collect-ipa: prepare
     #! /bin/bash
     set -xeuo pipefail
     rm -rf "{{OUTPUT_PATH}}"
@@ -108,9 +112,9 @@ clean:
 upload-ipa:
     #! /bin/bash
     set -xeuo pipefail
-    mkdir -p ~/private_keys
-    echo -n "$PRIVATE_API_KEY_BASE64" | base64 --decode -o ~/private_keys/AuthKey_$API_KEY.p8
+    mkdir -p ~/.appstoreconnect/private_keys
+    echo -n "$PRIVATE_API_KEY_BASE64" | base64 --decode -o ~/.appstoreconnect/private_keys/AuthKey_$API_KEY.p8
     xcrun altool --output-format xml --upload-app -f /Users/Shared/Telegram-iOS/build/artifacts/Telegram.ipa -t ios --apiKey $API_KEY --apiIssuer $API_ISSUER
 
 validate-ipa:
-    xcrun altool --validate-app -f /Users/Shared/Telegram-iOS/build/artifacts/Telegram.ipa -t ios
+    xcrun altool --validate-app -f /Users/Shared/Telegram-iOS/build/artifacts/Telegram.ipa -t ios --apiKey $API_KEY --apiIssuer $API_ISSUER

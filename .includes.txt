@@ -1,7 +1,8 @@
 Telegram
 build-system
 codemagic.yaml
-bitrsise.yml
+bitrise.yml
 justfile
 .gitignore
 .github
+submodules

@@ -24,7 +24,7 @@ workflows:
             xcode-select --print-path
             xcode-select --version
             xcodebuild -version
-            sudo xcode-select -s /Applications/Xcode_14.2.0.app/Contents/Developer
+            sudo xcode-select -s /Applications/Xcode-14.2.0.app/Contents/Developer
 
     - script:
         title: Create canonical source directory
@@ -77,7 +77,9 @@ workflows:
               cp "$f" $OUTPUT_PATH/
             done
 
-    - deploy-to-bitrise-io@2: {}
+    - deploy-to-bitrise-io@2:
+        inputs:
+          - deploy_path: build/artifacts/
 meta:
   bitrise.io:
     stack: osx-xcode-14.2.x-ventura
