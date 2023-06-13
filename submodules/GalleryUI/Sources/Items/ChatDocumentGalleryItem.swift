@@ -281,7 +281,7 @@ class ChatDocumentGalleryItemNode: ZoomableContentGalleryItemNode, WKNavigationD
                                 }
                             }
                         } else if let webView = strongSelf.webView as? WKWebView {
-                            webView.loadRequest(URLRequest(url: URL(fileURLWithPath: data.path)))
+                            webView.load(URLRequest(url: URL(fileURLWithPath: data.path)))
                         }
                     }
                 }
