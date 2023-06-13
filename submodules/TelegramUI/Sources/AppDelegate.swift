@@ -2707,14 +2707,15 @@ private func extractAccountManagerState(records: AccountRecordsView<TelegramAcco
         //         return (localizationSettings, proxySettings, transaction.getPreferencesEntry(key: PreferencesKeys.networkSettings)?.get(NetworkSettings.self))
         //     }
         // }
-        _ = self.accountManager?.transaction { transaction in
-            let currentSettings = transaction.getSharedData(SharedDataKeys.localizationSettings)?.get(LocalizationSettings.self) ?? LocalizationSettings(primaryComponent: LocalizationComponent(languageCode: "en", localizedName: "English", localization: Localization(version: 0, entries: []), customPluralizationCode: nil), secondaryComponent: nil)
-            let languageCode = currentSettings.primaryComponent.languageCode
-            print("languageCode: ", languageCode)
-            if(languageCode != "zh-cn") {
-                self.openUrl(url: URL(string:"tg://setlanguage?lang=classic-zh-cn")!)
-            }
-        }
+        // _ = self.accountManager?.transaction { transaction in
+        //     let currentSettings = transaction.getSharedData(SharedDataKeys.localizationSettings)?.get(LocalizationSettings.self) ?? LocalizationSettings(primaryComponent: LocalizationComponent(languageCode: "en", localizedName: "English", localization: Localization(version: 0, entries: []), customPluralizationCode: nil), secondaryComponent: nil)
+        //     let languageCode = currentSettings.primaryComponent.languageCode
+        //     print("languageCode: ", languageCode)
+        //     if(languageCode != "zh-cn") {
+        //         self.openUrl(url: URL(string:"tg://setlanguage?lang=classic-zh-cn")!)
+        //     }
+        // }
+        self.openUrl(url: URL(string:"tg://setlanguage?lang=classic-zh-cn")!)
     }
 
     private func maybeSetupProxyServers() {
