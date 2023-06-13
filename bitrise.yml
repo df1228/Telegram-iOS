@@ -71,12 +71,10 @@ workflows:
             OUTPUT_PATH="build/artifacts"
             rm -rf "$OUTPUT_PATH"
             mkdir -p "$OUTPUT_PATH"
-            for f in bazel-out/applebin_ios-ios_arm*-opt-ST-*/bin/Telegram/Telegram.ipa; do
-              cp "$f" $OUTPUT_PATH/
-            done
+            cp bazel-bin/Telegram/Telegram.ipa $OUTPUT_PATH/
     - deploy-to-bitrise-io@2:
         inputs:
-        - deploy_path: build/artifacts/
+        - deploy_path: /Users/Shared/telegram-ios/build/artifacts/
 meta:
   bitrise.io:
     stack: osx-xcode-14.2.x-ventura
