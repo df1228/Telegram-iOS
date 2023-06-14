@@ -1,5 +1,0 @@
-.git
-bazel-bin
-bazel-out
-bazel-Telegram-iOS
-build-input

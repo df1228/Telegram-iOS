@@ -1,8 +1,0 @@
-Telegram
-build-system
-codemagic.yaml
-bitrise.yml
-justfile
-.gitignore
-.github
-submodules
