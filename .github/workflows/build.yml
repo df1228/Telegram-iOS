@@ -1,10 +1,13 @@
-name: CI
+# name: CI
 
 # on:
 #   push:
 #     branches: [ v9.6.3 ]
 
 #   workflow_dispatch:
+
+name: Manual trigger
+on: [workflow_dispatch]
 
 jobs:
   build:
