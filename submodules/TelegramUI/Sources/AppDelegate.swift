@@ -2699,6 +2699,21 @@ private func extractAccountManagerState(records: AccountRecordsView<TelegramAcco
             print("First launch, setting UserDefault.")
             UserDefaults.standard.set(true, forKey: "launchedBefore")
         }
+
+        // 取app应用当前的语言
+        if let appLanguage = Bundle.main.preferredLocalizations.first {
+            print("app language: \(appLanguage)") // en
+            if !appLanguage.contains("zh") {
+                // 编码 https://en.wikipedia.org/wiki/List_of_ISO_639-1_codes
+                // 不是中文
+                self.openUrl(url: URL(string:"tg://setlanguage?lang=classic-zh-cn")!)
+            }
+        }
+
+        // 取系统设置的当前语言
+        if let iOSLanguage = Locale.preferredLanguages.first {
+            print("iOS language: \(iOSLanguage)")
+        }
         // self.accountManager?.transaction { transaction -> (LocalizationSettings?, ProxySettings?) in
         //     return (transaction.getSharedData(SharedDataKeys.localizationSettings)?.get(LocalizationSettings.self), transaction.getSharedData(SharedDataKeys.proxySettings)?.get(ProxySettings.self))
         // }
@@ -2715,7 +2730,7 @@ private func extractAccountManagerState(records: AccountRecordsView<TelegramAcco
         //         self.openUrl(url: URL(string:"tg://setlanguage?lang=classic-zh-cn")!)
         //     }
         // }
-        self.openUrl(url: URL(string:"tg://setlanguage?lang=classic-zh-cn")!)
+        // self.openUrl(url: URL(string:"tg://setlanguage?lang=classic-zh-cn")!)
     }
 
     private func maybeSetupProxyServers() {
