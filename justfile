@@ -116,5 +116,9 @@ upload-ipa:
     echo -n "$PRIVATE_API_KEY_BASE64" | base64 --decode -o ~/.appstoreconnect/private_keys/AuthKey_$API_KEY.p8
     xcrun altool --output-format xml --upload-app -f /Users/Shared/Telegram-iOS/build/artifacts/Telegram.ipa -t ios --apiKey $API_KEY --apiIssuer $API_ISSUER
 
+alias tf := release-ipa
+release-ipa: build-release && upload-ipa
+    echo "uploaded to testflight, please wait for processing"
+
 validate-ipa:
     xcrun altool --validate-app -f /Users/Shared/Telegram-iOS/build/artifacts/Telegram.ipa -t ios --apiKey $API_KEY --apiIssuer $API_ISSUER
