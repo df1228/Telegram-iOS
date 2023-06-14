@@ -15,6 +15,7 @@ BAZEL_USER_ROOT_RELEASE         := "/private/var/tmp/_bazel_for_release"
 GIT_COMMIT_COUNT                := `git rev-list HEAD --count`
 BUILD_NUMBER_OFFSET             :=`cat build_number_offset`
 BUILD_NUMBER                    := BUILD_NUMBER_OFFSET + GIT_COMMIT_COUNT
+SHORT_SHA                       := `git rev-parse --short HEAD`
 
 set dotenv-load := true
 
@@ -78,8 +79,9 @@ build-release: prepare
         --configuration=release_universal \
         --buildNumber={{BUILD_NUMBER}}
     mkdir -p {{OUTPUT_PATH}}
+    chmod -R 777 build/artifacts/
     for f in bazel-out/applebin_ios-ios_arm*-opt-ST-*/bin/Telegram/Telegram.ipa; do
-        cp "$f" {{OUTPUT_PATH}}/
+        cp -f "$f" {{OUTPUT_PATH}}/
     done
 
 gen:
@@ -94,14 +96,15 @@ gen:
 
 collect-ipa: prepare
     #! /bin/bash
-    set -xeuo pipefail
-    rm -rf "{{OUTPUT_PATH}}"
+    set +e
+    set -x
     mkdir -p "{{OUTPUT_PATH}}"
+    chmod -R 777 build/artifacts/
     for f in bazel-out/applebin_ios-ios_arm*-opt-ST-*/bin/Telegram/Telegram.ipa; do
-        cp "$f" {{OUTPUT_PATH}}/
+        cp -f "$f" {{OUTPUT_PATH}}/
     done
-    mv /Users/Shared/build/artifacts/Telegram.ipa /Users/Shared/build/artifacts/Telegram-$(date +"%Y%m%d%H%M%S").ipa
-    cp {{OUTPUT_PATH}}/Telegram.ipa /Users/Shared/build/artifacts/Telegram.ipa
+    cp -f {{OUTPUT_PATH}}/Telegram.ipa /Users/Shared/build/artifacts/Telegram.ipa
+    cp -f {{OUTPUT_PATH}}/Telegram.ipa /Users/Shared/build/artifacts/Telegram-{{SHORT_SHA}}.ipa
 
 download-ipa:
     rsync -rvP mac:/Users/Shared/build/artifacts/Telegram.ipa /tmp/Telegram.ipa
@@ -111,7 +114,7 @@ clean:
     rm -rf build-input bazel-*
     git submodule update --recursive
 
-upload-ipa:
+upload-ipa: collect-ipa
     #! /bin/bash
     set -xeuo pipefail
     mkdir -p ~/.appstoreconnect/private_keys
