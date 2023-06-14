@@ -62,7 +62,7 @@ build MODE='debug_universal':
     python3 -u build-system/Make/Make.py \
         --bazelUserRoot="{{BAZEL_USER_ROOT_DEBUG}}" \
         build \
-        --configurationPath="build-system/development-configuration.json" \
+        --configurationPath="build-system/dev-configuration.json" \
         --codesigningInformationPath=build-system/dev-codesigning \
         --configuration={{MODE}} \
         --buildNumber={{BUILD_NUMBER}}
@@ -88,7 +88,7 @@ gen:
     python3 build-system/Make/Make.py \
         --cacheDir="$HOME/telegram-bazel-cache" \
         generateProject \
-        --configurationPath="build-system/development-configuration.json" \
+        --configurationPath="build-system/dev-configuration.json" \
         --codesigningInformationPath=build-system/dev-codesigning \
         --disableExtensions
 

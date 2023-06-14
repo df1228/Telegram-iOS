@@ -1,5 +1,5 @@
 {
-    "bundle_id": "org.06381a0697d713b6.XTelegram",
+    "bundle_id": "org.16c9093f1b05e80f.XTelegram",
     "api_id": "28708907",
     "api_hash": "48c5937d301c67e81a360b15bc51c47a",
     "team_id": "74976VJMZC",
@@ -9,6 +9,7 @@
     "appstore_id": "686449807",
     "app_specific_url_scheme": "tg",
     "premium_iap_product_id": "org.telegram.telegramPremium.monthly",
+    "aps_environment": "development",
     "enable_siri": false,
     "enable_icloud": false
 }
