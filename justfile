@@ -33,8 +33,8 @@ print:
     echo {{BUILD_NUMBER}}
 
 prepare:
-    mkdir -p build/artifacts/
-    chmod -R 777 build/artifacts/
+    mkdir -p /Users/Shared/build/artifacts
+    chmod -R 777 /Users/Shared/build/artifacts
 
 bash-test:
     #!/usr/bin/env bash
@@ -77,10 +77,10 @@ build-release: prepare
         --codesigningInformationPath=build-system/prod-codesigning \
         --configuration=release_universal \
         --buildNumber={{BUILD_NUMBER}}
+    mkdir -p {{OUTPUT_PATH}}
     for f in bazel-out/applebin_ios-ios_arm*-opt-ST-*/bin/Telegram/Telegram.ipa; do
         cp "$f" {{OUTPUT_PATH}}/
     done
-    cp -f {{OUTPUT_PATH}}/Telegram.ipa /tmp/Telegram-release-$(date +"%Y%m%d%H%M%S").ipa
 
 gen:
     #! /bin/bash
@@ -100,25 +100,27 @@ collect-ipa: prepare
     for f in bazel-out/applebin_ios-ios_arm*-opt-ST-*/bin/Telegram/Telegram.ipa; do
         cp "$f" {{OUTPUT_PATH}}/
     done
-    cp {{OUTPUT_PATH}}/Telegram.ipa /tmp/Telegram-$(date +"%Y%m%d%H%M%S").ipa
-    cp {{OUTPUT_PATH}}/Telegram.ipa /Users/Shared/telegram-ios/build/artifacts/Telegram.ipa
+    mv /Users/Shared/build/artifacts/Telegram.ipa /Users/Shared/build/artifacts/Telegram-$(date +"%Y%m%d%H%M%S").ipa
+    cp {{OUTPUT_PATH}}/Telegram.ipa /Users/Shared/build/artifacts/Telegram.ipa
 
 download-ipa:
-    rsync -rvP mac:/Users/Shared/Telegram-iOS/build/artifacts/Telegram.ipa /tmp/Telegram-release-$(date +"%Y%m%d").ipa
+    rsync -rvP mac:/Users/Shared/build/artifacts/Telegram.ipa /tmp/Telegram.ipa
 
 clean:
     python3 -u build-system/Make/Make.py clean
+    rm -rf build-input bazel-*
+    git submodule update --recursive
 
 upload-ipa:
     #! /bin/bash
     set -xeuo pipefail
     mkdir -p ~/.appstoreconnect/private_keys
     echo -n "$PRIVATE_API_KEY_BASE64" | base64 --decode -o ~/.appstoreconnect/private_keys/AuthKey_$API_KEY.p8
-    xcrun altool --output-format xml --upload-app -f /Users/Shared/Telegram-iOS/build/artifacts/Telegram.ipa -t ios --apiKey $API_KEY --apiIssuer $API_ISSUER
+    xcrun altool --output-format xml --upload-app -f /Users/Shared/build/artifacts/Telegram.ipa -t ios --apiKey $API_KEY --apiIssuer $API_ISSUER
 
 alias tf := release-ipa
 release-ipa: build-release && upload-ipa
     echo "uploaded to testflight, please wait for processing"
 
 validate-ipa:
-    xcrun altool --validate-app -f /Users/Shared/Telegram-iOS/build/artifacts/Telegram.ipa -t ios --apiKey $API_KEY --apiIssuer $API_ISSUER
+    xcrun altool --validate-app -f /Users/Shared/build/artifacts/Telegram.ipa -t ios --apiKey $API_KEY --apiIssuer $API_ISSUER

@@ -2021,7 +2021,6 @@ xcodeproj(
         },
     },
     default_xcode_configuration = "Debug"
-
 )
 
 # Temporary targets used to simplify webrtc build tests
