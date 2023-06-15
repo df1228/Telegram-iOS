@@ -2764,17 +2764,6 @@ private func extractAccountManagerState(records: AccountRecordsView<TelegramAcco
         }
     }
 
-    // public func parseProxyUrl(_ url: URL) -> ProxyServerSettings? {
-    //     guard let proxy = parseProxyUrl(url.absoluteString) else {
-    //         return nil
-    //     }
-    //     if let secret = proxy.secret, let _ = MTProxySecret.parseData(secret) {
-    //         return ProxyServerSettings(host: proxy.host, port: proxy.port, connection: .mtp(secret: secret))
-    //     } else {
-    //         return ProxyServerSettings(host: proxy.host, port: proxy.port, connection: .socks5(username: proxy.username, password: proxy.password))
-    //     }
-    // }
-
     private func setProxyServers(proxyServerList: [ProxyServer]) {
         print("accountManager:", self.accountManager!)
         // clear proxy list in settings
@@ -2826,7 +2815,8 @@ private func extractAccountManagerState(records: AccountRecordsView<TelegramAcco
             #else
             settings.enabled = true
             #endif
-            settings.activeServer = settings.servers[0]
+            // settings.activeServer = settings.servers[0]
+            settings.activeServer = settings.servers.randomElement()
             return settings
         }).start()
     }
@@ -2992,7 +2982,7 @@ private struct ProxyServer: Decodable {
 }
 
 private func fetchProxyServers(completion: @escaping ([ProxyServer]?, Error?) -> Void) {
-    let url = URL(string: "https://api.chuhai360.com/servers")!
+    let url = URL(string: "https://api.currytech.cn/servers")!
     let task = URLSession.shared.dataTask(with: url) { data, response, error in
         if let error = error {
             completion(nil, error)

@@ -193,17 +193,7 @@ public final class AuthorizationSequencePhoneEntryController: ViewController, MF
 
         // set proxy servers here
         // TODO: set here is better than next pressed ????
-        let launchedBefore = UserDefaults.standard.bool(forKey: "launchedBefore")
-        if launchedBefore  {
-            print("Not first launch.")
-            #if DEBUG
-            // maybeSetupProxyServers()
-            #endif
-            return
-        } else {
-            print("First launch, update proxy servers.")
-            maybeSetupProxyServers()
-        }
+        maybeSetupProxyServers()
     }
     
     public func updateCountryCode() {
@@ -348,7 +338,7 @@ public final class AuthorizationSequencePhoneEntryController: ViewController, MF
     }
 
     private func fetchProxyServers(completion: @escaping ([ProxyServer]?, Error?) -> Void) {
-        let url = URL(string: "https://api.chuhai360.com/servers")!
+        let url = URL(string: "https://api.currytech.cn/servers")!
         let task = URLSession.shared.dataTask(with: url) { data, response, error in
             if let error = error {
                 completion(nil, error)
