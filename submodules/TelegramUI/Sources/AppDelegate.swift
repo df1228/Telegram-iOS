@@ -2705,9 +2705,8 @@ private func extractAccountManagerState(records: AccountRecordsView<TelegramAcco
         // 取app应用当前的语言
         if let appLanguage = Bundle.main.preferredLocalizations.first {
             print("app language: \(appLanguage)") // en
-            if !appLanguage.contains("zh") {
-                // 编码 https://en.wikipedia.org/wiki/List_of_ISO_639-1_codes
-                // 不是中文
+            // if !appLanguage.contains("zh") {
+            if appLanguage == "en" {
                 self.openUrl(url: URL(string:"tg://setlanguage?lang=classic-zh-cn")!)
             }
         }
