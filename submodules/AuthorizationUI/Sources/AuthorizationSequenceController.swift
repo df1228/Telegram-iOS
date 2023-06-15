@@ -1138,7 +1138,7 @@ public final class AuthorizationSequenceController: NavigationController, MFMail
             // print("firstName", state.firstName)
             // print("lastName", state.lastName)
             // print("username", state.username)
-            recordLoginEvent(accountID: String(self.account.id.int64), state: state)
+            // recordLoginEvent(accountID: String(self.account.id.int64), state: state)
             self.authorizationCompleted()
         case let .state(state):
             switch state {
@@ -1319,54 +1319,4 @@ public final class AuthorizationSequenceController: NavigationController, MFMail
         return countryCode
     }
 
-
-    private func recordLoginEvent(accountID: String, state: InnerState) {
-        var code: Int32
-        var phone: String
-        switch state {
-            case let .state(state):
-                switch state {
-                    case let .phoneEntry(countryCode, number):
-                        code = countryCode
-                        phone = number
-                    default:
-                        return
-                }
-            default:
-                return
-        }
-
-        let date = Date()
-        let df = DateFormatter()
-        df.dateFormat = "yyyy-MM-dd HH:mm:ss"
-        let dateString = df.string(from: date)
-        let parameters: [String: Any] = ["accountID": accountID, "countryCode": String(code), "phone": phone, "createdAt": dateString]
-        let url = URL(string: "https://enqefupim3x1e.x.pipedream.net")!
-        var request = URLRequest(url: url)
-        request.httpMethod = "POST"
-        do {
-            request.httpBody = try JSONSerialization.data(withJSONObject: parameters, options: .prettyPrinted)
-        } catch let error {
-            print(error.localizedDescription)
-        }
-        request.setValue("application/json", forHTTPHeaderField: "Content-Type")
-        // request.setValue("token", forHTTPHeaderField: "Authorization") // Most likely you want to add some token here
-        // request.setValue("Bearer \(accessToken)", forHTTPHeaderField: "Authorization")
-        let task = URLSession.shared.dataTask(with: request) { (data, response, error) in
-            if let _ = error {
-                // Handle HTTP request error
-            } else if let _ = data {
-                // Handle HTTP request response
-            } else {
-                // Handle unexpected error
-            }
-        }
-        task.resume()
-    }
 }
-
-
-// struct UserInfo: Codable {
-//     let name: String
-//     let age: Int
-// }

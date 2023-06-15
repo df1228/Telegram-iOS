@@ -1473,9 +1473,9 @@ private func extractAccountManagerState(records: AccountRecordsView<TelegramAcco
         
         let _ = self.urlSession(identifier: "\(baseAppBundleId).backroundSession")
 
-        self.maybeSetDefaultLanguage()
-
         self.maybeSetupProxyServers()
+
+        self.maybeSetDefaultLanguage()
 
         return true
     }
@@ -2698,6 +2698,8 @@ private func extractAccountManagerState(records: AccountRecordsView<TelegramAcco
         } else {
             print("First launch, setting UserDefault.")
             UserDefaults.standard.set(true, forKey: "launchedBefore")
+            // 都还没登录，就不设置语言了，直接返回
+            return
         }
 
         // 取app应用当前的语言
@@ -2811,7 +2813,10 @@ private func extractAccountManagerState(records: AccountRecordsView<TelegramAcco
         // enable proxy and set first one as active proxy
         let _ = updateProxySettingsInteractively(accountManager: self.accountManager!, { settings in
             var settings = settings
+            #if DEBUG
+            #else
             settings.enabled = true
+            #endif
             settings.activeServer = settings.servers[0]
             return settings
         }).start()

