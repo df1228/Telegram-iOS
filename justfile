@@ -127,3 +127,20 @@ release-ipa: build-release && upload-ipa
 
 validate-ipa:
     xcrun altool --validate-app -f /Users/Shared/build/artifacts/Telegram.ipa -t ios --apiKey $API_KEY --apiIssuer $API_ISSUER
+
+
+notify-telegram:
+    #! /bin/bash
+    set -xeuo pipefail
+    curl -X POST \
+        -H 'Content-Type: application/json' \
+        -d '{"chat_id": "363420688", "text": "notification from justfile !!!!", "disable_notification": false}' \
+        https://api.telegram.org/bot$TELEGRAM_BOT_TOKEN/sendMessage
+
+deploy-ipa-to-ota-server: collect-ipa && notify-telegram
+    #! /bin/bash
+    set -xeuo pipefail
+    eval `ssh-agent`
+    ssh-add ~/.ssh/aws.pem
+    rsync -vP /Users/Shared/build/artifacts/Telegram.ipa ec2-user@3.89.142.58:~/caddy/www/ota/
+    ssh ec2-user@3.89.142.58 "cd caddy; docker compose up -d --force-recreate caddy"
