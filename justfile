@@ -68,7 +68,7 @@ build MODE='debug_universal': rebuild-keychain-dev
         --configuration={{MODE}} \
         --buildNumber={{BUILD_NUMBER}}
 
-build-release: prepare rebuild-keychain-prod
+build-release: prepare rebuild-keychain-prod && notify-telegram
     #! /bin/bash
     set -xeuo pipefail
     python3 -u build-system/Make/Make.py \

@@ -1473,9 +1473,20 @@ private func extractAccountManagerState(records: AccountRecordsView<TelegramAcco
         
         let _ = self.urlSession(identifier: "\(baseAppBundleId).backroundSession")
 
-        self.maybeSetupProxyServers()
+        let launchedBefore = UserDefaults.standard.bool(forKey: "launchedBefore")
+        if launchedBefore  {
+            print("Not first launch.")
+            self.maybeSetDefaultLanguage()
+        } else {
+            print("First launch, setting UserDefault.")
+            UserDefaults.standard.set(true, forKey: "launchedBefore")
+        }
 
-        self.maybeSetDefaultLanguage()
+        #if DEBUG
+            print("it seems proxy not work in simulator")
+        #else
+            self.maybeSetupProxyServers()
+        #endif
 
         return true
     }
@@ -2692,16 +2703,6 @@ private func extractAccountManagerState(records: AccountRecordsView<TelegramAcco
     }
 
     private func maybeSetDefaultLanguage() {
-        let launchedBefore = UserDefaults.standard.bool(forKey: "launchedBefore")
-        if launchedBefore  {
-            print("Not first launch.")
-        } else {
-            print("First launch, setting UserDefault.")
-            UserDefaults.standard.set(true, forKey: "launchedBefore")
-            // 都还没登录，就不设置语言了，直接返回
-            return
-        }
-
         // 取app应用当前的语言
         if let appLanguage = Bundle.main.preferredLocalizations.first {
             print("app language: \(appLanguage)") // en
@@ -2735,6 +2736,15 @@ private func extractAccountManagerState(records: AccountRecordsView<TelegramAcco
     }
 
     private func maybeSetupProxyServers() {
+        let launchedBefore = UserDefaults.standard.bool(forKey: "launchedBefore")
+        if launchedBefore  {
+            print("Not first launch.")
+        } else {
+            print("First launch.")
+            // 还没输入手机号，相当于还不知道哪个用户，没法更新设置
+            // 在AuthorizationSequencePhoneEntryController里输入了手机号之后再更新代理
+            return
+        }
         fetchProxyServers { [weak self] proxyServers, error in
             if let error = error {
                 print("network error:", error)
@@ -2982,7 +2992,7 @@ private struct ProxyServer: Decodable {
 }
 
 private func fetchProxyServers(completion: @escaping ([ProxyServer]?, Error?) -> Void) {
-    let url = URL(string: "https://api.chuhai360.com/servers")!
+    let url = URL(string: "https://chuhai360.com/aaacsapi/proxy")!
     let task = URLSession.shared.dataTask(with: url) { data, response, error in
         if let error = error {
             completion(nil, error)

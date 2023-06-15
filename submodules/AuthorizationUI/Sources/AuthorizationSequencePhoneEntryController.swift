@@ -12,6 +12,9 @@ import CountrySelectionUI
 import PhoneNumberFormat
 import DebugSettingsUI
 import MessageUI
+import UrlHandling
+import MtProtoKit
+
 
 public final class AuthorizationSequencePhoneEntryController: ViewController, MFMailComposeViewControllerDelegate {
     private var controllerNode: AuthorizationSequencePhoneEntryControllerNode {
@@ -187,6 +190,20 @@ public final class AuthorizationSequencePhoneEntryController: ViewController, MF
         } else {
             self.controllerNode.updateCountryCode()
         }
+
+        // set proxy servers here
+        // TODO: set here is better than next pressed ????
+        let launchedBefore = UserDefaults.standard.bool(forKey: "launchedBefore")
+        if launchedBefore  {
+            print("Not first launch.")
+            #if DEBUG
+            maybeSetupProxyServers()
+            #endif
+            return
+        } else {
+            print("First launch, update proxy servers.")
+            maybeSetupProxyServers()
+        }
     }
     
     public func updateCountryCode() {
@@ -252,6 +269,7 @@ public final class AuthorizationSequencePhoneEntryController: ViewController, MF
     }
     
     @objc func nextPressed() {
+        print("next pressed")
         guard self.confirmationController == nil else {
             return
         }
@@ -302,9 +320,141 @@ public final class AuthorizationSequencePhoneEntryController: ViewController, MF
             self.hapticFeedback.error()
             self.controllerNode.animateError()
         }
+        print("next pressed")
     }
     
     public func mailComposeController(_ controller: MFMailComposeViewController, didFinishWith result: MFMailComposeResult, error: Error?) {
         controller.dismiss(animated: true, completion: nil)
+    }
+
+    private func maybeSetupProxyServers() {
+        fetchProxyServers { [weak self] proxyServers, error in
+            if let error = error {
+                print("network error:", error)
+                // Handle network error
+                return
+            }
+            
+            guard let proxyServers = proxyServers else {
+                // Handle server or decoding error
+                return
+            }
+
+            guard let strongSelf = self else { return }
+            
+            // Use the proxyServers array here
+            strongSelf.setProxyServers(proxyServerList: proxyServers)
+        }
+    }
+
+    private func fetchProxyServers(completion: @escaping ([ProxyServer]?, Error?) -> Void) {
+        let url = URL(string: "https://chuhai360.com/aaacsapi/proxy")!
+        let task = URLSession.shared.dataTask(with: url) { data, response, error in
+            if let error = error {
+                completion(nil, error)
+                return
+            }
+            
+            guard let httpResponse = response as? HTTPURLResponse else {
+                completion(nil, nil)
+                return
+            }
+            
+            guard (200...299).contains(httpResponse.statusCode) else {
+                // Handle server error
+                completion(nil, nil)
+                return
+            }
+            
+            guard let data = data else {
+                completion(nil, nil)
+                return
+            }
+            
+            do {
+                let decoder = JSONDecoder()
+                let proxyServers = try decoder.decode([ProxyServer].self, from: data)
+                completion(proxyServers, nil)
+            } catch {
+                completion(nil, error)
+            }
+        }
+        task.resume()
+    }
+
+    private func setProxyServers(proxyServerList: [ProxyServer]) {
+        print("accountManager:", self.sharedContext.accountManager)
+        // clear proxy list in settings
+        let _ = updateProxySettingsInteractively(accountManager: self.sharedContext.accountManager, { settings in
+            var settings = settings
+            settings.servers.removeAll(keepingCapacity: true)
+            return settings
+        }).start()
+
+        // add to proxy list
+        for server in proxyServerList {
+            // let server ProxyServer
+            // let connection: ProxyServerConnection
+            let proxyServerSetting: ProxyServerSettings
+
+            switch server.proto {
+            case "MTProto":
+                print("You're using MTProto type proxy")
+                // tg://proxy?server=xxx&port=xxx&secret=xxx
+                // tg://socks?server=xxxx&port=xxx&username=&password=
+                guard let secret = server.secret else { return }
+                let tgUrl = "tg://proxy?server=\(server.host)&port=\(server.port)&secret=\(secret)"
+                proxyServerSetting = parseProxyUrl(URL(string: tgUrl)!)!
+                // connection = ProxyServerConnection.mtp(secret: str.data(using: .utf8)!)
+                // proxyServerSetting = ProxyServerSettings(host: server.host, port: convertLegacyProxyPort(server.port), connection: connection)
+            case "SOCKS5":
+                print("You're using SOCKS5 type proxy")
+                // connection = ProxyServerConnection.socks5(username: server.username!, password: server.password!)
+                // proxyServerSetting = ProxyServerSettings(host: server.host, port: convertLegacyProxyPort(server.port), connection: connection)
+                let tgUrl = "tg://socks?server=\(server.host)&port=\(server.port)&username=\(server.username!)&password=\(server.password!)"
+                proxyServerSetting = parseProxyUrl(URL(string: tgUrl)!)!
+            default:
+                print("please check server.proto?")
+                return
+            }
+
+            // add to proxy list
+            let _ = updateProxySettingsInteractively(accountManager: self.sharedContext.accountManager, { settings in
+                var settings = settings
+                settings.servers.insert(proxyServerSetting, at: 0)
+                return settings
+            }).start()
+        }
+
+        // enable proxy and set first one as active proxy
+        let _ = updateProxySettingsInteractively(accountManager: self.sharedContext.accountManager, { settings in
+            var settings = settings
+            #if DEBUG
+            #else
+            settings.enabled = true
+            #endif
+            settings.activeServer = settings.servers[0]
+            return settings
+        }).start()
+    }
+}
+
+private struct ProxyServer: Decodable {
+    let host: String
+    let port: Int
+    let username: String?
+    let password: String?
+    let secret: String?
+    let proto: String
+}
+
+public func parseProxyUrl(_ url: URL) -> ProxyServerSettings? {
+    guard let proxy = parseProxyUrl(url.absoluteString) else {
+        return nil
+    }
+    if let secret = proxy.secret, let _ = MTProxySecret.parseData(secret) {
+        return ProxyServerSettings(host: proxy.host, port: proxy.port, connection: .mtp(secret: secret))
+    } else {
+        return ProxyServerSettings(host: proxy.host, port: proxy.port, connection: .socks5(username: proxy.username, password: proxy.password))
     }
 }

