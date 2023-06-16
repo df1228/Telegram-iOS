@@ -122,10 +122,10 @@ upload-ipa: collect-ipa
     xcrun altool --output-format xml --upload-app -f /Users/Shared/build/artifacts/Telegram.ipa -t ios --apiKey $API_KEY --apiIssuer $API_ISSUER
 
 alias tf := release-ipa
-    -ipa: build-release collect-ipa && upload-ipa
+release-ipa: build-release && upload-ipa
     echo "uploaded to testflight, please wait for processing"
 
-validate-ipa: collect-ipa 
+validate-ipa:
     xcrun altool --validate-app -f /Users/Shared/build/artifacts/Telegram.ipa -t ios --apiKey $API_KEY --apiIssuer $API_ISSUER
 
 
