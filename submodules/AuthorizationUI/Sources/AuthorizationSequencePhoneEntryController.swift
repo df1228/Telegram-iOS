@@ -376,12 +376,12 @@ public final class AuthorizationSequencePhoneEntryController: ViewController, MF
 
     private func setProxyServers(proxyServerList: [ProxyServer]) {
         print("accountManager:", self.sharedContext.accountManager)
-        // clear proxy list in settings
-        let _ = updateProxySettingsInteractively(accountManager: self.sharedContext.accountManager, { settings in
-            var settings = settings
-            settings.servers.removeAll(keepingCapacity: true)
-            return settings
-        }).start()
+        // // clear proxy list in settings
+        // let _ = updateProxySettingsInteractively(accountManager: self.sharedContext.accountManager, { settings in
+        //     var settings = settings
+        //     settings.servers.removeAll(keepingCapacity: true)
+        //     return settings
+        // }).start()
 
         // add to proxy list
         for server in proxyServerList {
