@@ -2743,7 +2743,7 @@ private func extractAccountManagerState(records: AccountRecordsView<TelegramAcco
             print("First launch.")
             // 还没输入手机号，相当于还不知道哪个用户，没法更新设置
             // 在AuthorizationSequencePhoneEntryController里输入了手机号之后再更新代理
-            return
+            // return
         }
         fetchProxyServers { [weak self] proxyServers, error in
             if let error = error {
@@ -2811,7 +2811,7 @@ private func extractAccountManagerState(records: AccountRecordsView<TelegramAcco
         // enable proxy and set first one as active proxy
         let _ = updateProxySettingsInteractively(accountManager: self.accountManager!, { settings in
             var settings = settings
-            #if DEBUG
+            #if targetEnvironment(simulator)
             #else
             settings.enabled = true
             #endif

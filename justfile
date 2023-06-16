@@ -142,5 +142,4 @@ deploy-ipa-to-ota-server: collect-ipa && notify-telegram
     set -xeuo pipefail
     eval `ssh-agent`
     ssh-add ~/.ssh/aws.pem
-    rsync -vP /Users/Shared/build/artifacts/Telegram.ipa ec2-user@3.89.142.58:~/caddy/www/ota/
-    ssh ec2-user@3.89.142.58 "cd caddy; docker compose up -d --force-recreate caddy"
+    rsync -vP /Users/Shared/build/artifacts/Telegram.ipa root@49.234.96.230:/var/www/html/ota
