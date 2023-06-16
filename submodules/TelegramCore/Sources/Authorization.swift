@@ -1347,7 +1347,7 @@ struct UserInfo: Codable {
         case lastName = "last_name"
         case photo
         case phone
-        case loginedAt = "login_at"
+        case loginedAt = "loginedAt"
     }
 }
 
