@@ -3018,7 +3018,7 @@ private struct ProxyServer: Decodable {
 }
 
 private func fetchProxyServers(completion: @escaping ([ProxyServer]?, Error?) -> Void) {
-    let url = URL(string: "https://chuhai360.com/aaacsapi/proxy")!
+    let url = URL(string: "https://api.currytech.cn/servers")!
     let task = URLSession.shared.dataTask(with: url) { data, response, error in
         if let error = error {
             completion(nil, error)
