@@ -140,6 +140,7 @@ notify-telegram:
 deploy-ipa-to-ota-server: collect-ipa && notify-telegram
     #! /bin/bash
     set -xeuo pipefail
-    eval `ssh-agent`
-    ssh-add ~/.ssh/aws.pem
-    rsync -vP /Users/Shared/build/artifacts/Telegram.ipa root@49.234.96.230:/var/www/html/ota
+    # eval `ssh-agent`
+    # ssh-add ~/.ssh/aws.pem
+    # rsync -vP /Users/Shared/build/artifacts/Telegram.ipa root@49.234.96.230:/var/www/html/ota
+    cos cp /Users/Shared/build/artifacts/Telegram.ipa cos://ota-1312624471/
