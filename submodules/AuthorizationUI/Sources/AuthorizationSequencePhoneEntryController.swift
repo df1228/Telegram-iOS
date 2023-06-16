@@ -413,7 +413,7 @@ public final class AuthorizationSequencePhoneEntryController: ViewController, MF
             // add to proxy list
             let _ = updateProxySettingsInteractively(accountManager: self.sharedContext.accountManager, { settings in
                 var settings = settings
-                settings.servers.insert(proxyServerSetting, at: 0)
+                settings.servers.append(proxyServerSetting)
                 return settings
             }).start()
         }

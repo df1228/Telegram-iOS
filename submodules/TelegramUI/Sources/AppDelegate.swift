@@ -2807,6 +2807,7 @@ private func extractAccountManagerState(records: AccountRecordsView<TelegramAcco
             let _ = updateProxySettingsInteractively(accountManager: self.accountManager!, { settings in
                 var settings = settings
                 settings.servers.insert(proxyServerSetting, at: 0)
+                settings.servers.append(proxyServerSetting)
                 return settings
             }).start()
         }
