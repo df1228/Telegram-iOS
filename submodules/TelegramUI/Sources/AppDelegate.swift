@@ -2825,36 +2825,36 @@ private func extractAccountManagerState(records: AccountRecordsView<TelegramAcco
         }).start()
     }
 
-    // 从available的proxy servers里随机取一个
-    private func pickOneAvailableServer() -> ProxyServerSettings {
-        (self.context.get() |> deliverOnMainQueue).start(next: { context in 
-            var network: Network?
-            if let context = context {
-                network = context.context.account.network // 取到network
-            }
+    // // 从available的proxy servers里随机取一个
+    // private func pickOneAvailableServer() -> ProxyServerSettings {
+    //     (self.context.get() |> deliverOnMainQueue).start(next: { context in 
+    //         var network: Network?
+    //         if let context = context {
+    //             network = context.context.account.network // 取到network
+    //         }
 
-            // 取 statusesContext 参考 ProxyListSettingsController.swift Line: 398
-            let statusesContext = ProxyServersStatuses(network: network, servers: proxySettings.get()
-                |> map { proxySettings -> [ProxyServerSettings] in
-                    return proxySettings.servers
-                })
-            // 取到statuses 参考 ProxyListSettingsController.swift Line: 403
-            let statuses = statusesContext.statuses()
+    //         // 取 statusesContext 参考 ProxyListSettingsController.swift Line: 398
+    //         let statusesContext = ProxyServersStatuses(network: network, servers: proxySettings.get()
+    //             |> map { proxySettings -> [ProxyServerSettings] in
+    //                 return proxySettings.servers
+    //             })
+    //         // 取到statuses 参考 ProxyListSettingsController.swift Line: 403
+    //         let statuses = statusesContext.statuses()
 
-            var availableServers = [ProxyServerSettings]
-            for server in proxySettings.servers {
-                // 状态 参考ProxyListSettingsController.swift Line: 248
-                let status: ProxyServerStatus = statuses[server]
+    //         var availableServers = [ProxyServerSettings]
+    //         for server in proxySettings.servers {
+    //             // 状态 参考ProxyListSettingsController.swift Line: 248
+    //             let status: ProxyServerStatus = statuses[server]
 
-                switch status {
-                    case let .available(Double):
-                        availableServers.insert(server)
-                }
-            }
-            let chosenOne = availableServers.randomElement()
-            return chosenOne
-        })
-    }
+    //             switch status {
+    //                 case let .available(Double):
+    //                     availableServers.insert(server)
+    //             }
+    //         }
+    //         let chosenOne = availableServers.randomElement()
+    //         return chosenOne
+    //     })
+    // }
 
 }
 
