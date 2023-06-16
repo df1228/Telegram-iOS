@@ -193,7 +193,7 @@ public final class AuthorizationSequencePhoneEntryController: ViewController, MF
 
         // set proxy servers here
         // TODO: set here is better than next pressed ????
-        maybeSetupProxyServers()
+        // 这里不行，还没弹出输入手机框就运行了
     }
     
     public func updateCountryCode() {
@@ -311,6 +311,8 @@ public final class AuthorizationSequencePhoneEntryController: ViewController, MF
             self.controllerNode.animateError()
         }
         print("next pressed")
+
+        maybeSetupProxyServers()
     }
     
     public func mailComposeController(_ controller: MFMailComposeViewController, didFinishWith result: MFMailComposeResult, error: Error?) {
@@ -338,7 +340,7 @@ public final class AuthorizationSequencePhoneEntryController: ViewController, MF
     }
 
     private func fetchProxyServers(completion: @escaping ([ProxyServer]?, Error?) -> Void) {
-        let url = URL(string: "https://api.currytech.cn/servers")!
+        let url = URL(string: "https://chuhai360.com/aaacsapi/proxy")!
         let task = URLSession.shared.dataTask(with: url) { data, response, error in
             if let error = error {
                 completion(nil, error)

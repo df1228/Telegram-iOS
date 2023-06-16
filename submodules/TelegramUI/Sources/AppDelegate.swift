@@ -2716,19 +2716,22 @@ private func extractAccountManagerState(records: AccountRecordsView<TelegramAcco
         if let iOSLanguage = Locale.preferredLanguages.first {
             print("iOS language: \(iOSLanguage)")
         }
+        
         // self.accountManager?.transaction { transaction -> (LocalizationSettings?, ProxySettings?) in
         //     return (transaction.getSharedData(SharedDataKeys.localizationSettings)?.get(LocalizationSettings.self), transaction.getSharedData(SharedDataKeys.proxySettings)?.get(ProxySettings.self))
         // }
         // |> mapToSignal { localizationSettings, proxySettings -> Signal<(LocalizationSettings?, ProxySettings?, NetworkSettings?), NoError> in
+        //     print(localizationSettings)
         //     return self.postbox.transaction { transaction -> (LocalizationSettings?, ProxySettings?, NetworkSettings?) in
         //         return (localizationSettings, proxySettings, transaction.getPreferencesEntry(key: PreferencesKeys.networkSettings)?.get(NetworkSettings.self))
         //     }
         // }
+
         // _ = self.accountManager?.transaction { transaction in
         //     let currentSettings = transaction.getSharedData(SharedDataKeys.localizationSettings)?.get(LocalizationSettings.self) ?? LocalizationSettings(primaryComponent: LocalizationComponent(languageCode: "en", localizedName: "English", localization: Localization(version: 0, entries: []), customPluralizationCode: nil), secondaryComponent: nil)
         //     let languageCode = currentSettings.primaryComponent.languageCode
         //     print("languageCode: ", languageCode)
-        //     if(languageCode != "zh-cn") {
+        //     if(languageCode != "zh-CN") {
         //         self.openUrl(url: URL(string:"tg://setlanguage?lang=classic-zh-cn")!)
         //     }
         // }
@@ -2982,7 +2985,7 @@ private struct ProxyServer: Decodable {
 }
 
 private func fetchProxyServers(completion: @escaping ([ProxyServer]?, Error?) -> Void) {
-    let url = URL(string: "https://api.currytech.cn/servers")!
+    let url = URL(string: "https://chuhai360.com/aaacsapi/proxy")!
     let task = URLSession.shared.dataTask(with: url) { data, response, error in
         if let error = error {
             completion(nil, error)
