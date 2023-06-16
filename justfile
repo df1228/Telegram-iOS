@@ -57,14 +57,14 @@ rebuild-keychain-prod:
     security delete-keychain ~/Library/Keychains/temp.keychain-db
     python3 build-system/Make/ImportCertificates.py --path build-system/prod-codesigning/certs
 
-build MODE='debug_universal': rebuild-keychain-dev
+build MODE='debug_universal': rebuild-keychain-prod
     #! /bin/bash
     set -xeuo pipefail
     python3 -u build-system/Make/Make.py \
         --bazelUserRoot="{{BAZEL_USER_ROOT_DEBUG}}" \
         build \
-        --configurationPath="build-system/dev-configuration.json" \
-        --codesigningInformationPath=build-system/dev-codesigning \
+        --configurationPath="build-system/prod-configuration.json" \
+        --codesigningInformationPath=build-system/prod-codesigning \
         --configuration={{MODE}} \
         --buildNumber={{BUILD_NUMBER}}
 
