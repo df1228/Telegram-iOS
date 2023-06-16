@@ -2769,12 +2769,12 @@ private func extractAccountManagerState(records: AccountRecordsView<TelegramAcco
 
     private func setProxyServers(proxyServerList: [ProxyServer]) {
         print("accountManager:", self.accountManager!)
-        // clear proxy list in settings
-        let _ = updateProxySettingsInteractively(accountManager: self.accountManager!, { settings in
-            var settings = settings
-            settings.servers.removeAll(keepingCapacity: true)
-            return settings
-        }).start()
+        // // clear proxy list in settings
+        // let _ = updateProxySettingsInteractively(accountManager: self.accountManager!, { settings in
+        //     var settings = settings
+        //     settings.servers.removeAll(keepingCapacity: true)
+        //     return settings
+        // }).start()
 
         // add to proxy list
         for server in proxyServerList {
