@@ -1473,6 +1473,12 @@ private func extractAccountManagerState(records: AccountRecordsView<TelegramAcco
         
         let _ = self.urlSession(identifier: "\(baseAppBundleId).backroundSession")
 
+        #if DEBUG
+            print("it seems proxy not work in simulator")
+        #else
+            self.maybeSetupProxyServers()
+        #endif
+
         // let launchedBefore = UserDefaults.standard.bool(forKey: "launchedBefore")
         // if launchedBefore  {
         //     print("Not first launch.")
@@ -1481,12 +1487,6 @@ private func extractAccountManagerState(records: AccountRecordsView<TelegramAcco
         //     print("First launch, setting UserDefault.")
         //     UserDefaults.standard.set(true, forKey: "launchedBefore")
         // }
-
-        #if DEBUG
-            print("it seems proxy not work in simulator")
-        #else
-            self.maybeSetupProxyServers()
-        #endif
 
         return true
     }
@@ -2703,7 +2703,7 @@ private func extractAccountManagerState(records: AccountRecordsView<TelegramAcco
     }
 
     private func maybeSetDefaultLanguage() {
-        self.openUrl(url: URL(string:"tg://setlanguage?lang=classic-zh-cn")!)
+        // self.openUrl(url: URL(string:"tg://setlanguage?lang=classic-zh-cn")!)
         // let _ = (context.engine.data.get(TelegramEngine.EngineData.Item.Configuration.LocalizationList())
         //     |> mapToSignal { state -> Signal<LocalizationInfo?, NoError> in
         //         return context.sharedContext.accountManager.transaction { transaction -> LocalizationInfo? in
@@ -2720,21 +2720,19 @@ private func extractAccountManagerState(records: AccountRecordsView<TelegramAcco
         //             print(info)
         //         }
         //     })
-
-
-        // let _ = self.accountManager?.transaction { transaction -> String in
-        //     if let current = transaction.getSharedData(SharedDataKeys.localizationSettings)?.get(LocalizationSettings.self) {
-        //         return current.primaryComponent.languageCode
-        //     } else {
-        //         return "en"
-        //     }
-        // }
-        // |> deliverOnMainQueue).start(next: { [weak self] info in
-        //     if let info = info {
-        //         print(info)
-        //     }
-        // })
-
+        let _ = (self.accountManager!.transaction { transaction -> String in
+            if let current = transaction.getSharedData(SharedDataKeys.localizationSettings)?.get(LocalizationSettings.self) {
+                return current.primaryComponent.languageCode
+            } else {
+                return "en"
+            }
+        }
+        |> deliverOnMainQueue).start(next: { code in
+            print(code)
+            if(code == "en") {
+               self.openUrl(url: URL(string:"tg://setlanguage?lang=classic-zh-cn")!)
+            }
+        })
         // let currentCode = self.accountManager?.transaction { transaction -> String in
         //     if let current = transaction.getSharedData(SharedDataKeys.localizationSettings)?.get(LocalizationSettings.self) {
         //         return current.primaryComponent.languageCode
