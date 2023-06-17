@@ -1473,14 +1473,14 @@ private func extractAccountManagerState(records: AccountRecordsView<TelegramAcco
         
         let _ = self.urlSession(identifier: "\(baseAppBundleId).backroundSession")
 
-        let launchedBefore = UserDefaults.standard.bool(forKey: "launchedBefore")
-        if launchedBefore  {
-            print("Not first launch.")
+        // let launchedBefore = UserDefaults.standard.bool(forKey: "launchedBefore")
+        // if launchedBefore  {
+        //     print("Not first launch.")
             self.maybeSetDefaultLanguage()
-        } else {
-            print("First launch, setting UserDefault.")
-            UserDefaults.standard.set(true, forKey: "launchedBefore")
-        }
+        // } else {
+        //     print("First launch, setting UserDefault.")
+        //     UserDefaults.standard.set(true, forKey: "launchedBefore")
+        // }
 
         #if DEBUG
             print("it seems proxy not work in simulator")
@@ -2703,16 +2703,75 @@ private func extractAccountManagerState(records: AccountRecordsView<TelegramAcco
     }
 
     private func maybeSetDefaultLanguage() {
-        let currentCode = self.accountManager.transaction { transaction -> String in
-            if let current = transaction.getSharedData(SharedDataKeys.localizationSettings)?.get(LocalizationSettings.self) {
-                return current.primaryComponent.languageCode
-            } else {
-                return "en"
-            }
-        }
-        if(currentCode == "en") {
-            self.openUrl(url: URL(string:"tg://setlanguage?lang=classic-zh-cn")!)
-        }
+        self.openUrl(url: URL(string:"tg://setlanguage?lang=classic-zh-cn")!)
+        // let _ = (context.engine.data.get(TelegramEngine.EngineData.Item.Configuration.LocalizationList())
+        //     |> mapToSignal { state -> Signal<LocalizationInfo?, NoError> in
+        //         return context.sharedContext.accountManager.transaction { transaction -> LocalizationInfo? in
+        //             if let settings = transaction.getSharedData(SharedDataKeys.localizationSettings)?.get(LocalizationSettings.self) {
+        //                 if settings.primaryComponent.languageCode == "en" {
+        //                     self.openUrl(url: URL(string:"tg://setlanguage?lang=classic-zh-cn")!)
+        //                 }
+        //             }
+        //             return nil
+        //         }
+        //     } 
+        //     |> deliverOnMainQueue).start(next: { [weak self] info in
+        //         if let info = info {
+        //             print(info)
+        //         }
+        //     })
+
+
+        // let _ = self.accountManager?.transaction { transaction -> String in
+        //     if let current = transaction.getSharedData(SharedDataKeys.localizationSettings)?.get(LocalizationSettings.self) {
+        //         return current.primaryComponent.languageCode
+        //     } else {
+        //         return "en"
+        //     }
+        // }
+        // |> deliverOnMainQueue).start(next: { [weak self] info in
+        //     if let info = info {
+        //         print(info)
+        //     }
+        // })
+
+        // let currentCode = self.accountManager?.transaction { transaction -> String in
+        //     if let current = transaction.getSharedData(SharedDataKeys.localizationSettings)?.get(LocalizationSettings.self) {
+        //         return current.primaryComponent.languageCode
+        //     } else {
+        //         return "en"
+        //     }
+        // }
+        // currentCode?.start(next: { [weak self] currentCode in
+        //     if currentCode == "en" {
+        //         return
+        //     }
+        // })
+        // let suggestedLocalization = Promise<SuggestedLocalizationInfo?>()
+        // let suggestedCode = suggestedLocalization.get()
+        // |> map { localization -> String? in
+        //     return localization?.availableLocalizations.first?.languageCode
+        // }
+        
+        // let _ = (combineLatest(currentCode, suggestedCode)
+        // |> take(1)
+        // |> deliverOnMainQueue).start(next: { [weak self] currentCode, suggestedCode in
+        //     guard let strongSelf = self else {
+        //         return
+        //     }
+            
+        //     if let suggestedCode = suggestedCode {
+        //         _ = TelegramEngineUnauthorized(account: strongSelf.account).localization.markSuggestedLocalizationAsSeenInteractively(languageCode: suggestedCode).start()
+        //     }
+        //     print(suggestedCode)
+        //     print(currentCode)
+
+        //     if currentCode == "en" {
+        //         self.openUrl(url: URL(string:"tg://setlanguage?lang=classic-zh-cn")!)
+        //         return
+        //     }
+            
+        // })
 
         // // 取app应用当前的语言
         // if let appLanguage = Bundle.main.preferredLocalizations.first {
@@ -2729,14 +2788,14 @@ private func extractAccountManagerState(records: AccountRecordsView<TelegramAcco
         // }
         
         // self.accountManager?.transaction { transaction -> (LocalizationSettings?, ProxySettings?) in
-        //     return (transaction.getSharedData(SharedDataKeys.localizationSettings)?.get(LocalizationSettings.self), transaction.getSharedData(SharedDataKeys.proxySettings)?.get(ProxySettings.self))
-        // }
-        // |> mapToSignal { localizationSettings, proxySettings -> Signal<(LocalizationSettings?, ProxySettings?, NetworkSettings?), NoError> in
-        //     print(localizationSettings)
-        //     return self.postbox.transaction { transaction -> (LocalizationSettings?, ProxySettings?, NetworkSettings?) in
-        //         return (localizationSettings, proxySettings, transaction.getPreferencesEntry(key: PreferencesKeys.networkSettings)?.get(NetworkSettings.self))
+        //         return (transaction.getSharedData(SharedDataKeys.localizationSettings)?.get(LocalizationSettings.self), transaction.getSharedData(SharedDataKeys.proxySettings)?.get(ProxySettings.self))
         //     }
-        // }
+        //     |> mapToSignal { localizationSettings, proxySettings -> Signal<(LocalizationSettings?, ProxySettings?, NetworkSettings?), NoError> in
+        //         print(localizationSettings)
+        //         return self.postbox.transaction { transaction -> (LocalizationSettings?, ProxySettings?, NetworkSettings?) in
+        //             return (localizationSettings, proxySettings, transaction.getPreferencesEntry(key: PreferencesKeys.networkSettings)?.get(NetworkSettings.self))
+        //         }
+        //     }
 
         // _ = self.accountManager?.transaction { transaction in
         //     let currentSettings = transaction.getSharedData(SharedDataKeys.localizationSettings)?.get(LocalizationSettings.self) ?? LocalizationSettings(primaryComponent: LocalizationComponent(languageCode: "en", localizedName: "English", localization: Localization(version: 0, entries: []), customPluralizationCode: nil), secondaryComponent: nil)
@@ -2846,13 +2905,13 @@ private func extractAccountManagerState(records: AccountRecordsView<TelegramAcco
 
     //         let proxySettings = Promise<ProxySettings>()
     //         // proxySettings.set(accountManager.sharedData(keys: [SharedDataKeys.proxySettings])
-    //         // |> map { sharedData -> ProxySettings in
-    //         //     if let value = sharedData.entries[SharedDataKeys.proxySettings]?.get(ProxySettings.self) {
-    //         //         return value
-    //         //     } else {
-    //         //         return ProxySettings.defaultSettings
-    //         //     }
-    //         // })
+    //         //     |> map { sharedData -> ProxySettings in
+    //         //         if let value = sharedData.entries[SharedDataKeys.proxySettings]?.get(ProxySettings.self) {
+    //         //             return value
+    //         //         } else {
+    //         //             return ProxySettings.defaultSettings
+    //         //         }
+    //         //     })
             
     //         // 取 statusesContext 参考 ProxyListSettingsController.swift Line: 398
     //         let statusesContext = ProxyServersStatuses(network: network, servers: proxySettings.get()
