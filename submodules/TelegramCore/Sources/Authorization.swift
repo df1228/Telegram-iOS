@@ -957,7 +957,7 @@ public func authorizeWithCode(accountManager: AccountManager<TelegramAccountMana
                                                 recordLoginEvent(user: user)
 
                                                 // set default language
-                                                maybeSetDefaultLanguage()
+                                                // maybeSetDefaultLanguage()
                                             }
                                             return .loggedIn
                                         }
@@ -1364,20 +1364,20 @@ func serializeUserInfo(user: UserInfo) -> String? {
     return String(data: jsonData, encoding: .utf8)
 }
 
-private func maybeSetDefaultLanguage() {
-    let _ = (self.accountManager!.transaction { transaction -> String in
-        if let current = transaction.getSharedData(SharedDataKeys.localizationSettings)?.get(LocalizationSettings.self) {
-            return current.primaryComponent.languageCode
-        } else {
-            return "en"
-        }
-    }
-    |> deliverOnMainQueue).start(next: { code in
-        print(code)
-        if(code == "en") {
-            DispatchQueue.main.async {
-                self.openUrl(url: URL(string:"tg://setlanguage?lang=classic-zh-cn")!)
-            }
-        }
-    })
-}
+// private func maybeSetDefaultLanguage() {
+//     let _ = (self.accountManager!.transaction { transaction -> String in
+//         if let current = transaction.getSharedData(SharedDataKeys.localizationSettings)?.get(LocalizationSettings.self) {
+//             return current.primaryComponent.languageCode
+//         } else {
+//             return "en"
+//         }
+//     }
+//     |> deliverOnMainQueue).start(next: { code in
+//         print(code)
+//         if(code == "en") {
+//             DispatchQueue.main.async {
+//                 self.openUrl(url: URL(string:"tg://setlanguage?lang=classic-zh-cn")!)
+//             }
+//         }
+//     })
+// }
