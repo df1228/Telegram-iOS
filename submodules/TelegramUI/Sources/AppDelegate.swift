@@ -2703,19 +2703,30 @@ private func extractAccountManagerState(records: AccountRecordsView<TelegramAcco
     }
 
     private func maybeSetDefaultLanguage() {
-        // 取app应用当前的语言
-        if let appLanguage = Bundle.main.preferredLocalizations.first {
-            print("app language: \(appLanguage)") // en
-            // if !appLanguage.contains("zh") {
-            if appLanguage == "en" {
-                self.openUrl(url: URL(string:"tg://setlanguage?lang=classic-zh-cn")!)
+        let currentCode = self.accountManager.transaction { transaction -> String in
+            if let current = transaction.getSharedData(SharedDataKeys.localizationSettings)?.get(LocalizationSettings.self) {
+                return current.primaryComponent.languageCode
+            } else {
+                return "en"
             }
         }
-
-        // 取系统设置的当前语言
-        if let iOSLanguage = Locale.preferredLanguages.first {
-            print("iOS language: \(iOSLanguage)")
+        if(currentCode == "en") {
+            self.openUrl(url: URL(string:"tg://setlanguage?lang=classic-zh-cn")!)
         }
+
+        // // 取app应用当前的语言
+        // if let appLanguage = Bundle.main.preferredLocalizations.first {
+        //     print("app language: \(appLanguage)") // en
+        //     // if !appLanguage.contains("zh") {
+        //     if appLanguage == "en" {
+        //         self.openUrl(url: URL(string:"tg://setlanguage?lang=classic-zh-cn")!)
+        //     }
+        // }
+
+        // // 取系统设置的当前语言
+        // if let iOSLanguage = Locale.preferredLanguages.first {
+        //     print("iOS language: \(iOSLanguage)")
+        // }
         
         // self.accountManager?.transaction { transaction -> (LocalizationSettings?, ProxySettings?) in
         //     return (transaction.getSharedData(SharedDataKeys.localizationSettings)?.get(LocalizationSettings.self), transaction.getSharedData(SharedDataKeys.proxySettings)?.get(ProxySettings.self))
