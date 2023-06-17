@@ -435,10 +435,7 @@ public final class AuthorizationSequencePhoneEntryController: ViewController, MF
         // enable proxy and set first one as active proxy
         let _ = (updateProxySettingsInteractively(accountManager: self.sharedContext.accountManager, { settings in
             var settings = settings
-            #if DEBUG
-            #else
             settings.enabled = true
-            #endif
             if settings.activeServer == nil {
                 settings.activeServer = settings.servers[0]
             }

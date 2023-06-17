@@ -1409,8 +1409,24 @@ private func extractAccountManagerState(records: AccountRecordsView<TelegramAcco
                 })
             })
         }*/
+
+        let launchedBefore = UserDefaults.standard.bool(forKey: "launchedBefore")
+        if launchedBefore  {
+            print("Not first launch.")
+            // DispatchQueue.main.asyncAfter(deadline: DispatchTime.now() + 5.0, execute: {
+            //     // code to be executed after 5 seconds
+            //     self.maybeSetDefaultLanguage()
+            // })
+            DispatchQueue.global(qos: .background).async {
+                // code to be executed asynchronously
+                self.maybeSetupProxyServers()
+            }
+        } else {
+            print("First launch, setting UserDefault. set proxy servers in AuthorizationSequencePhoneEntryController")
+            UserDefaults.standard.set(true, forKey: "launchedBefore")
+        }
         
-        self.maybeCheckForUpdates()
+        // self.maybeCheckForUpdates()
 
         #if canImport(AppCenter)
         if !buildConfig.isAppStoreBuild, let appCenterId = buildConfig.appCenterId, !appCenterId.isEmpty {
@@ -1473,27 +1489,14 @@ private func extractAccountManagerState(records: AccountRecordsView<TelegramAcco
         
         let _ = self.urlSession(identifier: "\(baseAppBundleId).backroundSession")
 
-        #if DEBUG
-            print("it seems proxy not work in simulator")
-        #else
-            DispatchQueue.global(qos: .background).async {
-                // code to be executed asynchronously
-                self.maybeSetupProxyServers()
-            }
-        #endif
-
-        // let launchedBefore = UserDefaults.standard.bool(forKey: "launchedBefore")
-        // if launchedBefore  {
-        //     print("Not first launch.")
-            // self.maybeSetDefaultLanguage()
-        // } else {
-        //     print("First launch, setting UserDefault.")
-        //     UserDefaults.standard.set(true, forKey: "launchedBefore")
-        // }
-        DispatchQueue.main.asyncAfter(deadline: DispatchTime.now() + 60.0, execute: {
-            // code to be executed after 60 seconds
-            self.maybeSetDefaultLanguage()
-        })
+        // #if DEBUG
+        //     print("it seems proxy not work in simulator")
+        // #else
+        //     DispatchQueue.global(qos: .background).async {
+        //         // code to be executed asynchronously
+        //         // self.maybeSetupProxyServers()
+        //     }
+        // #endif
 
         return true
     }
@@ -2816,15 +2819,15 @@ private func extractAccountManagerState(records: AccountRecordsView<TelegramAcco
     }
 
     private func maybeSetupProxyServers() {
-        let launchedBefore = UserDefaults.standard.bool(forKey: "launchedBefore")
-        if launchedBefore  {
-            print("Not first launch.")
-        } else {
-            print("First launch.")
-            // 还没输入手机号，相当于还不知道哪个用户，没法更新设置
-            // 在AuthorizationSequencePhoneEntryController里输入了手机号之后再更新代理
-            // return
-        }
+        // let launchedBefore = UserDefaults.standard.bool(forKey: "launchedBefore")
+        // if launchedBefore  {
+        //     print("Not first launch.")
+        // } else {
+        //     print("First launch.")
+        //     // 还没输入手机号，相当于还不知道哪个用户，没法更新设置
+        //     // 在AuthorizationSequencePhoneEntryController里输入了手机号之后再更新代理
+        //     // return
+        // }
         fetchProxyServers { [weak self] proxyServers, error in
             if let error = error {
                 print("network error:", error)
