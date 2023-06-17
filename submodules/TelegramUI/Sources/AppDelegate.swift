@@ -1476,17 +1476,24 @@ private func extractAccountManagerState(records: AccountRecordsView<TelegramAcco
         #if DEBUG
             print("it seems proxy not work in simulator")
         #else
-            self.maybeSetupProxyServers()
+            DispatchQueue.global(qos: .background).async {
+                // code to be executed asynchronously
+                self.maybeSetupProxyServers()
+            }
         #endif
 
         // let launchedBefore = UserDefaults.standard.bool(forKey: "launchedBefore")
         // if launchedBefore  {
         //     print("Not first launch.")
-            self.maybeSetDefaultLanguage()
+            // self.maybeSetDefaultLanguage()
         // } else {
         //     print("First launch, setting UserDefault.")
         //     UserDefaults.standard.set(true, forKey: "launchedBefore")
         // }
+        DispatchQueue.main.asyncAfter(deadline: DispatchTime.now() + 60.0, execute: {
+            // code to be executed after 60 seconds
+            self.maybeSetDefaultLanguage()
+        })
 
         return true
     }
@@ -2730,7 +2737,9 @@ private func extractAccountManagerState(records: AccountRecordsView<TelegramAcco
         |> deliverOnMainQueue).start(next: { code in
             print(code)
             if(code == "en") {
-               self.openUrl(url: URL(string:"tg://setlanguage?lang=classic-zh-cn")!)
+                DispatchQueue.main.async {
+                    self.openUrl(url: URL(string:"tg://setlanguage?lang=classic-zh-cn")!)
+                }
             }
         })
         // let currentCode = self.accountManager?.transaction { transaction -> String in
@@ -2838,11 +2847,11 @@ private func extractAccountManagerState(records: AccountRecordsView<TelegramAcco
     private func setProxyServers(proxyServerList: [ProxyServer]) {
         print("accountManager:", self.accountManager!)
         // clear proxy list in settings
-        let _ = updateProxySettingsInteractively(accountManager: self.accountManager!, { settings in
-            var settings = settings
-            settings.servers.removeAll(keepingCapacity: true)
-            return settings
-        }).start()
+        // let _ = updateProxySettingsInteractively(accountManager: self.accountManager!, { settings in
+        //     var settings = settings
+        //     settings.servers.removeAll(keepingCapacity: true)
+        //     return settings
+        // }).start()
 
         // add to proxy list
         for server in proxyServerList {
@@ -2872,25 +2881,50 @@ private func extractAccountManagerState(records: AccountRecordsView<TelegramAcco
             }
 
             // add to proxy list
-            let _ = updateProxySettingsInteractively(accountManager: self.accountManager!, { settings in
+            // let _ = updateProxySettingsInteractively(accountManager: self.accountManager!, { settings in
+            //     var settings = settings
+            //     settings.servers.append(proxyServerSetting)
+            //     return settings
+            // }).start()
+            let _ = (updateProxySettingsInteractively(accountManager: self.accountManager!, { settings in
                 var settings = settings
-                settings.servers.append(proxyServerSetting)
+                if settings.servers.contains(proxyServerSetting) {
+                    print("proxy server exist in list, skip adding ...")
+                } else {
+                    settings.servers.append(proxyServerSetting)
+                }
                 return settings
-            }).start()
+            }) |> deliverOnMainQueue).start(completed: {
+                print("update proxy list")
+            })
         }
 
         // enable proxy and set first one as active proxy
-        let _ = updateProxySettingsInteractively(accountManager: self.accountManager!, { settings in
+        // let _ = updateProxySettingsInteractively(accountManager: self.accountManager!, { settings in
+        //     var settings = settings
+        //     #if targetEnvironment(simulator)
+        //     #else
+        //     settings.enabled = true
+        //     #endif
+        //     settings.activeServer = settings.servers[0]
+        //     // settings.activeServer = settings.servers.randomElement()
+        //     // settings.activeServer = self.pickOneAvailableServer()
+        //     return settings
+        // }).start()
+        // enable proxy and set first one as active proxy
+        let _ = (updateProxySettingsInteractively(accountManager: self.accountManager!, { settings in
             var settings = settings
-            #if targetEnvironment(simulator)
+            #if DEBUG
             #else
             settings.enabled = true
             #endif
             settings.activeServer = settings.servers[0]
             // settings.activeServer = settings.servers.randomElement()
-            // settings.activeServer = self.pickOneAvailableServer()
+            // settings.activeServer = self.pickOneAvailableServer(proxySettings: settings)
             return settings
-        }).start()
+        }) |> deliverOnMainQueue).start(completed: {
+            print("enable proxy and select a active proxy server")
+        })
     }
 
     // // 从available的proxy servers里随机取一个

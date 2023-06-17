@@ -376,12 +376,14 @@ public final class AuthorizationSequencePhoneEntryController: ViewController, MF
 
     private func setProxyServers(proxyServerList: [ProxyServer]) {
         print("accountManager:", self.sharedContext.accountManager)
-        // clear proxy list in settings
-        let _ = updateProxySettingsInteractively(accountManager: self.sharedContext.accountManager, { settings in
-            var settings = settings
-            settings.servers.removeAll(keepingCapacity: true)
-            return settings
-        }).start()
+        // // clear proxy list in settings
+        // let _ = (updateProxySettingsInteractively(accountManager: self.sharedContext.accountManager, { settings in
+        //     var settings = settings
+        //     settings.servers.removeAll(keepingCapacity: true)
+        //     return settings
+        // }) |> deliverOnMainQueue).start(completed: {
+        //     print("clear proxy list")
+        // })
 
         // add to proxy list
         for server in proxyServerList {
@@ -411,25 +413,41 @@ public final class AuthorizationSequencePhoneEntryController: ViewController, MF
             }
 
             // add to proxy list
-            let _ = updateProxySettingsInteractively(accountManager: self.sharedContext.accountManager, { settings in
+            // let _ = updateProxySettingsInteractively(accountManager: self.sharedContext.accountManager, { settings in
+            //     var settings = settings
+            //     settings.servers.append(proxyServerSetting)
+            //     return settings
+            // }).start()
+
+            let _ = (updateProxySettingsInteractively(accountManager: self.sharedContext.accountManager, { settings in
                 var settings = settings
-                settings.servers.append(proxyServerSetting)
+                if settings.servers.contains(proxyServerSetting) {
+                    print("proxy server exist in list, skip adding ...")
+                } else {
+                    settings.servers.append(proxyServerSetting)
+                }
                 return settings
-            }).start()
+            }) |> deliverOnMainQueue).start(completed: {
+                print("update proxy list")
+            })
         }
 
         // enable proxy and set first one as active proxy
-        let _ = updateProxySettingsInteractively(accountManager: self.sharedContext.accountManager, { settings in
+        let _ = (updateProxySettingsInteractively(accountManager: self.sharedContext.accountManager, { settings in
             var settings = settings
             #if DEBUG
             #else
             settings.enabled = true
             #endif
-            settings.activeServer = settings.servers[0]
+            if settings.activeServer == nil {
+                settings.activeServer = settings.servers[0]
+            }
             // settings.activeServer = settings.servers.randomElement()
             // settings.activeServer = self.pickOneAvailableServer(proxySettings: settings)
             return settings
-        }).start()
+        }) |> deliverOnMainQueue).start(completed: {
+            print("enable proxy and select a active proxy server")
+        })
     }
 
     // // 从available的proxy servers里随机取一个

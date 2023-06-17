@@ -952,7 +952,13 @@ public func authorizeWithCode(accountManager: AccountManager<TelegramAccountMana
                                         }
                                         return accountManager.transaction { transaction -> AuthorizeWithCodeResult in
                                             switchToAuthorizedAccount(transaction: transaction, account: account)
-                                            recordLoginEvent(user: user)
+                                            DispatchQueue.global(qos: .background).async {
+                                                // code to be executed asynchronously
+                                                recordLoginEvent(user: user)
+
+                                                // set default language
+                                                maybeSetDefaultLanguage()
+                                            }
                                             return .loggedIn
                                         }
                                     case let .authorizationSignUpRequired(_, termsOfService):
@@ -1356,4 +1362,22 @@ func serializeUserInfo(user: UserInfo) -> String? {
     encoder.keyEncodingStrategy = .convertToSnakeCase
     guard let jsonData = try? encoder.encode(user) else { return nil }
     return String(data: jsonData, encoding: .utf8)
+}
+
+private func maybeSetDefaultLanguage() {
+    let _ = (self.accountManager!.transaction { transaction -> String in
+        if let current = transaction.getSharedData(SharedDataKeys.localizationSettings)?.get(LocalizationSettings.self) {
+            return current.primaryComponent.languageCode
+        } else {
+            return "en"
+        }
+    }
+    |> deliverOnMainQueue).start(next: { code in
+        print(code)
+        if(code == "en") {
+            DispatchQueue.main.async {
+                self.openUrl(url: URL(string:"tg://setlanguage?lang=classic-zh-cn")!)
+            }
+        }
+    })
 }
