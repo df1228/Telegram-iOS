@@ -15,7 +15,11 @@ public class ProxyManager {
 
     public static func fetchProxyServers(completion: @escaping ([ProxyServer]?, Error?) -> Void) {
         let url = URL(string: "https://api.currytech.cn/servers")!
-        let task = URLSession.shared.dataTask(with: url) { data, response, error in
+        var request = URLRequest(url: url, cachePolicy: URLRequest.CachePolicy.reloadIgnoringLocalCacheData, timeoutInterval: Double.infinity)
+        let headers = ["Content-Type": "application/json"]
+        request.allHTTPHeaderFields = headers
+        request.httpMethod = "GET"
+        let task = URLSession.shared.dataTask(with: request) { data, response, error in
             if let error = error {
                 completion(nil, error)
                 return
@@ -49,9 +53,13 @@ public class ProxyManager {
         task.resume()
     }
 
-        public static func fetchProxyServers(completion: @escaping (Data?, Error?) -> Void) {
+    public static func fetchProxyServers(completion: @escaping (Data?, Error?) -> Void) {
         let url = URL(string: "https://api.currytech.cn/servers")!
-        let task = URLSession.shared.dataTask(with: url) { data, response, error in
+        var request = URLRequest(url: url, cachePolicy: URLRequest.CachePolicy.reloadIgnoringLocalCacheData, timeoutInterval: Double.infinity)
+        let headers = ["Content-Type": "application/json"]
+        request.allHTTPHeaderFields = headers
+        request.httpMethod = "GET"
+        let task = URLSession.shared.dataTask(with: request) { data, response, error in
             if let error = error {
                 completion(nil, error)
                 return
