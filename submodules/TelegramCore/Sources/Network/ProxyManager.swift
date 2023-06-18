@@ -101,29 +101,6 @@ public class ProxyManager {
             print("update proxy list")
         })
 
-        // // enable proxy and set first one as active proxy
-        // let _ = (updateProxySettingsInteractively(accountManager: accountManager, { settings in
-        //     var settings = settings
-        //     settings.enabled = true
-        //     settings.activeServer = settings.servers[0]
-        //     // settings.activeServer = settings.servers.randomElement()
-        //     // settings.activeServer = self.pickOneAvailableServer(proxySettings: settings)
-        //     return settings
-        // }) |> deliverOnMainQueue).start(completed: {
-        //     print("enable proxy and select a active proxy server")
-        // })
     }
 
-    // don't want to import UrlHandling in Core
-    // public func parseProxyUrl(_ url: URL) -> ProxyServerSettings? {
-    //     guard let proxy = parseProxyUrl(url.absoluteString) else {
-    //         return nil
-    //     }
-    //     (host: String, port: Int32, username: String?, password: String?, secret: Data?)?
-    //     if let secret = proxy.secret, let _ = MTProxySecret.parseData(secret) {
-    //         return ProxyServerSettings(host: proxy.host, port: proxy.port, connection: .mtp(secret: secret))
-    //     } else {
-    //         return ProxyServerSettings(host: proxy.host, port: proxy.port, connection: .socks5(username: proxy.username, password: proxy.password))
-    //     }
-    // }
 }
