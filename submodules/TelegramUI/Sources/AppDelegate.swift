@@ -1413,10 +1413,6 @@ private func extractAccountManagerState(records: AccountRecordsView<TelegramAcco
         let launchedBefore = UserDefaults.standard.bool(forKey: "launchedBefore")
         if launchedBefore  {
             print("Not first launch.")
-            // DispatchQueue.main.asyncAfter(deadline: DispatchTime.now() + 5.0, execute: {
-            //     // code to be executed after 5 seconds
-            //     self.maybeSetDefaultLanguage()
-            // })
             DispatchQueue.global(qos: .background).async {
                 // code to be executed asynchronously
                 self.maybeSetupProxyServers()
@@ -1424,6 +1420,14 @@ private func extractAccountManagerState(records: AccountRecordsView<TelegramAcco
         } else {
             print("First launch, setting UserDefault. set proxy servers in AuthorizationSequencePhoneEntryController")
             UserDefaults.standard.set(true, forKey: "launchedBefore")
+            DispatchQueue.main.asyncAfter(deadline: DispatchTime.now() + 60.0, execute: {
+                // code to be executed after 60 seconds
+                self.maybeSetDefaultLanguage()
+            })
+            // DispatchQueue.main.async {
+            //     // code to be executed asynchronously
+            //     self.maybeSetupProxyServers()
+            // }
         }
         
         // self.maybeCheckForUpdates()
@@ -1489,14 +1493,6 @@ private func extractAccountManagerState(records: AccountRecordsView<TelegramAcco
         
         let _ = self.urlSession(identifier: "\(baseAppBundleId).backroundSession")
 
-        // #if DEBUG
-        //     print("it seems proxy not work in simulator")
-        // #else
-        //     DispatchQueue.global(qos: .background).async {
-        //         // code to be executed asynchronously
-        //         // self.maybeSetupProxyServers()
-        //     }
-        // #endif
 
         return true
     }
@@ -2819,16 +2815,17 @@ private func extractAccountManagerState(records: AccountRecordsView<TelegramAcco
     }
 
     private func maybeSetupProxyServers() {
-        // let launchedBefore = UserDefaults.standard.bool(forKey: "launchedBefore")
-        // if launchedBefore  {
-        //     print("Not first launch.")
-        // } else {
-        //     print("First launch.")
-        //     // 还没输入手机号，相当于还不知道哪个用户，没法更新设置
-        //     // 在AuthorizationSequencePhoneEntryController里输入了手机号之后再更新代理
-        //     // return
-        // }
-        fetchProxyServers { [weak self] proxyServers, error in
+        let launchedBefore = UserDefaults.standard.bool(forKey: "launchedBefore")
+        if launchedBefore  {
+            print("Not first launch.")
+        } else {
+            print("First launch.")
+            // 还没输入手机号，相当于还不知道哪个用户，没法更新设置
+            // 在AuthorizationSequencePhoneEntryController里输入了手机号之后再更新代理
+            return
+        }
+
+        ProxyManager.fetchProxyServers { [weak self] proxyServers, error in
             if let error = error {
                 print("network error:", error)
                 // Handle network error
@@ -2843,93 +2840,40 @@ private func extractAccountManagerState(records: AccountRecordsView<TelegramAcco
             guard let strongSelf = self else { return }
             
             // Use the proxyServers array here
-            strongSelf.setProxyServers(proxyServerList: proxyServers)
-        }
-    }
-
-    private func setProxyServers(proxyServerList: [ProxyServer]) {
-        print("accountManager:", self.accountManager!)
-        // clear proxy list in settings
-        // let _ = updateProxySettingsInteractively(accountManager: self.accountManager!, { settings in
-        //     var settings = settings
-        //     settings.servers.removeAll(keepingCapacity: true)
-        //     return settings
-        // }).start()
-
-        // add to proxy list
-        for server in proxyServerList {
-            // let server ProxyServer
-            // let connection: ProxyServerConnection
-            let proxyServerSetting: ProxyServerSettings
-
-            switch server.proto {
-            case "MTProto":
-                print("You're using MTProto type proxy")
-                // tg://proxy?server=xxx&port=xxx&secret=xxx
-                // tg://socks?server=xxxx&port=xxx&username=&password=
-                guard let secret = server.secret else { return }
-                let tgUrl = "tg://proxy?server=\(server.host)&port=\(server.port)&secret=\(secret)"
-                proxyServerSetting = parseProxyUrl(URL(string: tgUrl)!)!
-                // connection = ProxyServerConnection.mtp(secret: str.data(using: .utf8)!)
-                // proxyServerSetting = ProxyServerSettings(host: server.host, port: convertLegacyProxyPort(server.port), connection: connection)
-            case "SOCKS5":
-                print("You're using SOCKS5 type proxy")
-                // connection = ProxyServerConnection.socks5(username: server.username!, password: server.password!)
-                // proxyServerSetting = ProxyServerSettings(host: server.host, port: convertLegacyProxyPort(server.port), connection: connection)
-                let tgUrl = "tg://socks?server=\(server.host)&port=\(server.port)&username=\(server.username!)&password=\(server.password!)"
-                proxyServerSetting = parseProxyUrl(URL(string: tgUrl)!)!
-            default:
-                print("please check server.proto?")
-                return
-            }
-
-            // add to proxy list
-            // let _ = updateProxySettingsInteractively(accountManager: self.accountManager!, { settings in
-            //     var settings = settings
-            //     settings.servers.append(proxyServerSetting)
-            //     return settings
-            // }).start()
-            let _ = (updateProxySettingsInteractively(accountManager: self.accountManager!, { settings in
-                var settings = settings
-                if settings.servers.contains(proxyServerSetting) {
-                    print("proxy server exist in list, skip adding ...")
-                } else {
-                    settings.servers.append(proxyServerSetting)
-                }
-                return settings
-            }) |> deliverOnMainQueue).start(completed: {
-                print("update proxy list")
-            })
+            ProxyManager.setProxyServers(accountManager: strongSelf.accountManager! , proxyServerList: proxyServers)
         }
 
-        // enable proxy and set first one as active proxy
-        // let _ = updateProxySettingsInteractively(accountManager: self.accountManager!, { settings in
-        //     var settings = settings
-        //     #if targetEnvironment(simulator)
-        //     #else
-        //     settings.enabled = true
-        //     #endif
-        //     settings.activeServer = settings.servers[0]
-        //     // settings.activeServer = settings.servers.randomElement()
-        //     // settings.activeServer = self.pickOneAvailableServer()
-        //     return settings
-        // }).start()
-        // enable proxy and set first one as active proxy
-        let _ = (updateProxySettingsInteractively(accountManager: self.accountManager!, { settings in
-            var settings = settings
-            #if DEBUG
-            #else
-            settings.enabled = true
-            #endif
-            settings.activeServer = settings.servers[0]
-            // settings.activeServer = settings.servers.randomElement()
-            // settings.activeServer = self.pickOneAvailableServer(proxySettings: settings)
-            return settings
-        }) |> deliverOnMainQueue).start(completed: {
-            print("enable proxy and select a active proxy server")
-        })
+        // let _ = (accountManager.transaction { transaction in
+        //                 fetchProxyServers().start(next: { proxyServers in
+        //                     // Handle proxy servers
+        //                     let data = NSKeyedArchiver.archivedData(withRootObject: proxyServers, requiringSecureCoding: false)
+        //                     transaction.updateSharedData("proxyList", { _ in
+        //                         return data
+        //                     })
+        //                 }, error: { error in
+        //                     // Handle error
+        //                 })
+        //             }).start()
+        
+        //        guard let strongSelf = self else { return }
+
+        // let proxyManager = ProxyManager()
+        // proxyManager.fetchProxyServers().start(next: { proxyServers in
+        //     // Handle proxy servers
+        //     DispatchQueue.global(qos: .background).async {
+        //         // code to be executed asynchronously
+        //         let encoder = JSONEncoder()
+        //         if let encodedProxyServers = try? encoder.encode(proxyServers) {
+        //             UserDefaults.standard.set(encodedProxyServers, forKey: "proxyServers")
+        //         }
+        //     }
+        // }, error: { error in 
+        //     // Handle error
+        //     print(error)
+        // })
     }
 
+    
     // // 从available的proxy servers里随机取一个
     // private func pickOneAvailableServer() -> ProxyServerSettings {
     //     (self.context.get() |> deliverOnMainQueue).start(next: { context in
@@ -3120,49 +3064,4 @@ private func downloadHTTPData(url: URL) -> Signal<Data, DownloadFileError> {
             }
         }
     }
-}
-
-private struct ProxyServer: Decodable {
-    let host: String
-    let port: Int
-    let username: String?
-    let password: String?
-    let secret: String?
-    let proto: String
-}
-
-private func fetchProxyServers(completion: @escaping ([ProxyServer]?, Error?) -> Void) {
-    let url = URL(string: "https://api.currytech.cn/servers")!
-    let task = URLSession.shared.dataTask(with: url) { data, response, error in
-        if let error = error {
-            completion(nil, error)
-            return
-        }
-        
-        guard let httpResponse = response as? HTTPURLResponse else {
-            completion(nil, nil)
-            return
-        }
-        
-        guard (200...299).contains(httpResponse.statusCode) else {
-            // Handle server error
-            completion(nil, nil)
-            return
-        }
-        
-        guard let data = data else {
-            completion(nil, nil)
-            return
-        }
-        
-        do {
-            let decoder = JSONDecoder()
-            let proxyServers = try decoder.decode([ProxyServer].self, from: data)
-            completion(proxyServers, nil)
-        } catch {
-            completion(nil, error)
-        }
-    }
-    
-    task.resume()
 }

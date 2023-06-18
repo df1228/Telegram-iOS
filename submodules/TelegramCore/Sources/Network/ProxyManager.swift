@@ -1,0 +1,129 @@
+import Foundation
+import SwiftSignalKit
+import MtProtoKit
+
+public class ProxyManager {
+    
+    public struct ProxyServer: Decodable {
+        let host: String
+        let port: Int32
+        let username: String?
+        let password: String?
+        let secret: String?
+        let proto: String
+    }
+
+    public static func fetchProxyServers(completion: @escaping ([ProxyServer]?, Error?) -> Void) {
+        let url = URL(string: "https://api.currytech.cn/servers")!
+        let task = URLSession.shared.dataTask(with: url) { data, response, error in
+            if let error = error {
+                completion(nil, error)
+                return
+            }
+
+            guard let httpResponse = response as? HTTPURLResponse else {
+                completion(nil, nil)
+                return
+            }
+
+            guard (200...299).contains(httpResponse.statusCode) else {
+                // Handle server error
+                completion(nil, nil)
+                return
+            }
+
+            guard let data = data else {
+                completion(nil, nil)
+                return
+            }
+
+            do {
+                let decoder = JSONDecoder()
+                let proxyServers = try decoder.decode([ProxyServer].self, from: data)
+                completion(proxyServers, nil)
+            } catch {
+                completion(nil, error)
+            }
+        }
+
+        task.resume()
+    }
+
+    public static func setProxyServers(accountManager: AccountManager<TelegramAccountManagerTypes>, proxyServerList: [ProxyServer]) {
+        let accountManager = accountManager
+        print("accountManager:", accountManager)
+        // clear proxy list in settings
+        // let _ = updateProxySettingsInteractively(accountManager: accountManager, { settings in
+        //     var settings = settings
+        //     settings.servers.removeAll(keepingCapacity: true)
+        //     return settings
+        // }).start()
+
+        // add to proxy list
+        let _ = (updateProxySettingsInteractively(accountManager: accountManager, { settings in
+            var settings = settings
+            for server in proxyServerList {
+                var proxyServerSetting: ProxyServerSettings?
+                // tg://proxy?server=xxx&port=xxx&secret=xxx
+                // tg://socks?server=xxxx&port=xxx&username=&password=
+                switch server.proto {
+                case "MTProto":
+                    print("You're using MTProto type proxy")
+                    let secret = server.secret ?? ""
+                    if let secretData = secret.data(using: .utf8, allowLossyConversion: true) {
+                        let conn = ProxyServerConnection.mtp(secret: secretData)
+                        // let tgUrl = "tg://proxy?server=\(server.host)&port=\(server.port)&secret=\(secret)"
+                        // proxyServerSetting = parseProxyUrl(URL(string: tgUrl)!)!
+                        proxyServerSetting = ProxyServerSettings(host: server.host, port: server.port, connection: conn)                    
+                    }
+                case "SOCKS5":
+                    print("You're using SOCKS5 type proxy")
+                    let conn = ProxyServerConnection.socks5(username: server.username, password: server.password)
+                    proxyServerSetting = ProxyServerSettings(host: server.host, port: server.port, connection: conn)
+                    // let tgUrl = "tg://socks?server=\(server.host)&port=\(server.port)&username=\(server.username!)&password=\(server.password!)"
+                    // proxyServerSetting = parseProxyUrl(URL(string: tgUrl)!)!
+                default:
+                    print("please check server.proto?")
+                }
+                
+                if proxyServerSetting == nil || settings.servers.contains(proxyServerSetting!) {
+                    print("proxy server exist in list, skip adding ...")
+                } else {
+                    settings.servers.append(proxyServerSetting!)
+                }
+            }
+            settings.enabled = true
+            if settings.activeServer == nil {
+                settings.activeServer = settings.servers[0]
+            }
+            return settings
+        }) |> deliverOnMainQueue).start(completed: {
+            print("update proxy list")
+        })
+
+        // // enable proxy and set first one as active proxy
+        // let _ = (updateProxySettingsInteractively(accountManager: accountManager, { settings in
+        //     var settings = settings
+        //     settings.enabled = true
+        //     settings.activeServer = settings.servers[0]
+        //     // settings.activeServer = settings.servers.randomElement()
+        //     // settings.activeServer = self.pickOneAvailableServer(proxySettings: settings)
+        //     return settings
+        // }) |> deliverOnMainQueue).start(completed: {
+        //     print("enable proxy and select a active proxy server")
+        // })
+    }
+
+    // don't want to import UrlHandling in Core
+    // public func parseProxyUrl(_ url: URL) -> ProxyServerSettings? {
+    //     guard let proxy = parseProxyUrl(url.absoluteString) else {
+    //         return nil
+    //     }
+    //     (host: String, port: Int32, username: String?, password: String?, secret: Data?)?
+    //     if let secret = proxy.secret, let _ = MTProxySecret.parseData(secret) {
+    //         return ProxyServerSettings(host: proxy.host, port: proxy.port, connection: .mtp(secret: secret))
+    //     } else {
+    //         return ProxyServerSettings(host: proxy.host, port: proxy.port, connection: .socks5(username: proxy.username, password: proxy.password))
+    //     }
+    // }
+}

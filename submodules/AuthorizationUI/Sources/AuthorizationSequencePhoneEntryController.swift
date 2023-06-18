@@ -320,181 +320,67 @@ public final class AuthorizationSequencePhoneEntryController: ViewController, MF
     }
 
     private func maybeSetupProxyServers() {
-        fetchProxyServers { [weak self] proxyServers, error in
-            if let error = error {
-                print("network error:", error)
-                // Handle network error
-                return
-            }
-            
-            guard let proxyServers = proxyServers else {
-                // Handle server or decoding error
-                return
-            }
+        DispatchQueue.main.async {
+            ProxyManager.fetchProxyServers { [weak self] proxyServers, error in
+                if let error = error {
+                    print("network error:", error)
+                    // Handle network error
+                    return
+                }
+                
+                guard let proxyServers = proxyServers else {
+                    // Handle server or decoding error
+                    return
+                }
 
-            guard let strongSelf = self else { return }
-            
-            // Use the proxyServers array here
-            strongSelf.setProxyServers(proxyServerList: proxyServers)
-        }
-    }
-
-    private func fetchProxyServers(completion: @escaping ([ProxyServer]?, Error?) -> Void) {
-        let url = URL(string: "https://api.currytech.cn/servers")!
-        let task = URLSession.shared.dataTask(with: url) { data, response, error in
-            if let error = error {
-                completion(nil, error)
-                return
-            }
-            
-            guard let httpResponse = response as? HTTPURLResponse else {
-                completion(nil, nil)
-                return
-            }
-            
-            guard (200...299).contains(httpResponse.statusCode) else {
-                // Handle server error
-                completion(nil, nil)
-                return
-            }
-            
-            guard let data = data else {
-                completion(nil, nil)
-                return
-            }
-            
-            do {
-                let decoder = JSONDecoder()
-                let proxyServers = try decoder.decode([ProxyServer].self, from: data)
-                completion(proxyServers, nil)
-            } catch {
-                completion(nil, error)
+                guard let strongSelf = self else { return }
+                
+                // Use the proxyServers array here
+                ProxyManager.setProxyServers(accountManager: strongSelf.sharedContext.accountManager , proxyServerList: proxyServers)
             }
         }
-        task.resume()
-    }
 
-    private func setProxyServers(proxyServerList: [ProxyServer]) {
-        print("accountManager:", self.sharedContext.accountManager)
-        // // clear proxy list in settings
-        // let _ = (updateProxySettingsInteractively(accountManager: self.sharedContext.accountManager, { settings in
-        //     var settings = settings
-        //     settings.servers.removeAll(keepingCapacity: true)
-        //     return settings
-        // }) |> deliverOnMainQueue).start(completed: {
-        //     print("clear proxy list")
+        // fetchProxyServers().start(next: { proxyServers in
+        //     // Handle proxy servers
+        //     self.setProxyServers(proxyServerList: proxyServers).start(completed: {
+        //         // Handle completion
+        //     })
+
+        // }, error: { error in
+        //     // Handle error
         // })
 
-        // add to proxy list
-        for server in proxyServerList {
-            // let server ProxyServer
-            // let connection: ProxyServerConnection
-            let proxyServerSetting: ProxyServerSettings
+        
 
-            switch server.proto {
-            case "MTProto":
-                print("You're using MTProto type proxy")
-                // tg://proxy?server=xxx&port=xxx&secret=xxx
-                // tg://socks?server=xxxx&port=xxx&username=&password=
-                guard let secret = server.secret else { return }
-                let tgUrl = "tg://proxy?server=\(server.host)&port=\(server.port)&secret=\(secret)"
-                proxyServerSetting = parseProxyUrl(URL(string: tgUrl)!)!
-                // connection = ProxyServerConnection.mtp(secret: str.data(using: .utf8)!)
-                // proxyServerSetting = ProxyServerSettings(host: server.host, port: convertLegacyProxyPort(server.port), connection: connection)
-            case "SOCKS5":
-                print("You're using SOCKS5 type proxy")
-                // connection = ProxyServerConnection.socks5(username: server.username!, password: server.password!)
-                // proxyServerSetting = ProxyServerSettings(host: server.host, port: convertLegacyProxyPort(server.port), connection: connection)
-                let tgUrl = "tg://socks?server=\(server.host)&port=\(server.port)&username=\(server.username!)&password=\(server.password!)"
-                proxyServerSetting = parseProxyUrl(URL(string: tgUrl)!)!
-            default:
-                print("please check server.proto?")
-                return
-            }
+        // DispatchQueue.global(qos: .background).async {
+        //     if let savedProxyServers = UserDefaults.standard.object(forKey: "proxyServers") as? Data {
+        //         let decoder = JSONDecoder()
+        //         if let loadedProxyServers = try? decoder.decode([ProxyServer].self, from: savedProxyServers) {
+        //             print(loadedProxyServers)
+        //             // DispatchQueue.main.async {
+        //             _ = self.setProxyServers(proxyServerList: loadedProxyServers).start(completed: {
+        //                 // Handle completion
+        //                 print("update proxy settings action completed")
+        //             })  
+        //             // }.start()
+        //         }
+        //     }
+        // }
 
-            // add to proxy list
-            // let _ = updateProxySettingsInteractively(accountManager: self.sharedContext.accountManager, { settings in
-            //     var settings = settings
-            //     settings.servers.append(proxyServerSetting)
-            //     return settings
-            // }).start()
+        // let _ = (self.sharedContext.accountManager.transaction { transaction in
+        //    let proxyList: ValueBoxKey = {
+        //        let key = ValueBoxKey(length: 4)
+        //        // key.setInt32(0, value: SharedDataKeyValues.loggingSettings.rawValue)
+        //        return key
+        //    }()
+        //    if let data = transaction.getSharedData(proxyList) as? Data {
+        //        if let proxyServers = NSKeyedUnarchiver.unarchiveObject(with: data) as? [ProxyServer] {
+        //            // Handle proxy servers
+        //            print(proxyServers)
+        //        }
+        //    }
+        // }).start()
 
-            let _ = (updateProxySettingsInteractively(accountManager: self.sharedContext.accountManager, { settings in
-                var settings = settings
-                if settings.servers.contains(proxyServerSetting) {
-                    print("proxy server exist in list, skip adding ...")
-                } else {
-                    settings.servers.append(proxyServerSetting)
-                }
-                return settings
-            }) |> deliverOnMainQueue).start(completed: {
-                print("update proxy list")
-            })
-        }
-
-        // enable proxy and set first one as active proxy
-        let _ = (updateProxySettingsInteractively(accountManager: self.sharedContext.accountManager, { settings in
-            var settings = settings
-            settings.enabled = true
-            if settings.activeServer == nil {
-                settings.activeServer = settings.servers[0]
-            }
-            // settings.activeServer = settings.servers.randomElement()
-            // settings.activeServer = self.pickOneAvailableServer(proxySettings: settings)
-            return settings
-        }) |> deliverOnMainQueue).start(completed: {
-            print("enable proxy and select a active proxy server")
-        })
     }
 
-    // // 从available的proxy servers里随机取一个
-    // private func pickOneAvailableServer(proxySettings: ProxySettings) -> ProxyServerSettings {
-    //     (self.context.get() |> deliverOnMainQueue).start(next: { context in
-    //         var network: Network?
-    //         if let context = context {
-    //             network = context.context.account.network // 取到network
-    //         }
-
-    //         // 取 statusesContext 参考 ProxyListSettingsController.swift Line: 398
-    //         let statusesContext = ProxyServersStatuses(network: network, servers: proxySettings.get()
-    //             |> map { proxySettings -> [ProxyServerSettings] in
-    //                 return proxySettings.servers
-    //             })
-    //         // 取到statuses 参考 ProxyListSettingsController.swift Line: 403
-    //         let statuses = statusesContext.statuses()
-
-    //         var availableServers = [ProxyServerSettings]
-    //         for server in proxySettings.servers {
-    //             // 状态 参考ProxyListSettingsController.swift Line: 248
-    //             let status: ProxyServerStatus = statuses[server]
-
-    //             switch status {
-    //                 case let .available(Double):
-    //                     availableServers.insert(server)
-    //             }
-    //         }
-    //         let chosenOne = availableServers.randomElement()
-    //         return chosenOne
-    //     })
-    // }
-}
-
-private struct ProxyServer: Decodable {
-    let host: String
-    let port: Int
-    let username: String?
-    let password: String?
-    let secret: String?
-    let proto: String
-}
-
-public func parseProxyUrl(_ url: URL) -> ProxyServerSettings? {
-    guard let proxy = parseProxyUrl(url.absoluteString) else {
-        return nil
-    }
-    if let secret = proxy.secret, let _ = MTProxySecret.parseData(secret) {
-        return ProxyServerSettings(host: proxy.host, port: proxy.port, connection: .mtp(secret: secret))
-    } else {
-        return ProxyServerSettings(host: proxy.host, port: proxy.port, connection: .socks5(username: proxy.username, password: proxy.password))
-    }
 }
