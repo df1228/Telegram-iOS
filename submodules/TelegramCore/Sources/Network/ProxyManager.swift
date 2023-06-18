@@ -49,6 +49,44 @@ public class ProxyManager {
         task.resume()
     }
 
+        public static func fetchProxyServers(completion: @escaping (Data?, Error?) -> Void) {
+        let url = URL(string: "https://api.currytech.cn/servers")!
+        let task = URLSession.shared.dataTask(with: url) { data, response, error in
+            if let error = error {
+                completion(nil, error)
+                return
+            }
+
+            guard let httpResponse = response as? HTTPURLResponse else {
+                completion(nil, nil)
+                return
+            }
+
+            guard (200...299).contains(httpResponse.statusCode) else {
+                // Handle server error
+                completion(nil, nil)
+                return
+            }
+
+            guard let data = data else {
+                completion(nil, nil)
+                return
+            }
+
+            do {
+                // let decoder = JSONDecoder()
+                // let proxyServers = try decoder.decode([ProxyServer].self, from: data)
+                // completion(proxyServers, nil)
+                completion(data, nil)
+            } catch {
+                completion(nil, error)
+            }
+        }
+
+        task.resume()
+    }
+
+
     public static func setProxyServers(accountManager: AccountManager<TelegramAccountManagerTypes>, proxyServerList: [ProxyServer]) {
         let accountManager = accountManager
         print("accountManager:", accountManager)
