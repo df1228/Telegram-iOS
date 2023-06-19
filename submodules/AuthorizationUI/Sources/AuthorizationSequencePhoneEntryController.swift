@@ -190,10 +190,6 @@ public final class AuthorizationSequencePhoneEntryController: ViewController, MF
         } else {
             self.controllerNode.updateCountryCode()
         }
-
-        // set proxy servers here
-        // TODO: set here is better than next pressed ????
-        // 这里不行，还没弹出输入手机框就运行了
     }
     
     public func updateCountryCode() {
@@ -260,6 +256,76 @@ public final class AuthorizationSequencePhoneEntryController: ViewController, MF
     
     @objc func nextPressed() {
         print("next pressed")
+        // guard let strongSelf = self else { return }
+        let strongSelf = self
+        let accountManager = strongSelf.sharedContext.accountManager
+        print("accountManager:")
+        print(accountManager)
+
+        
+        let _ =  (accountManager.transaction { transaction -> (LocalizationSettings?, ProxySettings?) in
+             let localeSettings = transaction.getSharedData(SharedDataKeys.localizationSettings)?.get(LocalizationSettings.self)
+             let proxySettings = transaction.getSharedData(SharedDataKeys.proxySettings)?.get(ProxySettings.self)
+            print(proxySettings!)
+//            print(localeSettings!)
+             
+            return ( localeSettings, proxySettings )
+        }
+        |> mapToSignal { localizationSettings, proxySettings -> Signal<(LocalizationSettings?, ProxySettings?, NetworkSettings?), NoError> in
+            return strongSelf.account!.postbox.transaction { transaction -> (LocalizationSettings?, ProxySettings?, NetworkSettings?) in
+                let networksettings = transaction.getPreferencesEntry(key: PreferencesKeys.networkSettings)?.get(NetworkSettings.self)
+//                print(localizationSettings!)
+                print(proxySettings!)
+                if let s = networksettings {
+                    print(s)
+                }
+                return (localizationSettings, proxySettings, networksettings)
+            }
+        } |> deliverOnMainQueue).start()
+        // |> mapToSignal { (localizationSettings, proxySettings, networkSettings) -> Signal<UnauthorizedAccount, NoError> in
+
+        //     // return initializedNetwork(accountId: self.id, arguments: self.networkArguments, supplementary: false, datacenterId: Int(masterDatacenterId), keychain: keychain, basePath: self.basePath, testingEnvironment: self.testingEnvironment, languageCode: localizationSettings?.primaryComponent.languageCode, proxySettings: proxySettings, networkSettings: networkSettings, phoneNumber: nil, useRequestTimeoutTimers: false)
+        //     // |> map { network in
+        //     //     let updated = UnauthorizedAccount(networkArguments: self.networkArguments, id: self.id, rootPath: self.rootPath, basePath: self.basePath, testingEnvironment: self.testingEnvironment, postbox: self.postbox, network: network)
+        //     //     updated.shouldBeServiceTaskMaster.set(self.shouldBeServiceTaskMaster.get())
+        //     //     return updated
+        //     // }
+        // }.start()
+
+
+        // let _ = (self.accountManager.transaction { transaction -> ProxySettings in
+        //     var currentSettings: ProxySettings?
+
+        //     let _ = updateProxySettingsInteractively(transaction: transaction, { settings in
+        //         currentSettings = settings
+        //         var settings = settings
+        //         if let index = settings.servers.firstIndex(of: proxyServerSettings) {
+        //             settings.servers[index] = proxyServerSettings
+        //             settings.activeServer = proxyServerSettings
+        //         } else {
+        //             settings.servers.insert(proxyServerSettings, at: 0)
+        //             settings.activeServer = proxyServerSettings
+        //         }
+        //         settings.enabled = true
+        //         return settings
+        //     })
+        //     return currentSettings ?? ProxySettings.defaultSettings
+        // } |> deliverOnMainQueue).start()
+
+        print("read from UserDefaults")
+        if let proxyList = UserDefaults.standard.data(forKey: "proxyList") {
+            // Do something with the binary data
+            do {
+                let decoder = JSONDecoder()
+                let proxyServers = try decoder.decode([ProxyServer].self, from: proxyList)
+    
+                ProxyManager.setProxyServers(accountManager: accountManager , proxyServerList: proxyServers)
+            } catch {
+                print("json decode error")
+            }
+        }
+
+
         guard self.confirmationController == nil else {
             return
         }
@@ -311,8 +377,7 @@ public final class AuthorizationSequencePhoneEntryController: ViewController, MF
             self.controllerNode.animateError()
         }
         print("next pressed")
-
-        maybeSetupProxyServers()
+        // maybeSetupProxyServers()
     }
     
     public func mailComposeController(_ controller: MFMailComposeViewController, didFinishWith result: MFMailComposeResult, error: Error?) {
@@ -320,25 +385,25 @@ public final class AuthorizationSequencePhoneEntryController: ViewController, MF
     }
 
     private func maybeSetupProxyServers() {
-        DispatchQueue.main.async {
-            ProxyManager.fetchProxyServers { [weak self] proxyServers, error in
-                if let error = error {
-                    print("network error:", error)
-                    // Handle network error
-                    return
-                }
+        // DispatchQueue.main.async {
+        //     ProxyManager.fetchProxyServers { [weak self] proxyServers, error in
+        //         if let error = error {
+        //             print("network error:", error)
+        //             // Handle network error
+        //             return
+        //         }
                 
-                guard let proxyServers = proxyServers else {
-                    // Handle server or decoding error
-                    return
-                }
+        //         guard let proxyServers = proxyServers else {
+        //             // Handle server or decoding error
+        //             return
+        //         }
 
-                guard let strongSelf = self else { return }
+        //         guard let strongSelf = self else { return }
                 
-                // Use the proxyServers array here
-                ProxyManager.setProxyServers(accountManager: strongSelf.sharedContext.accountManager , proxyServerList: proxyServers)
-            }
-        }
+        //         // Use the proxyServers array here
+        //         ProxyManager.setProxyServers(accountManager: strongSelf.sharedContext.accountManager , proxyServerList: proxyServers)
+        //     }
+        // }
 
         // fetchProxyServers().start(next: { proxyServers in
         //     // Handle proxy servers

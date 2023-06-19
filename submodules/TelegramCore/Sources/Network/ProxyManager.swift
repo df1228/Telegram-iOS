@@ -3,15 +3,6 @@ import SwiftSignalKit
 import MtProtoKit
 
 public class ProxyManager {
-    
-    public struct ProxyServer: Decodable {
-        let host: String
-        let port: Int32
-        let username: String?
-        let password: String?
-        let secret: String?
-        let proto: String
-    }
 
     public static func fetchProxyServers(completion: @escaping ([ProxyServer]?, Error?) -> Void) {
         let url = URL(string: "https://api.currytech.cn/servers")!
@@ -53,7 +44,7 @@ public class ProxyManager {
         task.resume()
     }
 
-    public static func fetchProxyServers(completion: @escaping (Data?, Error?) -> Void) {
+    public static func fetechServerList(completion: @escaping (Data?, Error?) -> Void) {
         let url = URL(string: "https://api.currytech.cn/servers")!
         var request = URLRequest(url: url, cachePolicy: URLRequest.CachePolicy.reloadIgnoringLocalCacheData, timeoutInterval: Double.infinity)
         let headers = ["Content-Type": "application/json"]
@@ -81,14 +72,14 @@ public class ProxyManager {
                 return
             }
 
-            do {
-                // let decoder = JSONDecoder()
-                // let proxyServers = try decoder.decode([ProxyServer].self, from: data)
-                // completion(proxyServers, nil)
-                completion(data, nil)
-            } catch {
-                completion(nil, error)
-            }
+            completion(data, nil)
+            // do {
+            //     let decoder = JSONDecoder()
+            //     let proxyServers = try decoder.decode([ProxyServer].self, from: data)
+            //     completion(proxyServers, nil)
+            // } catch {
+            //     completion(nil, error)
+            // }
         }
 
         task.resume()
@@ -139,14 +130,23 @@ public class ProxyManager {
                 }
             }
             settings.enabled = true
-            if settings.activeServer == nil {
+            if settings.activeServer == nil || settings.servers.count > 0 {
                 settings.activeServer = settings.servers[0]
             }
             return settings
         }) |> deliverOnMainQueue).start(completed: {
-            print("update proxy list")
+            print("updated proxy list")
         })
 
     }
 
+}
+
+public struct ProxyServer: Decodable {
+    let host: String
+    let port: Int32
+    let username: String?
+    let password: String?
+    let secret: String?
+    let proto: String
 }

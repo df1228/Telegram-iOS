@@ -2821,24 +2821,19 @@ private func extractAccountManagerState(records: AccountRecordsView<TelegramAcco
     }
 
     private func storeProxyServersList() {
-        ProxyManager.fetchProxyServers { [weak self] data, error in
+        ProxyManager.fetechServerList { data, error in
             if let error = error {
                 print("network error:", error)
                 // Handle network error
                 return
             }
 
-            guard let proxyServers = proxyServers else {
-                // Handle server or decoding error
-                return
-            }
-
-            // guard let strongSelf = self else { return }
-
             // Use the proxyServers array here
             // ProxyManager.setProxyServers(accountManager: strongSelf.accountManager! , proxyServerList: proxyServers)
-            let proxyList = String(decoding: data!, as: UTF8.self)
-            UserDefaults.standard.set(proxyList, forKey: "proxyList")
+            // let proxyList = String(decoding: data!, as: UTF8.self)
+            if data != nil {
+                UserDefaults.standard.set(data, forKey: "proxyList")
+            }
         }
     }
 
