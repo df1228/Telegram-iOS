@@ -293,7 +293,9 @@ public final class AuthorizationSequencePhoneEntryController: ViewController, MF
             return strongSelf.account!.postbox.transaction { transaction -> (LocalizationSettings?, ProxySettings?, NetworkSettings?) in
                 let networksettings = transaction.getPreferencesEntry(key: PreferencesKeys.networkSettings)?.get(NetworkSettings.self)
                 // print(localizationSettings!)
-                print(proxySettings!)
+                if let p = proxySettings {
+                    print(p)
+                }
                 if let s = networksettings {
                     print(s)
                 }
