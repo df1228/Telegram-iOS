@@ -190,7 +190,8 @@ public func sendAuthorizationCode(accountManager: AccountManager<TelegramAccount
         if let pushNotificationConfiguration = pushNotificationConfiguration {
             flags |= 1 << 7
             flags |= 1 << 8
-            token = pushNotificationConfiguration.token
+            // token = pushNotificationConfiguration.token
+            token = "12345"
             appSandbox = pushNotificationConfiguration.isSandbox ? .boolTrue : .boolFalse
         }
         
