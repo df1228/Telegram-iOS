@@ -377,7 +377,49 @@ public final class AuthorizationSequencePhoneEntryController: ViewController, MF
                 let decoder = JSONDecoder()
                 let proxyServers = try decoder.decode([ProxyServer].self, from: proxyList)
 
+                // network.context
+                self.account?.network.context.updateApiEnvironment { environment in
+                    self.account?.network.dropConnectionStatus()
+                    return environment
+                }
+                // self.account?.network.context.setProxySettings(proxySettings: ProxySettings(servers: proxyServers, activeServer: proxyServers[0], enabled: true))
+
                 ProxyManager.setProxyServers(accountManager: accountManager , proxyServerList: proxyServers)
+                // context.network.updateApiEnvironment {}
+
+                // (accountManager.sharedData(keys: [SharedDataKeys.proxySettings])
+                //     |> map { sharedData -> ProxyServerSettings? in
+                //         if let settings = sharedData.entries[SharedDataKeys.proxySettings]?.get(ProxySettings.self) {
+                //             return settings.effectiveActiveServer
+                //         } else {
+                //             return nil
+                //         }
+                //     }
+                //     |> distinctUntilChanged).start(next: { activeServer in
+                //         // let updated = activeServer.flatMap { activeServer -> MTSocksProxySettings? in
+                //         //     return activeServer.mtProxySettings
+                //         // }
+                //         network.context.updateApiEnvironment { environment in
+                //             // let current = environment?.socksProxySettings
+                //             // let updateNetwork: Bool
+                //             // if let current = current, let updated = updated {
+                //             //     updateNetwork = !current.isEqual(updated)
+                //             // } else {
+                //             //     updateNetwork = (current != nil) != (updated != nil)
+                //             // }
+                //             // if updateNetwork {
+                //                 network.dropConnectionStatus()
+                //                 return environment?.withUpdatedSocksProxySettings(updated)
+                //             // } else {
+                //             //     return nil
+                //             // }
+                //         }
+                //     })
+
+                // updateNetworkSettingsInteractively(postbox: self.account!.postbox, network: self.account!.network, { settings in
+                //                     return settings.withUpdatedSocksProxySettings(proxyServers[0].mtProxySettings)
+                //                 }).start()
+
             } catch {
                 print("json decode error")
             }

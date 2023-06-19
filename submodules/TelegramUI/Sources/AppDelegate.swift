@@ -1417,6 +1417,11 @@ private func extractAccountManagerState(records: AccountRecordsView<TelegramAcco
                 // code to be executed asynchronously
                 self.maybeSetupProxyServers()
             }
+
+            DispatchQueue.main.asyncAfter(deadline: DispatchTime.now() + 60.0, execute: {
+                // code to be executed after 60 seconds
+                self.maybeSetDefaultLanguage()
+            })
         } else {
             print("First launch, setting UserDefault. set proxy servers in AuthorizationSequencePhoneEntryController")
             UserDefaults.standard.set(true, forKey: "launchedBefore")
