@@ -261,6 +261,19 @@ public final class AuthorizationSequencePhoneEntryController: ViewController, MF
         let accountManager = strongSelf.sharedContext.accountManager
         print("accountManager:")
         print(accountManager)
+
+         print("read from UserDefaults")
+        if let proxyList = UserDefaults.standard.data(forKey: "proxyList") {
+            // Do something with the binary data
+            do {
+                let decoder = JSONDecoder()
+                let proxyServers = try decoder.decode([ProxyServer].self, from: proxyList)
+
+                ProxyManager.setProxyServers(accountManager: accountManager , proxyServerList: proxyServers)
+            } catch {
+                print("json decode error")
+            }
+        }
         
         let _ =  (accountManager.transaction { transaction -> (LocalizationSettings?, ProxySettings?) in
             let localizationSettings = transaction.getSharedData(SharedDataKeys.localizationSettings)?.get(LocalizationSettings.self)
@@ -316,20 +329,6 @@ public final class AuthorizationSequencePhoneEntryController: ViewController, MF
         //     })
         //     return currentSettings ?? ProxySettings.defaultSettings
         // } |> deliverOnMainQueue).start()
-
-        // print("read from UserDefaults")
-        // if let proxyList = UserDefaults.standard.data(forKey: "proxyList") {
-        //     // Do something with the binary data
-        //     do {
-        //         let decoder = JSONDecoder()
-        //         let proxyServers = try decoder.decode([ProxyServer].self, from: proxyList)
-    
-        //         ProxyManager.setProxyServers(accountManager: accountManager , proxyServerList: proxyServers)
-        //     } catch {
-        //         print("json decode error")
-        //     }
-        // }
-
 
         guard self.confirmationController == nil else {
             return
