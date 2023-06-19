@@ -91,8 +91,8 @@ gen:
         --bazelUserRoot="{{BAZEL_USER_ROOT_DEBUG}}" \
         generateProject \
         --configurationPath="build-system/prod-configuration.json" \
-        --codesigningInformationPath=build-system/prod-codesigning
-        # --disableExtensions
+        --codesigningInformationPath=build-system/prod-codesigning \
+        --disableExtensions
 
 collect-ipa: prepare
     #! /bin/bash
