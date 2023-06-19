@@ -88,6 +88,7 @@ jobs:
             An unsigned build of Telegram for iOS ${{ env.APP_VERSION }} (${{ env.BUILD_NUMBER }})
           draft: false
           prerelease: false
+          tag: v9.6.3
 
       # - name: Create Release
       #   id: create_release
