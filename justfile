@@ -113,7 +113,7 @@ collect-debug-ipa: prepare
     set -x
     mkdir -p "{{OUTPUT_PATH}}"
     chmod -R 777 build/artifacts/
-    for f in bazel-out/applebin_ios-ios_arm*-opt-ST-*/bin/Telegram/Telegram.ipa; do
+    for f in bazel-out/applebin_ios-ios_arm*-dbg-ST-*/bin/Telegram/Telegram.ipa; do
         cp -f "$f" {{OUTPUT_PATH}}/
     done
     cp -f {{OUTPUT_PATH}}/Telegram.ipa /Users/Shared/build/artifacts/Telegram.ipa
