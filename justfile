@@ -106,6 +106,19 @@ collect-ipa: prepare
     cp -f {{OUTPUT_PATH}}/Telegram.ipa /Users/Shared/build/artifacts/Telegram.ipa
     cp -f {{OUTPUT_PATH}}/Telegram.ipa /Users/Shared/build/artifacts/Telegram-{{SHORT_SHA}}.ipa
 
+
+collect-debug-ipa: prepare
+    #! /bin/bash
+    set +e
+    set -x
+    mkdir -p "{{OUTPUT_PATH}}"
+    chmod -R 777 build/artifacts/
+    for f in bazel-out/applebin_ios-ios_arm*-opt-ST-*/bin/Telegram/Telegram.ipa; do
+        cp -f "$f" {{OUTPUT_PATH}}/
+    done
+    cp -f {{OUTPUT_PATH}}/Telegram.ipa /Users/Shared/build/artifacts/Telegram.ipa
+    cp -f {{OUTPUT_PATH}}/Telegram.ipa /Users/Shared/build/artifacts/Telegram-{{SHORT_SHA}}.ipa
+
 download-ipa:
     rsync -rvP mac:/Users/Shared/build/artifacts/Telegram.ipa /tmp/Telegram.ipa
 
