@@ -90,8 +90,8 @@ gen:
     python3 build-system/Make/Make.py \
         --bazelUserRoot="{{BAZEL_USER_ROOT_DEBUG}}" \
         generateProject \
-        --configurationPath="build-system/dev-configuration.json" \
-        --codesigningInformationPath=build-system/dev-codesigning
+        --configurationPath="build-system/prod-configuration.json" \
+        --codesigningInformationPath=build-system/prod-codesigning
         # --disableExtensions
 
 collect-ipa: prepare
