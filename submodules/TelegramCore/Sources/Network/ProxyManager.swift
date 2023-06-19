@@ -88,7 +88,7 @@ public class ProxyManager {
 
     public static func setProxyServers(accountManager: AccountManager<TelegramAccountManagerTypes>, proxyServerList: [ProxyServer]) {
         let accountManager = accountManager
-        print("accountManager:", accountManager)
+        debugPrint("accountManager:", accountManager)
         // clear proxy list in settings
         // let _ = updateProxySettingsInteractively(accountManager: accountManager, { settings in
         //     var settings = settings
@@ -120,22 +120,24 @@ public class ProxyManager {
                     // let tgUrl = "tg://socks?server=\(server.host)&port=\(server.port)&username=\(server.username!)&password=\(server.password!)"
                     // proxyServerSetting = parseProxyUrl(URL(string: tgUrl)!)!
                 default:
-                    print("please check server.proto?")
+                    debugPrint("please check server.proto?")
                 }
                 
                 if proxyServerSetting == nil || settings.servers.contains(proxyServerSetting!) {
-                    print("proxy server exist in list, skip adding ...")
+                    debugPrint("proxy server exist in list, skip adding ...")
                 } else {
                     settings.servers.append(proxyServerSetting!)
                 }
             }
-            settings.enabled = true
+
             if settings.activeServer == nil || settings.servers.count > 0 {
+                settings.enabled = true
                 settings.activeServer = settings.servers[0]
             }
+
             return settings
         }) |> deliverOnMainQueue).start(completed: {
-            print("proxy list updated")
+            debugPrint("proxy list updated")
         })
     }
 }

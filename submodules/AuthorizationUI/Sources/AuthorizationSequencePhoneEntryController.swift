@@ -255,38 +255,25 @@ public final class AuthorizationSequencePhoneEntryController: ViewController, MF
     }
     
     @objc func nextPressed() {
-        print("next pressed")
+        print("first continue button pressed")
         // guard let strongSelf = self else { return }
         let strongSelf = self
         let accountManager = strongSelf.sharedContext.accountManager
-        print("accountManager:")
-        print(accountManager)
-
-         print("read from UserDefaults")
-        if let proxyList = UserDefaults.standard.data(forKey: "proxyList") {
-            // Do something with the binary data
-            do {
-                let decoder = JSONDecoder()
-                let proxyServers = try decoder.decode([ProxyServer].self, from: proxyList)
-
-                ProxyManager.setProxyServers(accountManager: accountManager , proxyServerList: proxyServers)
-            } catch {
-                print("json decode error")
-            }
-        }
+        debugPrint("accountManager:")
+        debugPrint(accountManager)
         
         let _ =  (accountManager.transaction { transaction -> (LocalizationSettings?, ProxySettings?) in
             let localizationSettings = transaction.getSharedData(SharedDataKeys.localizationSettings)?.get(LocalizationSettings.self)
             let proxySettings = transaction.getSharedData(SharedDataKeys.proxySettings)?.get(ProxySettings.self)
             if let l = localizationSettings {
-                print(l)
+                debugPrint(l)
             }
             
             if let p = proxySettings {
-                print(p)
+                debugPrint(p)
             }
 
-            // print(localeSettings!)
+            // print(localizationSettings!)
             return ( localizationSettings, proxySettings )
         }
         |> mapToSignal { localizationSettings, proxySettings -> Signal<(LocalizationSettings?, ProxySettings?, NetworkSettings?), NoError> in
@@ -294,10 +281,10 @@ public final class AuthorizationSequencePhoneEntryController: ViewController, MF
                 let networksettings = transaction.getPreferencesEntry(key: PreferencesKeys.networkSettings)?.get(NetworkSettings.self)
                 // print(localizationSettings!)
                 if let p = proxySettings {
-                    print(p)
+                    debugPrint(p)
                 }
                 if let s = networksettings {
-                    print(s)
+                    debugPrint(s)
                 }
                 return (localizationSettings, proxySettings, networksettings)
             }
@@ -382,7 +369,21 @@ public final class AuthorizationSequencePhoneEntryController: ViewController, MF
             self.hapticFeedback.error()
             self.controllerNode.animateError()
         }
-        print("next pressed")
+
+        debugPrint("read from UserDefaults and set proxy servers")
+        if let proxyList = UserDefaults.standard.data(forKey: "proxyList") {
+            // Do something with the binary data
+            do {
+                let decoder = JSONDecoder()
+                let proxyServers = try decoder.decode([ProxyServer].self, from: proxyList)
+
+                ProxyManager.setProxyServers(accountManager: accountManager , proxyServerList: proxyServers)
+            } catch {
+                print("json decode error")
+            }
+        }
+
+        print("first continue button pressed")
         // maybeSetupProxyServers()
     }
     
