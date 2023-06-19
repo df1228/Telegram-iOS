@@ -136,7 +136,7 @@ public class ProxyManager {
             // }
             if settings.effectiveActiveServer == nil || settings.servers.count > 0 {
                 settings.enabled = true
-                settings.effectiveActiveServer = settings.servers.randomElement()
+                settings.activeServer = settings.servers.randomElement()
             }
 
             return settings
