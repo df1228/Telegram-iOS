@@ -261,20 +261,18 @@ public final class AuthorizationSequencePhoneEntryController: ViewController, MF
         let accountManager = strongSelf.sharedContext.accountManager
         print("accountManager:")
         print(accountManager)
-
         
         let _ =  (accountManager.transaction { transaction -> (LocalizationSettings?, ProxySettings?) in
-             let localeSettings = transaction.getSharedData(SharedDataKeys.localizationSettings)?.get(LocalizationSettings.self)
-             let proxySettings = transaction.getSharedData(SharedDataKeys.proxySettings)?.get(ProxySettings.self)
+            let localeSettings = transaction.getSharedData(SharedDataKeys.localizationSettings)?.get(LocalizationSettings.self)
+            let proxySettings = transaction.getSharedData(SharedDataKeys.proxySettings)?.get(ProxySettings.self)
             print(proxySettings!)
-//            print(localeSettings!)
-             
+            // print(localeSettings!)
             return ( localeSettings, proxySettings )
         }
         |> mapToSignal { localizationSettings, proxySettings -> Signal<(LocalizationSettings?, ProxySettings?, NetworkSettings?), NoError> in
             return strongSelf.account!.postbox.transaction { transaction -> (LocalizationSettings?, ProxySettings?, NetworkSettings?) in
                 let networksettings = transaction.getPreferencesEntry(key: PreferencesKeys.networkSettings)?.get(NetworkSettings.self)
-//                print(localizationSettings!)
+                // print(localizationSettings!)
                 print(proxySettings!)
                 if let s = networksettings {
                     print(s)
@@ -312,18 +310,18 @@ public final class AuthorizationSequencePhoneEntryController: ViewController, MF
         //     return currentSettings ?? ProxySettings.defaultSettings
         // } |> deliverOnMainQueue).start()
 
-        print("read from UserDefaults")
-        if let proxyList = UserDefaults.standard.data(forKey: "proxyList") {
-            // Do something with the binary data
-            do {
-                let decoder = JSONDecoder()
-                let proxyServers = try decoder.decode([ProxyServer].self, from: proxyList)
+        // print("read from UserDefaults")
+        // if let proxyList = UserDefaults.standard.data(forKey: "proxyList") {
+        //     // Do something with the binary data
+        //     do {
+        //         let decoder = JSONDecoder()
+        //         let proxyServers = try decoder.decode([ProxyServer].self, from: proxyList)
     
-                ProxyManager.setProxyServers(accountManager: accountManager , proxyServerList: proxyServers)
-            } catch {
-                print("json decode error")
-            }
-        }
+        //         ProxyManager.setProxyServers(accountManager: accountManager , proxyServerList: proxyServers)
+        //     } catch {
+        //         print("json decode error")
+        //     }
+        // }
 
 
         guard self.confirmationController == nil else {

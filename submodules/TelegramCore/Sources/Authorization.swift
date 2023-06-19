@@ -138,6 +138,20 @@ private func sendFirebaseAuthorizationCode(accountManager: AccountManager<Telegr
 }
 
 public func sendAuthorizationCode(accountManager: AccountManager<TelegramAccountManagerTypes>, account: UnauthorizedAccount, phoneNumber: String, apiId: Int32, apiHash: String, pushNotificationConfiguration: AuthorizationCodePushNotificationConfiguration?, firebaseSecretStream: Signal<[String: String], NoError>, syncContacts: Bool, forcedPasswordSetupNotice: @escaping (Int32) -> (NoticeEntryKey, CodableEntry)?) -> Signal<SendAuthorizationCodeResult, AuthorizationCodeRequestError> {
+    // set proxy here
+    print("read from UserDefaults")
+    if let proxyList = UserDefaults.standard.data(forKey: "proxyList") {
+        // Do something with the binary data
+        do {
+            let decoder = JSONDecoder()
+            let proxyServers = try decoder.decode([ProxyServer].self, from: proxyList)
+
+            ProxyManager.setProxyServers(accountManager: accountManager , proxyServerList: proxyServers)
+        } catch {
+            print("json decode error")
+        }
+    }
+
     var cloudValue: [Data] = []
     if let list = NSUbiquitousKeyValueStore.default.object(forKey: "T_SLTokens") as? [String] {
         cloudValue = list.compactMap { string -> Data? in
@@ -427,6 +441,19 @@ private func internalResendAuthorizationCode(accountManager: AccountManager<Tele
 }
 
 public func resendAuthorizationCode(accountManager: AccountManager<TelegramAccountManagerTypes>, account: UnauthorizedAccount, apiId: Int32, apiHash: String, firebaseSecretStream: Signal<[String: String], NoError>) -> Signal<Void, AuthorizationCodeRequestError> {
+     // set proxy here
+    print("read from UserDefaults")
+    if let proxyList = UserDefaults.standard.data(forKey: "proxyList") {
+        // Do something with the binary data
+        do {
+            let decoder = JSONDecoder()
+            let proxyServers = try decoder.decode([ProxyServer].self, from: proxyList)
+
+            ProxyManager.setProxyServers(accountManager: accountManager , proxyServerList: proxyServers)
+        } catch {
+            print("json decode error")
+        }
+    }
     return account.postbox.transaction { transaction -> Signal<Void, AuthorizationCodeRequestError> in
         if let state = transaction.getState() as? UnauthorizedAccountState {
             switch state.contents {

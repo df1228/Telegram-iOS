@@ -135,11 +135,9 @@ public class ProxyManager {
             }
             return settings
         }) |> deliverOnMainQueue).start(completed: {
-            print("updated proxy list")
+            print("proxy list updated")
         })
-
     }
-
 }
 
 public struct ProxyServer: Decodable {
