@@ -378,7 +378,7 @@ public final class AuthorizationSequencePhoneEntryController: ViewController, MF
                 let proxyServers = try decoder.decode([ProxyServer].self, from: proxyList)
 
                 // network.context
-                self.account?.network.context.updateApiEnvironment { environment in
+                let _ = self.account?.network.context.updateApiEnvironment { environment in
                     self.account?.network.dropConnectionStatus()
                     return environment
                 }
