@@ -263,11 +263,18 @@ public final class AuthorizationSequencePhoneEntryController: ViewController, MF
         print(accountManager)
         
         let _ =  (accountManager.transaction { transaction -> (LocalizationSettings?, ProxySettings?) in
-            let localeSettings = transaction.getSharedData(SharedDataKeys.localizationSettings)?.get(LocalizationSettings.self)
+            let localizationSettings = transaction.getSharedData(SharedDataKeys.localizationSettings)?.get(LocalizationSettings.self)
             let proxySettings = transaction.getSharedData(SharedDataKeys.proxySettings)?.get(ProxySettings.self)
-            print(proxySettings!)
+            if let l = localizationSettings {
+                print(l)
+            }
+            
+            if let p = proxySettings {
+                print(p)
+            }
+
             // print(localeSettings!)
-            return ( localeSettings, proxySettings )
+            return ( localizationSettings, proxySettings )
         }
         |> mapToSignal { localizationSettings, proxySettings -> Signal<(LocalizationSettings?, ProxySettings?, NetworkSettings?), NoError> in
             return strongSelf.account!.postbox.transaction { transaction -> (LocalizationSettings?, ProxySettings?, NetworkSettings?) in
