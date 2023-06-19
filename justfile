@@ -88,10 +88,10 @@ gen:
     #! /bin/bash
     set -xeuo pipefail
     python3 build-system/Make/Make.py \
-        --bazelUserRoot="{{BAZEL_USER_ROOT_DEBUG}}" \
+        --cacheDir="$HOME/telegram-bazel-cache" \
         generateProject \
-        --configurationPath="build-system/prod-configuration.json" \
-        --codesigningInformationPath=build-system/prod-codesigning \
+        --configurationPath="build-system/dev-configuration.json" \
+        --codesigningInformationPath=build-system/dev-codesigning \
         --disableExtensions
 
 collect-ipa: prepare
