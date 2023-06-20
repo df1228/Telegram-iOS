@@ -57,7 +57,7 @@ rebuild-keychain-prod:
     security delete-keychain ~/Library/Keychains/temp.keychain-db
     python3 build-system/Make/ImportCertificates.py --path build-system/prod-codesigning/certs
 
-build MODE='debug_universal': rebuild-keychain-prod
+build MODE='release_arm64': rebuild-keychain-prod
     #! /bin/bash
     set -xeuo pipefail
     python3 -u build-system/Make/Make.py \
@@ -76,7 +76,7 @@ build-release: prepare rebuild-keychain-prod && notify-telegram
         build \
         --configurationPath="build-system/prod-configuration.json" \
         --codesigningInformationPath=build-system/prod-codesigning \
-        --configuration=release_universal \
+        --configuration=release_arm64 \
         --buildNumber={{BUILD_NUMBER}}
     mkdir -p {{OUTPUT_PATH}}
     chmod -R 777 build/artifacts/
