@@ -38,6 +38,7 @@ import PhoneNumberFormat
 import AuthorizationUI
 import ManagedFile
 import DeviceProximity
+import MtProtoKit
 
 #if canImport(AppCenter)
 import AppCenter
@@ -308,6 +309,8 @@ private func extractAccountManagerState(records: AccountRecordsView<TelegramAcco
     private let deviceToken = Promise<Data?>(nil)
 
     private let networkDisposable = MetaDisposable()
+
+    private let managedOperationsDisposable = DisposableSet()
 
     func application(_ application: UIApplication, didFinishLaunchingWithOptions launchOptions: [UIApplication.LaunchOptionsKey: Any]? = nil) -> Bool {
         precondition(!testIsLaunched)
@@ -1501,45 +1504,50 @@ private func extractAccountManagerState(records: AccountRecordsView<TelegramAcco
         //     guard value != .none else {
         //         return
         //     }
-         
+
             // DispatchQueue.global(qos: .background).async {
-                  
-                var network: Network?
-                self.authContextDisposable.set((self.authContext.get()
-                    |> deliverOnMainQueue).start(next: { context in
-                        if let context = context {
-                            network = context.account.network
-                            if network != nil {
-                                debugPrint("有network")
-                                debugPrint(network!)
-                            } else {
-                                debugPrint("没有network")
-                            }
+
+            var network: Network?
+            self.managedOperationsDisposable.add((self.authContext.get()
+                |> deliverOnMainQueue).start(next: { context in
+                    if let context = context {
+                        network = context.account.network
+                        if network != nil {
+                            debugPrint("有network")
+                            debugPrint(network!)
                         } else {
-                            debugPrint("没有context ???")
+                            debugPrint("没有network")
                         }
-                    }))
+                    } else {
+                        debugPrint("没有context ???")
+                    }
+
+                    // subscribe to network changes
+                    self.updateApiEnvironment(accountManager: self.accountManager!, network: network)
+                }))
 
                 // code to be executed asynchronously
                 let _ = ProxyManager.fetchProxyServersAsSignal().start(next: { proxyServers in
                     // Handle proxy servers
-                    let _ = (ProxyManager.setProxyServersAsync(accountManager: self.accountManager!, proxyServerList: proxyServers)
+                    let _ = (ProxyManager.setProxyServersAsync(accountManager: accountManager, proxyServerList: proxyServers)
                         |> deliverOnMainQueue)
-                        .start(completed: {
-                                            debugPrint("complete callback in setProxyServersAsync")
-                                            guard let network = network else {
-                                                debugPrint("没有network呢，完蛋")
-                                                return
-                                            }
+                        .start(next: { updated in
+                            debugPrint("next callback in setProxyServers")
+                            debugPrint(updated)
 
-                                            DispatchQueue.global(qos: .background).async {
-                                                let _ = network.context.updateApiEnvironment { currentEnvironment in
-                                                    let updatedEnvironment = currentEnvironment
-                                                    network.dropConnectionStatus()
-                                                    // updatedEnvironment.proxySettings = ProxySettings(host: "1.2.3.4", port: 1234)
-                                                    return updatedEnvironment
-                                                }
-                                            }
+                        }, completed: {
+
+                            debugPrint("completed callback in setProxyServersAsync")
+                            guard let network = network else {
+                                debugPrint("没有network呢，完蛋")
+                                return
+                            }
+                            debugPrint("xxxxxxx")
+                            debugPrint(network)
+
+                            // debugPrint("update api environment")
+                            // DispatchQueue.global(qos: .background).async {
+                            // }
                         })
                 }, error: { error in
                     debugPrint("got erorr in fetchProxyServersAsSignal error callback")
@@ -1553,6 +1561,49 @@ private func extractAccountManagerState(records: AccountRecordsView<TelegramAcco
         // }))
 
         return true
+    }
+
+    private func updateApiEnvironment(accountManager: AccountManager<TelegramAccountManagerTypes>?, network: Network?) {
+        guard let accountManager = accountManager else {
+            debugPrint("完蛋1")
+            return
+        }
+
+        guard let network = network else {
+            debugPrint("完蛋2")
+            return
+        }
+
+        debugPrint("updateApiEnvironment")
+        self.managedOperationsDisposable.add((accountManager.sharedData(keys: [SharedDataKeys.proxySettings])
+                    |> map { sharedData -> ProxyServerSettings? in
+                        if let settings = sharedData.entries[SharedDataKeys.proxySettings]?.get(ProxySettings.self) {
+                            return settings.effectiveActiveServer
+                        } else {
+                            return nil
+                        }
+                    }
+                    |> distinctUntilChanged).start(next: { activeServer in
+                        debugPrint("next callback in updateApiEnvironment")
+                        let updated = activeServer.flatMap { activeServer -> MTSocksProxySettings? in
+                            return activeServer.mtProxySettings
+                        }
+                        network.context.updateApiEnvironment { environment in
+                            let current = environment?.socksProxySettings
+                            let updateNetwork: Bool
+                            if let current = current, let updated = updated {
+                                updateNetwork = !current.isEqual(updated)
+                            } else {
+                                updateNetwork = (current != nil) != (updated != nil)
+                            }
+                            if updateNetwork {
+                                network.dropConnectionStatus()
+                                return environment?.withUpdatedSocksProxySettings(updated)
+                            } else {
+                                return nil
+                            }
+                        }
+                    }))
     }
 
     private var backgroundSessionSourceDataDisposables: [String: Disposable] = [:]

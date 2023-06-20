@@ -10,7 +10,7 @@ public func updateProxySettingsInteractively(accountManager: AccountManager<Tele
 }
 
 extension ProxyServerSettings {
-    var mtProxySettings: MTSocksProxySettings {
+    public var mtProxySettings: MTSocksProxySettings {
         switch self.connection {
             case let .socks5(username, password):
                 return MTSocksProxySettings(ip: self.host, port: UInt16(clamping: self.port), username: username, password: password, secret: nil)
