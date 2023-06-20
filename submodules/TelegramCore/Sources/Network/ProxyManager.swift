@@ -250,11 +250,13 @@ public class ProxyManager {
             if settings.effectiveActiveServer == nil || settings.servers.count > 0 {
                 settings.enabled = true
                 settings.activeServer = settings.servers.randomElement()
+            }else {
+                debugPrint("you have active proxy server, skip activating ...")
             }
 
             return settings
         }) |> deliverOnMainQueue).start(completed: {
-            debugPrint("proxy list updated")
+            debugPrint("proxy list update completed ...")
         })
     }
 
