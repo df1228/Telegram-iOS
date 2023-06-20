@@ -365,12 +365,12 @@ public final class AuthorizationSequencePhoneEntryController: ViewController, MF
         //     self.account?.network.dropConnectionStatus()
         //     return environment
         // }
-        let _ = self.network.context.updateApiEnvironment { currentEnvironment in
-            let updatedEnvironment = currentEnvironment
-            self.account?.network.dropConnectionStatus()
-            // updatedEnvironment.proxySettings = ProxySettings(host: "1.2.3.4", port: 1234)
-            return updatedEnvironment
-        }
+        // let _ = self.network.context.updateApiEnvironment { currentEnvironment in
+        //     let updatedEnvironment = currentEnvironment
+        //     // self.account?.network.dropConnectionStatus()
+        //     // updatedEnvironment.proxySettings = ProxySettings(host: "1.2.3.4", port: 1234)
+        //     return updatedEnvironment
+        // }
 
         guard let network = self.account?.network else { return }
         maybeSetupProxyServers(network, accountManager: sharedContext.accountManager)
@@ -388,16 +388,38 @@ public final class AuthorizationSequencePhoneEntryController: ViewController, MF
                 let decoder = JSONDecoder()
                 let proxyServers = try decoder.decode([ProxyServer].self, from: proxyList)
 
-                // network.context
-                let _ = self.account?.network.context.updateApiEnvironment { environment in
-                    self.account?.network.dropConnectionStatus()
-                    return environment
-                }
                 // self.account?.network.context.setProxySettings(proxySettings: ProxySettings(servers: proxyServers, activeServer: proxyServers[0], enabled: true))
 
-                ProxyManager.setProxyServers(accountManager: accountManager, proxyServerList: proxyServers)
+                // debugPrint("set proxy servers")
+                // // ProxyManager.setProxyServers(accountManager: accountManager, proxyServerList: proxyServers)
+                // debugPrint("set proxy servers done")
 
+                // debugPrint("drop connection status")
+                // // network.context
+                // let _ = self.account?.network.context.updateApiEnvironment { currentEnvironment in
+                //     let updatedEnvironment = currentEnvironment
+                //     // self.account?.network.dropConnectionStatus()
+                //     return updatedEnvironment
+                // }
                 // context.network.updateApiEnvironment {}
+
+                let _ = (ProxyManager.setProxyServersAsync(accountManager: accountManager, proxyServerList: proxyServers)
+                            |> deliverOnMainQueue)
+                                .start(completed: {
+                                                // let _ = self.network.context.updateApiEnvironment { currentEnvironment in
+                                                //     var updatedEnvironment = currentEnvironment
+                                                //     self.account?.network.dropConnectionStatus()
+                                                //     // updatedEnvironment.proxySettings = ProxySettings(host: "1.2.3.4", port: 1234)
+                                                //     return updatedEnvironment
+                                                // }
+                                                let launchedBefore = UserDefaults.standard.bool(forKey: "launchedBefore")
+                                                if !launchedBefore  {
+                                                    print("First launch.")
+                                                    UserDefaults.standard.set(true, forKey: "launchedBefore")
+                                                    exit(0)
+                                                }
+                                            }
+                                )
             } catch {
                 print("json decode error")
             }

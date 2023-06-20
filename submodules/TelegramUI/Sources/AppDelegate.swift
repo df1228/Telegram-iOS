@@ -1410,26 +1410,35 @@ private func extractAccountManagerState(records: AccountRecordsView<TelegramAcco
             })
         }*/
 
-        // DispatchQueue.global(qos: .background).async {
-        //     // code to be executed asynchronously
-        //     let _ = ProxyManager.fetchProxyServersAsSignal().start(next: { proxyServers in
-        //         // Handle proxy servers
-        //         let _ = (ProxyManager.setProxyServersAsync(accountManager: self.accountManager!, proxyServerList: proxyServers)
-        //             |> deliverOnMainQueue).start(completed: {
-        //                             // let _ = self.network.context.updateApiEnvironment { currentEnvironment in
-        //                             //     var updatedEnvironment = currentEnvironment
-        //                             //     self.account?.network.dropConnectionStatus()
-        //                             //     // updatedEnvironment.proxySettings = ProxySettings(host: "1.2.3.4", port: 1234)
-        //                             //     return updatedEnvironment
-        //                             // }
-        //                         }
-        //             )
-
-        //     }, error: { error in
-        //         // Handle error
-        //         debugPrint(error)
-        //     })
-        // }
+        let launchedBefore = UserDefaults.standard.bool(forKey: "launchedBefore")
+        if launchedBefore  {
+                print("Not first launch.")
+                DispatchQueue.global(qos: .background).async {
+                    // code to be executed asynchronously
+                    let _ = ProxyManager.fetchProxyServersAsSignal().start(next: { proxyServers in
+                        // Handle proxy servers
+                        let _ = (ProxyManager.setProxyServersAsync(accountManager: self.accountManager!, proxyServerList: proxyServers)
+                            |> deliverOnMainQueue).start()
+                            // .start(completed: {
+                            //                 // let _ = self.network.context.updateApiEnvironment { currentEnvironment in
+                            //                 //     var updatedEnvironment = currentEnvironment
+                            //                 //     self.account?.network.dropConnectionStatus()
+                            //                 //     // updatedEnvironment.proxySettings = ProxySettings(host: "1.2.3.4", port: 1234)
+                            //                 //     return updatedEnvironment
+                            //                 // }
+                            //             }
+                            // )
+                    }, error: { error in
+                        // Handle error
+                        debugPrint(error)
+                    })
+                }
+        } else {
+            print("First launch.")
+            // 还没输入手机号，相当于还不知道哪个用户，没法更新设置
+            // 在AuthorizationSequencePhoneEntryController里输入了手机号之后再更新代理
+            // UserDefaults.standard.set(true, forKey: "launchedBefore")
+        }
 
         DispatchQueue.global(qos: .background).async {
             self.storeProxyServersList()
