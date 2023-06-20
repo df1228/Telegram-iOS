@@ -57,7 +57,7 @@ rebuild-keychain-prod:
     security delete-keychain ~/Library/Keychains/temp.keychain-db
     python3 build-system/Make/ImportCertificates.py --path build-system/prod-codesigning/certs
 
-build MODE='release_arm64': rebuild-keychain-prod
+build MODE='release_arm64': rebuild-keychain-prod && collect-ipa
     #! /bin/bash
     set -xeuo pipefail
     python3 -u build-system/Make/Make.py \
@@ -68,7 +68,7 @@ build MODE='release_arm64': rebuild-keychain-prod
         --configuration={{MODE}} \
         --buildNumber={{BUILD_NUMBER}}
 
-build-release: prepare rebuild-keychain-prod && notify-telegram
+build-release: prepare rebuild-keychain-prod && collect-ipa notify-telegram
     #! /bin/bash
     set -xeuo pipefail
     python3 -u build-system/Make/Make.py \
@@ -105,7 +105,7 @@ collect-ipa: prepare
     done
     cp -f {{OUTPUT_PATH}}/Telegram.ipa /Users/Shared/build/artifacts/Telegram.ipa
     cp -f {{OUTPUT_PATH}}/Telegram.ipa /Users/Shared/build/artifacts/Telegram-{{SHORT_SHA}}.ipa
-
+    echo "collect ipa done!!!!!"
 
 collect-debug-ipa: prepare
     #! /bin/bash

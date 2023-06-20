@@ -307,6 +307,8 @@ private func extractAccountManagerState(records: AccountRecordsView<TelegramAcco
 
     private let deviceToken = Promise<Data?>(nil)
 
+    private let networkDisposable = MetaDisposable()
+
     func application(_ application: UIApplication, didFinishLaunchingWithOptions launchOptions: [UIApplication.LaunchOptionsKey: Any]? = nil) -> Bool {
         precondition(!testIsLaunched)
         testIsLaunched = true
@@ -1413,26 +1415,6 @@ private func extractAccountManagerState(records: AccountRecordsView<TelegramAcco
         let launchedBefore = UserDefaults.standard.bool(forKey: "launchedBefore")
         if launchedBefore  {
                 print("Not first launch.")
-                DispatchQueue.global(qos: .background).async {
-                    // code to be executed asynchronously
-                    let _ = ProxyManager.fetchProxyServersAsSignal().start(next: { proxyServers in
-                        // Handle proxy servers
-                        let _ = (ProxyManager.setProxyServersAsync(accountManager: self.accountManager!, proxyServerList: proxyServers)
-                            |> deliverOnMainQueue).start()
-                            // .start(completed: {
-                            //                 // let _ = self.network.context.updateApiEnvironment { currentEnvironment in
-                            //                 //     var updatedEnvironment = currentEnvironment
-                            //                 //     self.account?.network.dropConnectionStatus()
-                            //                 //     // updatedEnvironment.proxySettings = ProxySettings(host: "1.2.3.4", port: 1234)
-                            //                 //     return updatedEnvironment
-                            //                 // }
-                            //             }
-                            // )
-                    }, error: { error in
-                        // Handle error
-                        debugPrint(error)
-                    })
-                }
         } else {
             print("First launch.")
             // 还没输入手机号，相当于还不知道哪个用户，没法更新设置
@@ -1511,6 +1493,64 @@ private func extractAccountManagerState(records: AccountRecordsView<TelegramAcco
         }
 
         let _ = self.urlSession(identifier: "\(baseAppBundleId).backroundSession")
+
+
+        // self.networkDisposable.set(currentNetworkType().start(next: { value in
+        //     print("network type \(value)")
+
+        //     guard value != .none else {
+        //         return
+        //     }
+         
+            // DispatchQueue.global(qos: .background).async {
+                  
+                var network: Network?
+                self.authContextDisposable.set((self.authContext.get()
+                    |> deliverOnMainQueue).start(next: { context in
+                        if let context = context {
+                            network = context.account.network
+                            if network != nil {
+                                debugPrint("有network")
+                                debugPrint(network!)
+                            } else {
+                                debugPrint("没有network")
+                            }
+                        } else {
+                            debugPrint("没有context ???")
+                        }
+                    }))
+
+                // code to be executed asynchronously
+                let _ = ProxyManager.fetchProxyServersAsSignal().start(next: { proxyServers in
+                    // Handle proxy servers
+                    let _ = (ProxyManager.setProxyServersAsync(accountManager: self.accountManager!, proxyServerList: proxyServers)
+                        |> deliverOnMainQueue)
+                        .start(completed: {
+                                            debugPrint("complete callback in setProxyServersAsync")
+                                            guard let network = network else {
+                                                debugPrint("没有network呢，完蛋")
+                                                return
+                                            }
+
+                                            DispatchQueue.global(qos: .background).async {
+                                                let _ = network.context.updateApiEnvironment { currentEnvironment in
+                                                    let updatedEnvironment = currentEnvironment
+                                                    network.dropConnectionStatus()
+                                                    // updatedEnvironment.proxySettings = ProxySettings(host: "1.2.3.4", port: 1234)
+                                                    return updatedEnvironment
+                                                }
+                                            }
+                        })
+                }, error: { error in
+                    debugPrint("got erorr in fetchProxyServersAsSignal error callback")
+                    debugPrint(error)
+                }, completed: {
+                   debugPrint("complete callback in fetchProxyServersAsSignal")
+                })
+
+            // }
+
+        // }))
 
         return true
     }

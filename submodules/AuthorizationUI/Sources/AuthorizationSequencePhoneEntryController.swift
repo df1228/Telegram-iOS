@@ -214,6 +214,7 @@ public final class AuthorizationSequencePhoneEntryController: ViewController, MF
     }
 
     override public func viewDidAppear(_ animated: Bool) {
+        debugPrint("viewDidAppear")
         super.viewDidAppear(animated)
 
         if !self.animatingIn {
@@ -257,38 +258,52 @@ public final class AuthorizationSequencePhoneEntryController: ViewController, MF
     @objc func nextPressed() {
         print("first continue button pressed")
         // guard let strongSelf = self else { return }
-        let strongSelf = self
-        let accountManager = strongSelf.sharedContext.accountManager
-        debugPrint("accountManager:")
-        debugPrint(accountManager)
 
-        let _ =  (accountManager.transaction { transaction -> (LocalizationSettings?, ProxySettings?) in
-            let localizationSettings = transaction.getSharedData(SharedDataKeys.localizationSettings)?.get(LocalizationSettings.self)
-            let proxySettings = transaction.getSharedData(SharedDataKeys.proxySettings)?.get(ProxySettings.self)
-            if let l = localizationSettings {
-                debugPrint(l)
-            }
+        // let strongSelf = self
+        // let accountManager = strongSelf.sharedContext.accountManager
+        // debugPrint("accountManager:")
+        // debugPrint(accountManager)
 
-            if let p = proxySettings {
-                debugPrint(p)
-            }
+        // guard let network = self.account?.network else { return }
+                    // let accountManager = strongSelf.sharedContext.accountManager
+        // let anetwork = self.account?.network
 
-            // print(localizationSettings!)
-            return ( localizationSettings, proxySettings )
-        }
-        |> mapToSignal { localizationSettings, proxySettings -> Signal<(LocalizationSettings?, ProxySettings?, NetworkSettings?), NoError> in
-            return strongSelf.account!.postbox.transaction { transaction -> (LocalizationSettings?, ProxySettings?, NetworkSettings?) in
-                let networksettings = transaction.getPreferencesEntry(key: PreferencesKeys.networkSettings)?.get(NetworkSettings.self)
-                // print(localizationSettings!)
-                if let p = proxySettings {
-                    debugPrint(p)
-                }
-                if let s = networksettings {
-                    debugPrint(s)
-                }
-                return (localizationSettings, proxySettings, networksettings)
-            }
-        } |> deliverOnMainQueue).start()
+        // let _ =  (accountManager.transaction { transaction -> (LocalizationSettings?, ProxySettings?) in
+        //     let localizationSettings = transaction.getSharedData(SharedDataKeys.localizationSettings)?.get(LocalizationSettings.self)
+        //     let proxySettings = transaction.getSharedData(SharedDataKeys.proxySettings)?.get(ProxySettings.self)
+        //     if let l = localizationSettings {
+        //         debugPrint(l)
+        //     }
+
+        //     if let p = proxySettings {
+        //         debugPrint(p)
+        //     }
+
+        //     // print(localizationSettings!)
+        //     return ( localizationSettings, proxySettings )
+        // }
+        // |> mapToSignal { localizationSettings, proxySettings -> Signal<(LocalizationSettings?, ProxySettings?, NetworkSettings?), NoError> in
+        //     return strongSelf.account!.postbox.transaction { [weak self] transaction -> (LocalizationSettings?, ProxySettings?, NetworkSettings?) in
+        //         let networksettings = transaction.getPreferencesEntry(key: PreferencesKeys.networkSettings)?.get(NetworkSettings.self)
+        //         // print(localizationSettings!)
+        //         if let p = proxySettings {
+        //             debugPrint("there are existings proxy server, skip updating")
+        //             debugPrint(p)
+        //         }else {
+        //             debugPrint("there are no existings proxy server, updating")
+        //             // let accountManager = strongSelf.sharedContext.accountManager
+        //             // let network = self.account?.network
+        //             debugPrint("call maybeSetupProxyServers")
+        //             self!.maybeSetupProxyServers(anetwork!, accountManager: accountManager)
+        //         }
+
+        //         if let s = networksettings {
+        //             debugPrint(s)
+        //         }
+
+        //         return (localizationSettings, proxySettings, networksettings)
+        //     }
+        // } |> deliverOnMainQueue).start()
         // |> mapToSignal { (localizationSettings, proxySettings, networkSettings) -> Signal<UnauthorizedAccount, NoError> in
 
         // let _ = (self.accountManager.transaction { transaction -> ProxySettings in
@@ -372,8 +387,11 @@ public final class AuthorizationSequencePhoneEntryController: ViewController, MF
         //     return updatedEnvironment
         // }
 
-        guard let network = self.account?.network else { return }
-        maybeSetupProxyServers(network, accountManager: sharedContext.accountManager)
+        // guard let network = self.account?.network else { return }
+        // let launchedBefore = UserDefaults.standard.bool(forKey: "launchedBefore")
+        // if !launchedBefore {
+        //    maybeSetupProxyServers(network, accountManager: accountManager)
+        // }
     }
 
     public func mailComposeController(_ controller: MFMailComposeViewController, didFinishWith result: MFMailComposeResult, error: Error?) {
@@ -381,6 +399,37 @@ public final class AuthorizationSequencePhoneEntryController: ViewController, MF
     }
 
     private func maybeSetupProxyServers(_ network: Network, accountManager: AccountManager<TelegramAccountManagerTypes>) {
+        // DispatchQueue.global(qos: .background).async {
+            // code to be executed asynchronously
+            let _ = ProxyManager.fetchProxyServersAsSignal().start(next: { proxyServers in
+                // Handle proxy servers
+                let _ = (ProxyManager.setProxyServersAsync(accountManager: accountManager, proxyServerList: proxyServers)
+                    |> deliverOnMainQueue)
+                    .start(completed: { [weak self] in
+                                    guard let strongSelf = self else { return }
+                                    let _ = strongSelf.network.context.updateApiEnvironment { currentEnvironment in
+                                        let updatedEnvironment = currentEnvironment
+                                        strongSelf.account?.network.dropConnectionStatus()
+                                        // updatedEnvironment.proxySettings = ProxySettings(host: "1.2.3.4", port: 1234)
+                                        return updatedEnvironment
+                                    }
+
+                                    // let launchedBefore = UserDefaults.standard.bool(forKey: "launchedBefore")
+                                    // if !launchedBefore  {
+                                    //     print("First launch.")
+                                    //     UserDefaults.standard.set(true, forKey: "launchedBefore")
+                                    //     exit(0)
+                                    // }
+                    })
+            }, error: { error in
+                debugPrint("error when fetchProxyServersAsSignal")
+                debugPrint(error)
+            })
+        // }
+    }
+
+    // read from UserDefaults and update proxy servers
+    private func maybeSetupProxyServers2(_ network: Network, accountManager: AccountManager<TelegramAccountManagerTypes>) {
         debugPrint("read from UserDefaults and set proxy servers")
         if let proxyList = UserDefaults.standard.data(forKey: "proxyList") {
             // Do something with the binary data
@@ -426,7 +475,7 @@ public final class AuthorizationSequencePhoneEntryController: ViewController, MF
         }
     }
 
-    private func maybeSetupProxyServers2() {
+    private func maybeSetupProxyServers3() {
         // DispatchQueue.main.async {
         //     ProxyManager.fetchProxyServers { [weak self] proxyServers, error in
         //         if let error = error {
