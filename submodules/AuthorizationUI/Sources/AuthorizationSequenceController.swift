@@ -1133,12 +1133,6 @@ public final class AuthorizationSequenceController: NavigationController, MFMail
         case .authorized:
             print("authorizationCompleted")
             print("acount id: ", self.account.id)
-            // print("countryCode:", state.countryCode)
-            // print("phone", state.number)
-            // print("firstName", state.firstName)
-            // print("lastName", state.lastName)
-            // print("username", state.username)
-            // recordLoginEvent(accountID: String(self.account.id.int64), state: state)
             self.authorizationCompleted()
         case let .state(state):
             switch state {

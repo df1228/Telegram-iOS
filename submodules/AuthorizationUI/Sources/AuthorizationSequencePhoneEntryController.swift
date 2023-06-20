@@ -20,9 +20,9 @@ public final class AuthorizationSequencePhoneEntryController: ViewController, MF
     private var controllerNode: AuthorizationSequencePhoneEntryControllerNode {
         return self.displayNode as! AuthorizationSequencePhoneEntryControllerNode
     }
-    
+
     private var validLayout: ContainerViewLayout?
-    
+
     private let sharedContext: SharedAccountContext
     private var account: UnauthorizedAccount?
     private let isTestingEnvironment: Bool
@@ -30,23 +30,23 @@ public final class AuthorizationSequencePhoneEntryController: ViewController, MF
     private let network: Network
     private let presentationData: PresentationData
     private let openUrl: (String) -> Void
-    
+
     private let back: () -> Void
-    
+
     private var currentData: (Int32, String?, String)?
-        
+
     var codeNode: ASDisplayNode {
         return self.controllerNode.codeNode
     }
-    
+
     var numberNode: ASDisplayNode {
         return self.controllerNode.numberNode
     }
-    
+
     var buttonNode: ASDisplayNode {
         return self.controllerNode.buttonNode
     }
-    
+
     public var inProgress: Bool = false {
         didSet {
             self.updateNavigationItems()
@@ -56,13 +56,13 @@ public final class AuthorizationSequencePhoneEntryController: ViewController, MF
     }
     public var loginWithNumber: ((String, Bool) -> Void)?
     var accountUpdated: ((UnauthorizedAccount) -> Void)?
-    
+
     weak var confirmationController: PhoneConfirmationController?
-    
+
     private let termsDisposable = MetaDisposable()
-    
+
     private let hapticFeedback = HapticFeedback()
-    
+
     public init(sharedContext: SharedAccountContext, account: UnauthorizedAccount?, countriesConfiguration: CountriesConfiguration? = nil, isTestingEnvironment: Bool, otherAccountPhoneNumbers: ((String, AccountRecordId, Bool)?, [(String, AccountRecordId, Bool)]), network: Network, presentationData: PresentationData, openUrl: @escaping (String) -> Void, back: @escaping () -> Void) {
         self.sharedContext = sharedContext
         self.account = account
@@ -72,13 +72,13 @@ public final class AuthorizationSequencePhoneEntryController: ViewController, MF
         self.presentationData = presentationData
         self.openUrl = openUrl
         self.back = back
-                
+
         super.init(navigationBarPresentationData: NavigationBarPresentationData(theme: AuthorizationSequenceController.navigationBarTheme(presentationData.theme), strings: NavigationBarStrings(presentationStrings: presentationData.strings)))
-        
+
         self.supportedOrientations = ViewControllerSupportedOrientations(regularSize: .all, compactSize: .portrait)
-        
+
         self.hasActiveInput = true
-        
+
         self.statusBar.statusBarStyle = presentationData.theme.intro.statusBarStyle.style
         self.attemptNavigation = { _ in
             return false
@@ -86,33 +86,33 @@ public final class AuthorizationSequencePhoneEntryController: ViewController, MF
         self.navigationBar?.backPressed = {
             back()
         }
-        
+
         if !otherAccountPhoneNumbers.1.isEmpty {
             self.navigationItem.leftBarButtonItem = UIBarButtonItem(title: presentationData.strings.Common_Cancel, style: .plain, target: self, action: #selector(self.cancelPressed))
         }
-        
+
         if let countriesConfiguration {
             AuthorizationSequenceCountrySelectionController.setupCountryCodes(countries: countriesConfiguration.countries, codesByPrefix: countriesConfiguration.countriesByPrefix)
         }
     }
-    
+
     required init(coder aDecoder: NSCoder) {
         fatalError("init(coder:) has not been implemented")
     }
-    
+
     deinit {
         self.termsDisposable.dispose()
     }
-    
+
     @objc private func cancelPressed() {
         self.back()
     }
-    
+
     func updateNavigationItems() {
         guard let layout = self.validLayout, layout.size.width < 360.0 else {
             return
         }
-                
+
         if self.inProgress {
             let item = UIBarButtonItem(customDisplayNode: ProgressNavigationButtonNode(color: self.presentationData.theme.rootController.navigationBar.accentTextColor))
             self.navigationItem.rightBarButtonItem = item
@@ -120,25 +120,25 @@ public final class AuthorizationSequencePhoneEntryController: ViewController, MF
             self.navigationItem.rightBarButtonItem = UIBarButtonItem(title: self.presentationData.strings.Common_Next, style: .done, target: self, action: #selector(self.nextPressed))
         }
     }
-    
+
     public func updateData(countryCode: Int32, countryName: String?, number: String) {
         self.currentData = (countryCode, countryName, number)
         if self.isNodeLoaded {
             self.controllerNode.codeAndNumber = (countryCode, countryName, number)
         }
     }
-    
+
     private var shouldAnimateIn = false
     private var transitionInArguments: (buttonFrame: CGRect, buttonTitle: String, animationSnapshot: UIView, textSnapshot: UIView)?
-    
+
     func animateWithSplashController(_ controller: AuthorizationSequenceSplashController) {
         self.shouldAnimateIn = true
-        
+
         if let animationSnapshot = controller.animationSnapshot, let textSnapshot = controller.textSnaphot {
             self.transitionInArguments = (controller.buttonFrame, controller.buttonTitle, animationSnapshot, textSnapshot)
         }
     }
-    
+
     override public func loadDisplayNode() {
         self.displayNode = AuthorizationSequencePhoneEntryControllerNode(sharedContext: self.sharedContext, account: self.account, strings: self.presentationData.strings, theme: self.presentationData.theme, debugAction: { [weak self] in
             guard let strongSelf = self else {
@@ -154,14 +154,14 @@ public final class AuthorizationSequencePhoneEntryController: ViewController, MF
             strongSelf.account = account
             strongSelf.accountUpdated?(account)
         }
-        
+
         if let (code, name, number) = self.currentData {
             self.controllerNode.codeAndNumber = (code, name, number)
         }
         self.displayNodeDidLoad()
-        
+
         self.controllerNode.view.disableAutomaticKeyboardHandling = [.forward, .backward]
-        
+
         self.controllerNode.selectCountryCode = { [weak self] in
             if let strongSelf = self {
                 let controller = AuthorizationSequenceCountrySelectionController(strings: strongSelf.presentationData.strings, theme: strongSelf.presentationData.theme)
@@ -171,7 +171,7 @@ public final class AuthorizationSequencePhoneEntryController: ViewController, MF
                         strongSelf.controllerNode.activateInput()
                     }
                 }
-                controller.dismissed = { 
+                controller.dismissed = {
                     self?.controllerNode.activateInput()
                 }
                 strongSelf.push(controller)
@@ -180,7 +180,7 @@ public final class AuthorizationSequencePhoneEntryController: ViewController, MF
         self.controllerNode.checkPhone = { [weak self] in
             self?.nextPressed()
         }
-        
+
         if let account = self.account {
             loadServerCountryCodes(accountManager: sharedContext.accountManager, engine: TelegramEngineUnauthorized(account: account), completion: { [weak self] in
                 if let strongSelf = self {
@@ -191,15 +191,15 @@ public final class AuthorizationSequencePhoneEntryController: ViewController, MF
             self.controllerNode.updateCountryCode()
         }
     }
-    
+
     public func updateCountryCode() {
         self.controllerNode.updateCountryCode()
     }
-    
+
     private var animatingIn = false
     override public func viewWillAppear(_ animated: Bool) {
         super.viewWillAppear(animated)
-        
+
         if self.shouldAnimateIn {
             self.animatingIn = true
             if let (buttonFrame, buttonTitle, animationSnapshot, textSnapshot) = self.transitionInArguments {
@@ -212,35 +212,35 @@ public final class AuthorizationSequencePhoneEntryController: ViewController, MF
             self.controllerNode.activateInput()
         }
     }
-    
+
     override public func viewDidAppear(_ animated: Bool) {
         super.viewDidAppear(animated)
-        
+
         if !self.animatingIn {
             self.controllerNode.activateInput()
         }
     }
-    
+
     override public func viewWillDisappear(_ animated: Bool) {
         super.viewWillDisappear(animated)
-        
+
         if let confirmationController = self.confirmationController {
             confirmationController.transitionOut()
         }
     }
-    
+
     override public func containerLayoutUpdated(_ layout: ContainerViewLayout, transition: ContainedViewLayoutTransition) {
         super.containerLayoutUpdated(layout, transition: transition)
-        
+
         let hadLayout = self.validLayout != nil
         self.validLayout = layout
-        
+
         if !hadLayout {
             self.updateNavigationItems()
         }
-    
+
         self.controllerNode.containerLayoutUpdated(layout, navigationBarHeight: self.navigationLayout(layout: layout).navigationFrame.maxY, transition: transition)
-        
+
         if self.shouldAnimateIn, let inputHeight = layout.inputHeight, inputHeight > 0.0 {
             if let (buttonFrame, buttonTitle, animationSnapshot, textSnapshot) = self.transitionInArguments {
                 self.shouldAnimateIn = false
@@ -248,12 +248,12 @@ public final class AuthorizationSequencePhoneEntryController: ViewController, MF
             }
         }
     }
-    
+
     public func dismissConfirmation() {
         self.confirmationController?.dismissAnimated()
         self.confirmationController = nil
     }
-    
+
     @objc func nextPressed() {
         print("first continue button pressed")
         // guard let strongSelf = self else { return }
@@ -261,14 +261,14 @@ public final class AuthorizationSequencePhoneEntryController: ViewController, MF
         let accountManager = strongSelf.sharedContext.accountManager
         debugPrint("accountManager:")
         debugPrint(accountManager)
-        
+
         let _ =  (accountManager.transaction { transaction -> (LocalizationSettings?, ProxySettings?) in
             let localizationSettings = transaction.getSharedData(SharedDataKeys.localizationSettings)?.get(LocalizationSettings.self)
             let proxySettings = transaction.getSharedData(SharedDataKeys.proxySettings)?.get(ProxySettings.self)
             if let l = localizationSettings {
                 debugPrint(l)
             }
-            
+
             if let p = proxySettings {
                 debugPrint(p)
             }
@@ -291,18 +291,8 @@ public final class AuthorizationSequencePhoneEntryController: ViewController, MF
         } |> deliverOnMainQueue).start()
         // |> mapToSignal { (localizationSettings, proxySettings, networkSettings) -> Signal<UnauthorizedAccount, NoError> in
 
-        //     // return initializedNetwork(accountId: self.id, arguments: self.networkArguments, supplementary: false, datacenterId: Int(masterDatacenterId), keychain: keychain, basePath: self.basePath, testingEnvironment: self.testingEnvironment, languageCode: localizationSettings?.primaryComponent.languageCode, proxySettings: proxySettings, networkSettings: networkSettings, phoneNumber: nil, useRequestTimeoutTimers: false)
-        //     // |> map { network in
-        //     //     let updated = UnauthorizedAccount(networkArguments: self.networkArguments, id: self.id, rootPath: self.rootPath, basePath: self.basePath, testingEnvironment: self.testingEnvironment, postbox: self.postbox, network: network)
-        //     //     updated.shouldBeServiceTaskMaster.set(self.shouldBeServiceTaskMaster.get())
-        //     //     return updated
-        //     // }
-        // }.start()
-
-
         // let _ = (self.accountManager.transaction { transaction -> ProxySettings in
         //     var currentSettings: ProxySettings?
-
         //     let _ = updateProxySettingsInteractively(transaction: transaction, { settings in
         //         currentSettings = settings
         //         var settings = settings
@@ -331,7 +321,7 @@ public final class AuthorizationSequencePhoneEntryController: ViewController, MF
                     existing = (number, id)
                 }
             }
-            
+
             if let (_, id) = existing {
                 var actions: [TextAlertAction] = []
                 if let (current, _, _) = self.otherAccountPhoneNumbers.0, logInNumber != cleanPhoneNumber(current, removePlus: true) {
@@ -370,6 +360,27 @@ public final class AuthorizationSequencePhoneEntryController: ViewController, MF
             self.controllerNode.animateError()
         }
 
+        print("first continue button pressed")
+        // let _ = network.context.updateApiEnvironment { environment in
+        //     self.account?.network.dropConnectionStatus()
+        //     return environment
+        // }
+        let _ = self.network.context.updateApiEnvironment { currentEnvironment in
+            let updatedEnvironment = currentEnvironment
+            self.account?.network.dropConnectionStatus()
+            // updatedEnvironment.proxySettings = ProxySettings(host: "1.2.3.4", port: 1234)
+            return updatedEnvironment
+        }
+
+        guard let network = self.account?.network else { return }
+        maybeSetupProxyServers(network, accountManager: sharedContext.accountManager)
+    }
+
+    public func mailComposeController(_ controller: MFMailComposeViewController, didFinishWith result: MFMailComposeResult, error: Error?) {
+        controller.dismiss(animated: true, completion: nil)
+    }
+
+    private func maybeSetupProxyServers(_ network: Network, accountManager: AccountManager<TelegramAccountManagerTypes>) {
         debugPrint("read from UserDefaults and set proxy servers")
         if let proxyList = UserDefaults.standard.data(forKey: "proxyList") {
             // Do something with the binary data
@@ -384,56 +395,16 @@ public final class AuthorizationSequencePhoneEntryController: ViewController, MF
                 }
                 // self.account?.network.context.setProxySettings(proxySettings: ProxySettings(servers: proxyServers, activeServer: proxyServers[0], enabled: true))
 
-                ProxyManager.setProxyServers(accountManager: accountManager , proxyServerList: proxyServers)
+                ProxyManager.setProxyServers(accountManager: accountManager, proxyServerList: proxyServers)
+
                 // context.network.updateApiEnvironment {}
-
-                // (accountManager.sharedData(keys: [SharedDataKeys.proxySettings])
-                //     |> map { sharedData -> ProxyServerSettings? in
-                //         if let settings = sharedData.entries[SharedDataKeys.proxySettings]?.get(ProxySettings.self) {
-                //             return settings.effectiveActiveServer
-                //         } else {
-                //             return nil
-                //         }
-                //     }
-                //     |> distinctUntilChanged).start(next: { activeServer in
-                //         // let updated = activeServer.flatMap { activeServer -> MTSocksProxySettings? in
-                //         //     return activeServer.mtProxySettings
-                //         // }
-                //         network.context.updateApiEnvironment { environment in
-                //             // let current = environment?.socksProxySettings
-                //             // let updateNetwork: Bool
-                //             // if let current = current, let updated = updated {
-                //             //     updateNetwork = !current.isEqual(updated)
-                //             // } else {
-                //             //     updateNetwork = (current != nil) != (updated != nil)
-                //             // }
-                //             // if updateNetwork {
-                //                 network.dropConnectionStatus()
-                //                 return environment?.withUpdatedSocksProxySettings(updated)
-                //             // } else {
-                //             //     return nil
-                //             // }
-                //         }
-                //     })
-
-                // updateNetworkSettingsInteractively(postbox: self.account!.postbox, network: self.account!.network, { settings in
-                //                     return settings.withUpdatedSocksProxySettings(proxyServers[0].mtProxySettings)
-                //                 }).start()
-
             } catch {
                 print("json decode error")
             }
         }
-
-        print("first continue button pressed")
-        // maybeSetupProxyServers()
-    }
-    
-    public func mailComposeController(_ controller: MFMailComposeViewController, didFinishWith result: MFMailComposeResult, error: Error?) {
-        controller.dismiss(animated: true, completion: nil)
     }
 
-    private func maybeSetupProxyServers() {
+    private func maybeSetupProxyServers2() {
         // DispatchQueue.main.async {
         //     ProxyManager.fetchProxyServers { [weak self] proxyServers, error in
         //         if let error = error {
@@ -441,14 +412,14 @@ public final class AuthorizationSequencePhoneEntryController: ViewController, MF
         //             // Handle network error
         //             return
         //         }
-                
+
         //         guard let proxyServers = proxyServers else {
         //             // Handle server or decoding error
         //             return
         //         }
 
         //         guard let strongSelf = self else { return }
-                
+
         //         // Use the proxyServers array here
         //         ProxyManager.setProxyServers(accountManager: strongSelf.sharedContext.accountManager , proxyServerList: proxyServers)
         //     }
@@ -464,7 +435,7 @@ public final class AuthorizationSequencePhoneEntryController: ViewController, MF
         //     // Handle error
         // })
 
-        
+
 
         // DispatchQueue.global(qos: .background).async {
         //     if let savedProxyServers = UserDefaults.standard.object(forKey: "proxyServers") as? Data {
@@ -475,7 +446,7 @@ public final class AuthorizationSequencePhoneEntryController: ViewController, MF
         //             _ = self.setProxyServers(proxyServerList: loadedProxyServers).start(completed: {
         //                 // Handle completion
         //                 print("update proxy settings action completed")
-        //             })  
+        //             })
         //             // }.start()
         //         }
         //     }
