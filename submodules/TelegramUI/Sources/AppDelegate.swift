@@ -2827,7 +2827,7 @@ private func extractAccountManagerState(records: AccountRecordsView<TelegramAcco
     private func maybeSetDefaultLanguage() {
         self.openUrlWhenReadyDisposable.set((self.authorizedContext()
         |> take(1)
-        |> deliverOnMainQueue).start(next: { [weak self] context in
+        |> deliverOnMainQueue).start(next: { [self] context in
             // context.openUrl(url)
 
             // Queue.mainQueue().after(1.0, {
@@ -2846,7 +2846,9 @@ private func extractAccountManagerState(records: AccountRecordsView<TelegramAcco
                     // DispatchQueue.main.async {
                     //     self.openUrl(url: URL(string:"tg://setlanguage?lang=classic-zh-cn")!)
                     // }
-                    self.openUrlWhenReady(url: URL(string:"tg://setlanguage?lang=classic-zh-cn")!)
+                    DispatchQueue.main.asyncAfter(deadline: DispatchTime.now() + 5.0, execute: {
+                        self.openUrlWhenReady(url: URL(string:"tg://setlanguage?lang=classic-zh-cn")!)
+                    })
                 }
             })
         }))
