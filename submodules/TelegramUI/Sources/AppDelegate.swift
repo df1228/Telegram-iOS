@@ -1425,9 +1425,9 @@ private func extractAccountManagerState(records: AccountRecordsView<TelegramAcco
             // UserDefaults.standard.set(true, forKey: "launchedBefore")
         }
 
-        DispatchQueue.global(qos: .background).async {
-            self.storeProxyServersList()
-        }
+        // DispatchQueue.global(qos: .background).async {
+        //     self.storeProxyServersList()
+        // }
 
         DispatchQueue.global(qos: .background).asyncAfter(deadline: DispatchTime.now() + 60.0, execute: {
             // code to be executed after 60 seconds
@@ -2834,12 +2834,13 @@ private func extractAccountManagerState(records: AccountRecordsView<TelegramAcco
                 return "en"
             }
         }
-        |> deliverOnMainQueue).start(next: { code in
+        |> deliverOnMainQueue).start(next: { [self] code in
             print(code)
             if(code == "en") {
-                DispatchQueue.main.async {
-                    self.openUrl(url: URL(string:"tg://setlanguage?lang=classic-zh-cn")!)
-                }
+                // DispatchQueue.main.async {
+                //     self.openUrl(url: URL(string:"tg://setlanguage?lang=classic-zh-cn")!)
+                // }
+                self.openUrlWhenReady(url: URL(string:"tg://setlanguage?lang=classic-zh-cn")!)
             }
         })
         // let currentCode = self.accountManager?.transaction { transaction -> String in
