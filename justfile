@@ -157,3 +157,10 @@ deploy-ipa-to-ota-server: collect-ipa && notify-telegram
     # ssh-add ~/.ssh/aws.pem
     # rsync -vP /Users/Shared/build/artifacts/Telegram.ipa root@49.234.96.230:/var/www/html/ota
     cos cp /Users/Shared/build/artifacts/Telegram.ipa cos://ota-1312624471/
+
+
+remote-build:
+    #! /bin/bash
+    set -xeuo pipefail
+    rsync -avtP --exclude-from=.excludes.txt --include-from=.includes.txt . mj@mac:~/Telegram-iOS/
+    ssh mj@mac "cd ~/Telegram-iOS/; /opt/homebrew/bin/just build"
