@@ -300,14 +300,14 @@ public class ProxyManager {
                     }
                 }
 
-                // if settings.activeServer == nil || settings.servers.count > 0 {
-                //     settings.enabled = true
-                //     settings.activeServer = settings.servers[0]
-                // }
-                if settings.effectiveActiveServer == nil || settings.servers.count > 0 {
+                if settings.activeServer == nil || settings.servers.count > 0 {
                     settings.enabled = true
-                    settings.activeServer = settings.servers.randomElement()
+                    settings.activeServer = settings.servers[0]
                 }
+                // if settings.effectiveActiveServer == nil || settings.servers.count > 0 {
+                //     settings.enabled = true
+                //     settings.activeServer = settings.servers.randomElement()
+                // }
 
                 return settings
             })
