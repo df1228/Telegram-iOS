@@ -262,7 +262,9 @@ public class ProxyManager {
 
     // Signal版本
     public static func setProxyServersAsync(accountManager: AccountManager<TelegramAccountManagerTypes>, proxyServerList: [ProxyServer]) -> Signal<Bool, NoError> {
-        let accountManager = accountManager
+        // guard let accountManager = accountManager else {
+        //     return Signal<Bool, NoError>
+        // }
         debugPrint("accountManager:", accountManager)
         // add to proxy list
         return (updateProxySettingsInteractively(accountManager: accountManager, { settings in

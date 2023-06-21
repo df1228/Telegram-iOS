@@ -258,11 +258,10 @@ public final class AuthorizationSequencePhoneEntryController: ViewController, MF
     @objc func nextPressed() {
         print("first continue button pressed")
         // guard let strongSelf = self else { return }
-
         // let strongSelf = self
-        // let accountManager = strongSelf.sharedContext.accountManager
-        // debugPrint("accountManager:")
-        // debugPrint(accountManager)
+        let accountManager = self.sharedContext.accountManager
+        debugPrint("accountManager in AuthorizationSequencePhoneEntryController:")
+        debugPrint(accountManager)
 
         // guard let network = self.account?.network else { return }
                     // let accountManager = strongSelf.sharedContext.accountManager

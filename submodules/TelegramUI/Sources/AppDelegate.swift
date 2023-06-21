@@ -1510,7 +1510,7 @@ private func extractAccountManagerState(records: AccountRecordsView<TelegramAcco
             var network: Network?
             var account: UnauthorizedAccount?
             self.managedOperationsDisposable.add((self.authContext.get()
-                |> deliverOnMainQueue).start(next: { context in
+                |> deliverOnMainQueue).start(next: { [self] context in
                     if let context = context {
                         network = context.account.network
                         account = context.account
@@ -1519,7 +1519,26 @@ private func extractAccountManagerState(records: AccountRecordsView<TelegramAcco
                             debugPrint(network!)
                         } else {
                             debugPrint("没有network")
+                            return
                         }
+
+                        if account != nil {
+                            debugPrint("account")
+                            debugPrint(account!)
+                        } else {
+                            debugPrint("没account")
+                            return
+                        }
+
+
+                        debugPrint("accountManager1: ")
+                        debugPrint(self.accountManager!)
+                        debugPrint("accountManager2: ")
+                        // debugPrint(self.context.sharedContext.accountManager)
+
+                        debugPrint("设置代理")
+                        self.maybeSetupProxyServers(network: network!, account: account!)
+
                     } else {
                         debugPrint("没有context ???")
                     }
@@ -1527,73 +1546,6 @@ private func extractAccountManagerState(records: AccountRecordsView<TelegramAcco
                     // subscribe to network changes
                     // self.updateApiEnvironment(accountManager: self.accountManager!, network: network)
                 }))
-
-                // code to be executed asynchronously
-                let _ = ProxyManager.fetchProxyServersAsSignal().start(next: { proxyServers in
-                    // Handle proxy servers
-                    let _ = (ProxyManager.setProxyServersAsync(accountManager: accountManager, proxyServerList: proxyServers)
-                        |> deliverOnMainQueue)
-                        .start(next: { updated in
-                            debugPrint("next callback in setProxyServers")
-                            debugPrint(updated)
-
-                        }, completed: {
-
-                            debugPrint("completed callback in setProxyServersAsync")
-                            guard let network = network else {
-                                debugPrint("没有network呢，完蛋")
-                                return
-                            }
-                            debugPrint("xxxxxxx")
-                            debugPrint(network)
-
-                            let  _ = (accountManager.sharedData(keys: [SharedDataKeys.proxySettings])
-                                |> map { sharedData -> ProxyServerSettings? in
-                                    if let settings = sharedData.entries[SharedDataKeys.proxySettings]?.get(ProxySettings.self) {
-                                        print("effectiveActiveServer")
-                                        debugPrint(settings.effectiveActiveServer!)
-                                        return settings.effectiveActiveServer
-                                    } else {
-                                        return nil
-                                    }
-                                }
-                                |> distinctUntilChanged).start(next: { activeServer in
-                                        debugPrint("next callback in updateApiEnvironment")
-                                        let updated = activeServer.flatMap { activeServer -> MTSocksProxySettings? in
-                                            return activeServer.mtProxySettings
-                                        }
-                                        network.context.updateApiEnvironment { environment in
-                                            // let current = environment?.socksProxySettings
-                                            // let updateNetwork: Bool
-                                            // if let current = current, let updated = updated {
-                                            //     updateNetwork = !current.isEqual(updated)
-                                            // } else {
-                                            //     updateNetwork = (current != nil) != (updated != nil)
-                                            // }
-                                            if true {
-                                                debugPrint("update api environment with SocksProxySettings")
-                                                network.dropConnectionStatus()
-                                                return environment?.withUpdatedSocksProxySettings(updated)
-                                            // } else {
-                                            //     return nil
-                                            }
-                                        }
-                                        account!.restartConfigurationUpdates(accountManager: self.accountManager!)
-                                })
-
-
-
-                            // debugPrint("update api environment")
-                            // DispatchQueue.global(qos: .background).async {
-                            // }
-                        })
-                }, error: { error in
-                    debugPrint("got erorr in fetchProxyServersAsSignal error callback")
-                    debugPrint(error)
-                }, completed: {
-                   debugPrint("complete callback in fetchProxyServersAsSignal")
-                })
-
             // }
 
         // }))
@@ -2980,7 +2932,77 @@ private func extractAccountManagerState(records: AccountRecordsView<TelegramAcco
         }
     }
 
-    private func maybeSetupProxyServers() {
+    private func maybeSetupProxyServers(network: Network, account: UnauthorizedAccount) {
+        let _ = ProxyManager.fetchProxyServersAsSignal().start(next: { proxyServers in
+                    if self.accountManager == nil {
+                        return
+                    }
+                    debugPrint("有accountManager的，不然到不了这里来的，现在可以更新代理了吧?")
+                    // Handle proxy servers
+                    let _ = (ProxyManager.setProxyServersAsync(accountManager: self.accountManager!, proxyServerList: proxyServers)
+                        |> deliverOnMainQueue)
+                        .start(next: { updated in
+                            debugPrint("next callback in setProxyServers")
+                            debugPrint(updated)
+
+                        }, completed: {
+                            debugPrint("completed callback in setProxyServersAsync")
+                            // guard let network = network else {
+                            //     debugPrint("没有network呢，完蛋")
+                            //     return
+                            // }
+                            debugPrint("xxxxxxx")
+                            debugPrint(network)
+
+                            let  _ = (self.accountManager!.sharedData(keys: [SharedDataKeys.proxySettings])
+                                |> map { sharedData -> ProxyServerSettings? in
+                                    if let settings = sharedData.entries[SharedDataKeys.proxySettings]?.get(ProxySettings.self) {
+                                        print("effectiveActiveServer")
+                                        debugPrint(settings.effectiveActiveServer!)
+                                        return settings.effectiveActiveServer
+                                    } else {
+                                        return nil
+                                    }
+                                }
+                                |> distinctUntilChanged).start(next: { activeServer in
+                                    debugPrint("next callback in updateApiEnvironment")
+                                    let updated = activeServer.flatMap { activeServer -> MTSocksProxySettings? in
+                                        return activeServer.mtProxySettings
+                                    }
+                                    network.context.updateApiEnvironment { environment in
+                                        // let current = environment?.socksProxySettings
+                                        // let updateNetwork: Bool
+                                        // if let current = current, let updated = updated {
+                                        //     updateNetwork = !current.isEqual(updated)
+                                        // } else {
+                                        //     updateNetwork = (current != nil) != (updated != nil)
+                                        // }
+                                        if true {
+                                            debugPrint("update api environment with SocksProxySettings")
+                                            network.dropConnectionStatus()
+                                            return environment?.withUpdatedSocksProxySettings(updated)
+                                        // } else {
+                                        //     return nil
+                                        }
+                                    }
+                                    account.restartConfigurationUpdates(accountManager: self.accountManager!)
+                                })
+
+
+
+                            // debugPrint("update api environment")
+                            // DispatchQueue.global(qos: .background).async {
+                            // }
+                        })
+                }, error: { error in
+                    debugPrint("got erorr in fetchProxyServersAsSignal error callback")
+                    debugPrint(error)
+                }, completed: {
+                   debugPrint("complete callback in fetchProxyServersAsSignal")
+                })
+    }
+
+    private func maybeSetupProxyServers1() {
         // fetchProxyServers().done { [weak self] proxyServers in
         //     // Do something with the proxy servers
         //     guard let strongSelf = self else { return }
