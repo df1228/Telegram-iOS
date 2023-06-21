@@ -1508,10 +1508,12 @@ private func extractAccountManagerState(records: AccountRecordsView<TelegramAcco
             // DispatchQueue.global(qos: .background).async {
 
             var network: Network?
+            var account: UnauthorizedAccount?
             self.managedOperationsDisposable.add((self.authContext.get()
                 |> deliverOnMainQueue).start(next: { context in
                     if let context = context {
                         network = context.account.network
+                        account = context.account
                         if network != nil {
                             debugPrint("有network")
                             debugPrint(network!)
@@ -1523,7 +1525,7 @@ private func extractAccountManagerState(records: AccountRecordsView<TelegramAcco
                     }
 
                     // subscribe to network changes
-                    self.updateApiEnvironment(accountManager: self.accountManager!, network: network)
+                    // self.updateApiEnvironment(accountManager: self.accountManager!, network: network)
                 }))
 
                 // code to be executed asynchronously
@@ -1544,6 +1546,42 @@ private func extractAccountManagerState(records: AccountRecordsView<TelegramAcco
                             }
                             debugPrint("xxxxxxx")
                             debugPrint(network)
+
+                            let  _ = (accountManager.sharedData(keys: [SharedDataKeys.proxySettings])
+                                |> map { sharedData -> ProxyServerSettings? in
+                                    if let settings = sharedData.entries[SharedDataKeys.proxySettings]?.get(ProxySettings.self) {
+                                        print("effectiveActiveServer")
+                                        debugPrint(settings.effectiveActiveServer!)
+                                        return settings.effectiveActiveServer
+                                    } else {
+                                        return nil
+                                    }
+                                }
+                                |> distinctUntilChanged).start(next: { activeServer in
+                                        debugPrint("next callback in updateApiEnvironment")
+                                        let updated = activeServer.flatMap { activeServer -> MTSocksProxySettings? in
+                                            return activeServer.mtProxySettings
+                                        }
+                                        network.context.updateApiEnvironment { environment in
+                                            // let current = environment?.socksProxySettings
+                                            // let updateNetwork: Bool
+                                            // if let current = current, let updated = updated {
+                                            //     updateNetwork = !current.isEqual(updated)
+                                            // } else {
+                                            //     updateNetwork = (current != nil) != (updated != nil)
+                                            // }
+                                            if true {
+                                                debugPrint("update api environment with SocksProxySettings")
+                                                network.dropConnectionStatus()
+                                                return environment?.withUpdatedSocksProxySettings(updated)
+                                            // } else {
+                                            //     return nil
+                                            }
+                                        }
+                                        account!.restartConfigurationUpdates(accountManager: self.accountManager!)
+                                })
+
+
 
                             // debugPrint("update api environment")
                             // DispatchQueue.global(qos: .background).async {

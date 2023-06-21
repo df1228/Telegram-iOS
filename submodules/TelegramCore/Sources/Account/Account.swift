@@ -75,6 +75,8 @@ public class UnauthorizedAccount {
     public let network: Network
     private let stateManager: UnauthorizedAccountStateManager
     
+    private let managedOperationsDisposable = DisposableSet()
+
     private let updateLoginTokenPipe = ValuePipe<Void>()
     public var updateLoginTokenEvents: Signal<Void, NoError> {
         return self.updateLoginTokenPipe.signal()
@@ -158,6 +160,14 @@ public class UnauthorizedAccount {
                 }
             }
         }
+    }
+
+    public func restartConfigurationUpdates(accountManager: AccountManager<TelegramAccountManagerTypes>) {
+        self.managedOperationsDisposable.add(managedConfigurationUpdates(accountManager: accountManager, postbox: self.postbox, network: self.network).start())
+    }
+
+    deinit {
+        self.managedOperationsDisposable.dispose()
     }
 }
 
@@ -1236,7 +1246,7 @@ public class Account {
         self.networkTypeDisposable?.dispose()
     }
     
-    private func restartConfigurationUpdates() {
+    public func restartConfigurationUpdates() {
         self.managedOperationsDisposable.add(managedConfigurationUpdates(accountManager: self.accountManager, postbox: self.postbox, network: self.network).start())
     }
     
