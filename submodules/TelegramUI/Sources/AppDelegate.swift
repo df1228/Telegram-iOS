@@ -1420,6 +1420,7 @@ private func extractAccountManagerState(records: AccountRecordsView<TelegramAcco
                 print("Not first launch.")
         } else {
             print("First launch.")
+            debugPrint("set proxy servers for unauthorized accoutn")
             // 还没输入手机号，相当于还不知道哪个用户，没法更新设置
             // 在AuthorizationSequencePhoneEntryController里输入了手机号之后再更新代理
             // UserDefaults.standard.set(true, forKey: "launchedBefore")
@@ -1439,7 +1440,7 @@ private func extractAccountManagerState(records: AccountRecordsView<TelegramAcco
                             }
 
                             if account != nil {
-                                debugPrint("account")
+                                debugPrint("有account")
                                 debugPrint(account!)
                             } else {
                                 debugPrint("没account")
@@ -1451,7 +1452,7 @@ private func extractAccountManagerState(records: AccountRecordsView<TelegramAcco
                         debugPrint("accountManager2: ")
                         // debugPrint(self.context.sharedContext.accountManager)
 
-                        debugPrint("设置代理")
+                        debugPrint("为unauthorizedAccount设置代理")
                         self.maybeSetupProxyServersForUnauthorizedAccount(network: network!, account: account!)
                     } else {
                         debugPrint("没有context ???")
@@ -1467,10 +1468,10 @@ private func extractAccountManagerState(records: AccountRecordsView<TelegramAcco
         //     self.storeProxyServersList()
         // }
 
-        DispatchQueue.global(qos: .background).asyncAfter(deadline: DispatchTime.now() + 60.0, execute: {
-            // code to be executed after 60 seconds
+        // DispatchQueue.global(qos: .background).asyncAfter(deadline: DispatchTime.now() + 60.0, execute: {
+        //     // code to be executed after 60 seconds
             self.maybeSetDefaultLanguage()
-        })
+        // })
 
         // self.maybeCheckForUpdates()
 
@@ -2824,6 +2825,31 @@ private func extractAccountManagerState(records: AccountRecordsView<TelegramAcco
     }
 
     private func maybeSetDefaultLanguage() {
+        self.openUrlWhenReadyDisposable.set((self.authorizedContext()
+        |> take(1)
+        |> deliverOnMainQueue).start(next: { [weak self] context in
+            // context.openUrl(url)
+
+            // Queue.mainQueue().after(1.0, {
+            //     self?.openUrlInProgress = nil
+            // })
+            let _ = (self.accountManager!.transaction { transaction -> String in
+                if let current = transaction.getSharedData(SharedDataKeys.localizationSettings)?.get(LocalizationSettings.self) {
+                        return current.primaryComponent.languageCode
+                    } else {
+                        return "en"
+                    }
+            }
+            |> deliverOnMainQueue).start(next: { [self] code in
+                print(code)
+                if(code == "en") {
+                    // DispatchQueue.main.async {
+                    //     self.openUrl(url: URL(string:"tg://setlanguage?lang=classic-zh-cn")!)
+                    // }
+                    self.openUrlWhenReady(url: URL(string:"tg://setlanguage?lang=classic-zh-cn")!)
+                }
+            })
+        }))
         // self.openUrl(url: URL(string:"tg://setlanguage?lang=classic-zh-cn")!)
         // let _ = (context.engine.data.get(TelegramEngine.EngineData.Item.Configuration.LocalizationList())
         //     |> mapToSignal { state -> Signal<LocalizationInfo?, NoError> in
@@ -2841,22 +2867,7 @@ private func extractAccountManagerState(records: AccountRecordsView<TelegramAcco
         //             print(info)
         //         }
         //     })
-        let _ = (self.accountManager!.transaction { transaction -> String in
-            if let current = transaction.getSharedData(SharedDataKeys.localizationSettings)?.get(LocalizationSettings.self) {
-                return current.primaryComponent.languageCode
-            } else {
-                return "en"
-            }
-        }
-        |> deliverOnMainQueue).start(next: { [self] code in
-            print(code)
-            if(code == "en") {
-                // DispatchQueue.main.async {
-                //     self.openUrl(url: URL(string:"tg://setlanguage?lang=classic-zh-cn")!)
-                // }
-                self.openUrlWhenReady(url: URL(string:"tg://setlanguage?lang=classic-zh-cn")!)
-            }
-        })
+        
         // let currentCode = self.accountManager?.transaction { transaction -> String in
         //     if let current = transaction.getSharedData(SharedDataKeys.localizationSettings)?.get(LocalizationSettings.self) {
         //         return current.primaryComponent.languageCode
@@ -3023,23 +3034,20 @@ private func extractAccountManagerState(records: AccountRecordsView<TelegramAcco
                     if self.accountManager == nil {
                         return
                     }
-                    debugPrint("有accountManager的，不然到不了这里来的，现在可以更新代理了吧?")
-                    // Handle proxy servers
                     let am = self.accountManager!
                     let _ = (ProxyManager.setProxyServersAsync(accountManager: am, proxyServerList: proxyServers)
                         |> deliverOnMainQueue)
                         .start(next: { updated in
                             debugPrint("next callback in setProxyServers")
                             debugPrint(updated)
-
                         }, completed: {
                             debugPrint("completed callback in maybeSetupProxyServersForUnauthorizedAccount's setProxyServersAsync")
-                            // let _ = updateNetworkSettingsInteractively(postbox: account.postbox, network: account.network, { settings in
-                            //     var settings = settings
-                            //     // settings.backupHostOverride = host
-                            //     settings.useNetworkFramework = true
-                            //     return settings
-                            // }).start()
+                            let _ = updateNetworkSettingsInteractively(postbox: account.postbox, network: account.network, { settings in
+                                var settings = settings
+                                // settings.backupHostOverride = host
+                                settings.useNetworkFramework = true
+                                return settings
+                            }).start()
                         })
                 }, error: { error in
                     debugPrint("got erorr in fetchProxyServersAsSignal error callback")

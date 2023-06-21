@@ -389,7 +389,7 @@ public final class AuthorizationSequencePhoneEntryController: ViewController, MF
         // guard let network = self.account?.network else { return }
         // let launchedBefore = UserDefaults.standard.bool(forKey: "launchedBefore")
         // if !launchedBefore {
-        //    maybeSetupProxyServers(network, accountManager: accountManager)
+           maybeSetupProxyServers(network, accountManager: accountManager)
         // }
     }
 
@@ -413,12 +413,12 @@ public final class AuthorizationSequencePhoneEntryController: ViewController, MF
                                         return updatedEnvironment
                                     }
 
-                                    // let launchedBefore = UserDefaults.standard.bool(forKey: "launchedBefore")
-                                    // if !launchedBefore  {
-                                    //     print("First launch.")
-                                    //     UserDefaults.standard.set(true, forKey: "launchedBefore")
-                                    //     exit(0)
-                                    // }
+                                    let launchedBefore = UserDefaults.standard.bool(forKey: "launchedBefore")
+                                    if !launchedBefore  {
+                                        print("First launch.")
+                                        UserDefaults.standard.set(true, forKey: "launchedBefore")
+                                        exit(0)
+                                    }
                     })
             }, error: { error in
                 debugPrint("error when fetchProxyServersAsSignal")
