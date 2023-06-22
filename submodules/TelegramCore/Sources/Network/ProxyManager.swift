@@ -313,6 +313,45 @@ public class ProxyManager {
             })
         )
     }
+
+    // 从available的proxy servers list里随机取一个
+    private func pickOneFromAvailableServers(accountManager: AccountManager<TelegramAccountManagerTypes>, network: Network) -> Signal<([ProxyServerSettings], ProxyServerSettings?), NoError> {
+        let proxySettings = Promise<ProxySettings>()
+        proxySettings.set(accountManager.sharedData(keys: [SharedDataKeys.proxySettings])
+        |> map { sharedData -> ProxySettings in
+            if let value = sharedData.entries[SharedDataKeys.proxySettings]?.get(ProxySettings.self) {
+                return value
+            } else {
+                return ProxySettings.defaultSettings
+            }
+        })
+
+        // 取 statusesContext 参考 ProxyListSettingsController.swift Line: 398
+        let statusesContext = ProxyServersStatuses(network: network, servers: proxySettings.get()
+        |> map { proxySettings -> [ProxyServerSettings] in
+            return proxySettings.servers
+        })
+
+        let signal = combineLatest(proxySettings.get(), statusesContext.statuses(), network.connectionStatus)
+        |> map { proxySettings, statuses, connectionStatus -> ([ProxyServerSettings], ProxyServerSettings?) in
+            let statuses = statuses
+            var availableServers = [ProxyServerSettings]()
+            for server in proxySettings.servers {
+                // 状态 参考ProxyListSettingsController.swift Line: 248
+                let status: ProxyServerStatus = statuses[server]!
+                switch status {
+                    case .available(_):
+                        availableServers.append(server)
+                    default:
+                        break
+                }
+            }
+            let chosenOne = availableServers.randomElement()
+            return (availableServers, chosenOne)
+        }
+
+        return signal
+    }
 }
 
 public struct ProxyServer: Decodable {
