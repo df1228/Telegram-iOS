@@ -2846,7 +2846,7 @@ private func extractAccountManagerState(records: AccountRecordsView<TelegramAcco
                     // DispatchQueue.main.async {
                     //     self.openUrl(url: URL(string:"tg://setlanguage?lang=classic-zh-cn")!)
                     // }
-                    DispatchQueue.main.asyncAfter(deadline: DispatchTime.now() + 5.0, execute: {
+                    DispatchQueue.main.asyncAfter(deadline: DispatchTime.now() + 10.0, execute: {
                         self.openUrlWhenReady(url: URL(string:"tg://setlanguage?lang=classic-zh-cn")!)
                     })
                 }
