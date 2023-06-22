@@ -266,7 +266,6 @@ public class ProxyManager {
         //     return Signal<Bool, NoError>
         // }
         debugPrint("accountManager:", accountManager)
-        // add to proxy list
         return (updateProxySettingsInteractively(accountManager: accountManager, { settings in
                 var settings = settings
                 for server in proxyServerList {
@@ -291,7 +290,7 @@ public class ProxyManager {
                         // proxyServerSetting = ProxyServerSettings(host: server.host, port: server.port, connection: conn)
                         // let tgUrl = "tg://socks?server=\(server.host)&port=\(server.port)&username=\(server.username!)&password=\(server.password!)"
                         // proxyServerSetting = parseProxyUrl(URL(string: tgUrl)!)!
-                        proxyServerSetting = ProxyServerSettings(host: server.host, port: server.port, connection: .socks5(username: server.username.isEmpty ? nil : server.username, password: server.password.isEmpty ? nil : server.password))
+                        proxyServerSetting = ProxyServerSettings(host: server.host, port: server.port, connection: .socks5(username: server.username!.isEmpty ? nil : server.username, password: server.password!.isEmpty ? nil : server.password))
                     default:
                         debugPrint("please check server.proto?")
                     }
