@@ -281,7 +281,7 @@ public class ProxyManager {
                             // proxyServerSetting = parseProxyUrl(URL(string: tgUrl)!)!
                             // proxyServerSetting = ProxyServerSettings(host: server.host, port: server.port, connection: conn)
                         // submodules/SettingsUI/Sources/Data and Storage/ProxyServerSettingsController.swift
-                        let parsedSecret = MTProxySecret.parse(server.secret)
+                        let parsedSecret = MTProxySecret.parse(server.secret!)
                         if let parsedSecret = parsedSecret {
                             proxyServerSetting = ProxyServerSettings(host: server.host, port: server.port, connection: .mtp(secret: parsedSecret.serialize()))
                         }
