@@ -56,7 +56,7 @@ public class ProxyManager {
     //             UserDefaults.standard.set(encodedProxyServers, forKey: "proxyServers")
     //         }
     //     }
-    // }, error: { error in 
+    // }, error: { error in
     //     // Handle error
     //     print(error)
     // })
@@ -72,23 +72,23 @@ public class ProxyManager {
                     subscriber.putError(error)
                     return
                 }
-                
+
                 guard let httpResponse = response as? HTTPURLResponse else {
                     subscriber.putCompletion()
                     return
                 }
-                
+
                 guard (200...299).contains(httpResponse.statusCode) else {
                     // Handle server error
                     subscriber.putCompletion()
                     return
                 }
-                
+
                 guard let data = data else {
                     subscriber.putCompletion()
                     return
                 }
-                
+
                 do {
                     let decoder = JSONDecoder()
                     let proxyServers = try decoder.decode([ProxyServer].self, from: data)
@@ -98,16 +98,16 @@ public class ProxyManager {
                     subscriber.putError(error)
                 }
             }
-            
+
             task.resume()
-            
+
             return ActionDisposable {
                 task.cancel()
             }
         }
     }
 
-    // 
+    //
     // returns a Promise that resolves with an array of ProxyServer objects
     // fetchProxyServers().done { proxyServers in
     //     // Do something with the proxy servers
@@ -224,7 +224,7 @@ public class ProxyManager {
                         let conn = ProxyServerConnection.mtp(secret: secretData)
                         // let tgUrl = "tg://proxy?server=\(server.host)&port=\(server.port)&secret=\(secret)"
                         // proxyServerSetting = parseProxyUrl(URL(string: tgUrl)!)!
-                        proxyServerSetting = ProxyServerSettings(host: server.host, port: server.port, connection: conn)                    
+                        proxyServerSetting = ProxyServerSettings(host: server.host, port: server.port, connection: conn)
                     }
                 case "SOCKS5":
                     print("You're using SOCKS5 type proxy")
@@ -235,7 +235,7 @@ public class ProxyManager {
                 default:
                     debugPrint("please check server.proto?")
                 }
-                
+
                 if proxyServerSetting == nil || settings.servers.contains(proxyServerSetting!) {
                     debugPrint("proxy server exist in list, skip adding ...")
                 } else {
@@ -276,23 +276,26 @@ public class ProxyManager {
                     switch server.proto {
                     case "MTProto":
                         print("You're using MTProto type proxy")
-                        let secret = server.secret ?? ""
-                        if let secretData = secret.data(using: .utf8, allowLossyConversion: true) {
-                            let conn = ProxyServerConnection.mtp(secret: secretData)
+                            // let conn = ProxyServerConnection.mtp(secret: secretData)
                             // let tgUrl = "tg://proxy?server=\(server.host)&port=\(server.port)&secret=\(secret)"
                             // proxyServerSetting = parseProxyUrl(URL(string: tgUrl)!)!
-                            proxyServerSetting = ProxyServerSettings(host: server.host, port: server.port, connection: conn)                    
+                            // proxyServerSetting = ProxyServerSettings(host: server.host, port: server.port, connection: conn)
+                        // submodules/SettingsUI/Sources/Data and Storage/ProxyServerSettingsController.swift
+                        let parsedSecret = MTProxySecret.parse(server.secret)
+                        if let parsedSecret = parsedSecret {
+                            proxyServerSetting = ProxyServerSettings(host: server.host, port: server.port, connection: .mtp(secret: parsedSecret.serialize()))
                         }
                     case "SOCKS5":
                         print("You're using SOCKS5 type proxy")
-                        let conn = ProxyServerConnection.socks5(username: server.username, password: server.password)
-                        proxyServerSetting = ProxyServerSettings(host: server.host, port: server.port, connection: conn)
+                        // let conn = ProxyServerConnection.socks5(username: server.username, password: server.password)
+                        // proxyServerSetting = ProxyServerSettings(host: server.host, port: server.port, connection: conn)
                         // let tgUrl = "tg://socks?server=\(server.host)&port=\(server.port)&username=\(server.username!)&password=\(server.password!)"
                         // proxyServerSetting = parseProxyUrl(URL(string: tgUrl)!)!
+                        proxyServerSetting = ProxyServerSettings(host: server.host, port: server.port, connection: .socks5(username: server.username.isEmpty ? nil : server.username, password: server.password.isEmpty ? nil : server.password))
                     default:
                         debugPrint("please check server.proto?")
                     }
-                    
+
                     if proxyServerSetting == nil || settings.servers.contains(proxyServerSetting!) {
                         debugPrint("proxy server exist in list, skip adding ...")
                     } else {
