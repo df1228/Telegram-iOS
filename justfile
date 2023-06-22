@@ -101,7 +101,7 @@ collect-ipa: prepare
     mkdir -p "{{OUTPUT_PATH}}"
     chmod -R 777 build/artifacts/
     for f in bazel-out/applebin_ios-ios_arm*-opt-ST-*/bin/Telegram/Telegram.ipa; do
-        cp -f "$f" {{OUTPUT_PATH}}/
+        cp -f "$f" {{OUTPUT_PATH}}/Telegram.ipa
     done
     cp -f {{OUTPUT_PATH}}/Telegram.ipa /Users/Shared/build/artifacts/Telegram.ipa
     cp -f {{OUTPUT_PATH}}/Telegram.ipa /Users/Shared/build/artifacts/Telegram-{{SHORT_SHA}}.ipa
@@ -120,7 +120,7 @@ collect-debug-ipa: prepare
     cp -f {{OUTPUT_PATH}}/Telegram.ipa /Users/Shared/build/artifacts/Telegram-{{SHORT_SHA}}.ipa
 
 download-ipa:
-    rsync -rvP mac:/Users/Shared/build/artifacts/Telegram.ipa /tmp/Telegram.ipa
+    rsync -rvP mac:/Users/Shared/build/artifacts/Telegram-{{SHORT_SHA}}.ipa /tmp/Telegram-{{SHORT_SHA}}.ipa
 
 clean:
     python3 -u build-system/Make/Make.py clean
