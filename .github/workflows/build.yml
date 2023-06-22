@@ -111,7 +111,7 @@ jobs:
         with:
           upload_url: ${{ steps.create_release.outputs.upload_url }}
           asset_path: /Users/Shared/telegram-ios/build/artifacts/Telegram.ipa
-          asset_name: Telegram.ipa
+          asset_name: Telegram-build-${{ env.BUILD_NUMBER }}.ipa
           asset_content_type: application/zip
 
       - name: Upload Release DSYM
