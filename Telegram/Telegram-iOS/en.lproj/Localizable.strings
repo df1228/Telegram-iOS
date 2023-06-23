@@ -3786,13 +3786,13 @@ Unused sets are archived when you add more.";
 
 "ApplyLanguage.ChangeLanguageAlreadyActive" = "%1$@ 已经激活.";
 "ApplyLanguage.ChangeLanguageTitle" = "切换语言?";
-"ApplyLanguage.ChangeLanguageUnofficialText" = "将要应用自定义语言包 **%1$@**, 它 %2$@% 完整.\n\n 将会翻译整个界面. 你可以在这里提交[translation panel]()更正建议.\n\n你可以随时在设置里切换语言.";
-"ApplyLanguage.ChangeLanguageOfficialText" = "You are about to apply a language pack **%1$@**.\n\nThis will translate the entire interface. You can suggest corrections in the [translation panel]().\n\nYou can change your language back at any time in Settings.";
-"ApplyLanguage.ChangeLanguageAction" = "Change";
-"ApplyLanguage.ApplyLanguageAction" = "Change";
+"ApplyLanguage.ChangeLanguageUnofficialText" = "将要应用自定义语言包 **%1$@**, 它 %2$@% 完整.\n\n 将会翻译整个界面. 你可以在这里[translation panel]()提交更正建议.\n\n你可以随时在设置里切换语言.";
+"ApplyLanguage.ChangeLanguageOfficialText" = "你将要应用 **%1$@**.\n\n它将会翻译整个界面. 你可以在这里 [translation panel]()提交更正建议.\n\n你可以随时在设置里切换语言.";
+"ApplyLanguage.ChangeLanguageAction" = "切换语言";
+"ApplyLanguage.ApplyLanguageAction" = "切换语言";
 "ApplyLanguage.UnsufficientDataTitle" = "数据不完整";
 "ApplyLanguage.UnsufficientDataText" = "不幸的是, 该自定义语言包 (%1$@) 来自社区，翻译的不够完整. 你可以通过此链接 [translations platform]()来贡献";
-"ApplyLanguage.LanguageNotSupportedError" = "Sorry, this language doesn't seem to exist.";
+"ApplyLanguage.LanguageNotSupportedError" = "这个语言好像不支持.";
 "ApplyLanguage.ApplySuccess" = "语言切换成功";
 
 "TextFormat.Bold" = "Bold";
@@ -4529,7 +4529,7 @@ Sorry for the inconvenience.";
 "Channel.AddBotErrorNoRights" = "Sorry, bots can only be added to channels as administrators.";
 
 "Appearance.AppIcon" = "App Icon";
-"Appearance.AppIconDefault" = "Default";
+"Appearance.AppIconDefault" = "Aqua";
 "Appearance.AppIconDefaultX" = "Default X";
 "Appearance.AppIconClassic" = "Classic";
 "Appearance.AppIconClassicX" = "Classic X";
