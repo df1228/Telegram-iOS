@@ -21,6 +21,7 @@ import LegacyUI
 import PassportUI
 import WatchBridge
 import SettingsUI
+import ChatListUI
 import AppBundle
 import UrlHandling
 import OpenSSLEncryptionProvider

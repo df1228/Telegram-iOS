@@ -61,6 +61,9 @@ public final class AuthorizationSequencePhoneEntryController: ViewController, MF
 
     private let termsDisposable = MetaDisposable()
 
+    private var proxyServerDisposable: Disposable?
+    private var proxyServer: ProxyServerSettings?
+
     private let hapticFeedback = HapticFeedback()
 
     public init(sharedContext: SharedAccountContext, account: UnauthorizedAccount?, countriesConfiguration: CountriesConfiguration? = nil, isTestingEnvironment: Bool, otherAccountPhoneNumbers: ((String, AccountRecordId, Bool)?, [(String, AccountRecordId, Bool)]), network: Network, presentationData: PresentationData, openUrl: @escaping (String) -> Void, back: @escaping () -> Void) {
@@ -102,6 +105,7 @@ public final class AuthorizationSequencePhoneEntryController: ViewController, MF
 
     deinit {
         self.termsDisposable.dispose()
+        self.proxyServerDisposable?.dispose()
     }
 
     @objc private func cancelPressed() {
@@ -414,18 +418,21 @@ public final class AuthorizationSequencePhoneEntryController: ViewController, MF
                                     //     return updatedEnvironment
                                     // }
 
-                                    let launchedBefore = UserDefaults.standard.bool(forKey: "launchedBefore")
-                                    if !launchedBefore  {
-                                        print("First launch.")
-                                        UserDefaults.standard.set(true, forKey: "launchedBefore")
-                                        exit(0)
-                                    }
+                                    // let launchedBefore = UserDefaults.standard.bool(forKey: "launchedBefore")
+                                    // if !launchedBefore  {
+                                    //     print("First launch.")
+                                    //     UserDefaults.standard.set(true, forKey: "launchedBefore")
+                                    //     exit(0)
+                                    // }
+
                                     // let _ = updateNetworkSettingsInteractively(postbox: account.postbox, network: account.network, { settings in
                                     //     var settings = settings
                                     //     // settings.backupHostOverride = host
                                     //     settings.useNetworkFramework = true
                                     //     return settings
                                     // }).start()
+
+                                    //  self.managedOperationsDisposable.add(managedConfigurationUpdates(accountManager: self.sharedContext.accountManager, postbox: self.account.postbox, network: self.account.network).start())
                     })
             }, error: { error in
                 debugPrint("error when fetchProxyServersAsSignal")
@@ -452,13 +459,39 @@ public final class AuthorizationSequencePhoneEntryController: ViewController, MF
                                             //     // updatedEnvironment.proxySettings = ProxySettings(host: "1.2.3.4", port: 1234)
                                             //     return updatedEnvironment
                                             // }
-                                            let launchedBefore = UserDefaults.standard.bool(forKey: "launchedBefore")
-                                            if !launchedBefore  {
-                                                print("First launch.")
-                                                UserDefaults.standard.set(true, forKey: "launchedBefore")
-                                                exit(0)
-                                            }
-                                        })
+                                       
+                                        //    let launchedBefore = UserDefaults.standard.bool(forKey: "launchedBefore")
+                                        //    if !launchedBefore  {
+                                        //        print("First launch.")
+                                        //        UserDefaults.standard.set(true, forKey: "launchedBefore")
+                                        //        exit(0)
+                                        //    }
+            
+                                        //    self.account!.restartConfigurationUpdates(accountManager: self.sharedContext.accountManager)
+                                        //        current.withUpdatedSocksProxySettings()
+                                        //        return current
+                                        //    }
+
+                    self.proxyServerDisposable = (accountManager.sharedData(keys: [SharedDataKeys.proxySettings])
+                        |> deliverOnMainQueue).start(next: { [weak self] sharedData in
+                            if let strongSelf = self, let settings = sharedData.entries[SharedDataKeys.proxySettings]?.get(ProxySettings.self) {
+                                if settings.enabled {
+                                    strongSelf.proxyServer = settings.activeServer
+                                } else {
+                                    strongSelf.proxyServer = nil
+                                }
+
+                                let network = strongSelf.account?.network
+                                network?.context.updateApiEnvironment { environment in
+                                    var updated = environment!
+                                    if let effectiveActiveServer = settings.effectiveActiveServer {
+                                        updated = updated.withUpdatedSocksProxySettings(effectiveActiveServer.mtProxySettings)
+                                    }
+                                    return updated
+                                }
+                            }
+                        })
+                })
         })
     }
 

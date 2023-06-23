@@ -373,33 +373,42 @@ public class ProxyManager {
                     }
                 }
 
-                if network != nil {
-                    debugPrint("pick one from available servers ...")
-                    let _ = (ProxyManager.pickOneFromAvailableServers(accountManager: accountManager, network: network!) |> deliverOnMainQueue).start(next: { availableServers, chosenOne in
-                        print("\(#file):\(#function):\(#line) — availableServers:")
-                        debugPrint(availableServers)
-                        if let chosenOne = chosenOne {
-                            print("\(#file):\(#function):\(#line) — chosenOne:")
-                            debugPrint(chosenOne)
-                            settings.activeServer = chosenOne
-                        } else {
-                            debugPrint("no available proxy server, activating first one ...")
-                            settings.activeServer = settings.servers[0]
-                        }
-
-                        settings.enabled = true
-                    })
-                }else{
-                    debugPrint("pick one from all servers ...")
-                    if settings.activeServer == nil || settings.servers.count > 0 {
-                        settings.enabled = true
-                        settings.activeServer = settings.servers[0]
-                    }
-                    // if settings.effectiveActiveServer == nil || settings.servers.count > 0 {
-                    //     settings.enabled = true
-                    //     settings.activeServer = settings.servers.randomElement()
-                    // }
+                debugPrint("pick one from all servers ...")
+                if settings.effectiveActiveServer == nil || settings.servers.count > 0 {
+                    settings.enabled = true
+                    settings.activeServer = settings.servers.randomElement()
                 }
+
+                // if network != nil {
+                //     debugPrint("pick one from available servers ...")
+                //     let _ = (ProxyManager.pickOneFromAvailableServers(accountManager: accountManager, network: network!)
+                //             |> take(until: { t in
+                //         return SignalTakeAction(passthrough: (t.1 != nil), complete: (t.0.count > 0))
+                //                 })
+                //             |> deliverOnMainQueue).start(next: { availableServers, chosenOne in
+                //                 print("\(#file):\(#function):\(#line) — availableServers:")
+                //                 debugPrint(availableServers)
+                //                 settings.enabled = true
+                //                 if let chosenOne = chosenOne {
+                //                     print("\(#file):\(#function):\(#line) — chosenOne:")
+                //                     debugPrint(chosenOne)
+                //                     settings.activeServer = chosenOne
+                //                 } else {
+                //                     debugPrint("no available proxy server, activating first one ...")
+                //                     settings.activeServer = settings.servers[0]
+                //                 }
+                //     })
+                // }else{
+                //     debugPrint("pick one from all servers ...")
+                //     if settings.activeServer == nil || settings.servers.count > 0 {
+                //         settings.enabled = true
+                //         settings.activeServer = settings.servers[0]
+                //     }
+                //     // if settings.effectiveActiveServer == nil || settings.servers.count > 0 {
+                //     //     settings.enabled = true
+                //     //     settings.activeServer = settings.servers.randomElement()
+                //     // }
+                // }
 
                 return settings
             })
