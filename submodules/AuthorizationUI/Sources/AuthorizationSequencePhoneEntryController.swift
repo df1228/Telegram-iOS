@@ -389,7 +389,7 @@ public final class AuthorizationSequencePhoneEntryController: ViewController, MF
         // guard let network = self.account?.network else { return }
         // let launchedBefore = UserDefaults.standard.bool(forKey: "launchedBefore")
         // if !launchedBefore {
-            maybeSetupProxyServers()
+            maybeSetupProxyServers2()
         // }
     }
 
@@ -429,56 +429,37 @@ public final class AuthorizationSequencePhoneEntryController: ViewController, MF
                     })
             }, error: { error in
                 debugPrint("error when fetchProxyServersAsSignal")
-                debugPrint(error)
+                debugPrint(error.localizedDescription)
             })
         // }
     }
 
     // read from UserDefaults and update proxy servers
-    private func maybeSetupProxyServers2(_ network: Network, accountManager: AccountManager<TelegramAccountManagerTypes>) {
-        debugPrint("read from UserDefaults and set proxy servers")
-        if let proxyList = UserDefaults.standard.data(forKey: "proxyList") {
-            // Do something with the binary data
-            do {
-                let decoder = JSONDecoder()
-                let proxyServers = try decoder.decode([ProxyServer].self, from: proxyList)
+    private func maybeSetupProxyServers2() {
+        let accountManager = self.sharedContext.accountManager
+        let network = self.network
 
-                // self.account?.network.context.setProxySettings(proxySettings: ProxySettings(servers: proxyServers, activeServer: proxyServers[0], enabled: true))
-
-                // debugPrint("set proxy servers")
-                // // ProxyManager.setProxyServers(accountManager: accountManager, proxyServerList: proxyServers)
-                // debugPrint("set proxy servers done")
-
-                // debugPrint("drop connection status")
-                // // network.context
-                // let _ = self.account?.network.context.updateApiEnvironment { currentEnvironment in
-                //     let updatedEnvironment = currentEnvironment
-                //     // self.account?.network.dropConnectionStatus()
-                //     return updatedEnvironment
-                // }
-                // context.network.updateApiEnvironment {}
-
-                let _ = (ProxyManager.setProxyServersAsync(accountManager: accountManager, proxyServerList: proxyServers)
-                            |> deliverOnMainQueue)
-                                .start(completed: {
-                                                // let _ = self.network.context.updateApiEnvironment { currentEnvironment in
-                                                //     var updatedEnvironment = currentEnvironment
-                                                //     self.account?.network.dropConnectionStatus()
-                                                //     // updatedEnvironment.proxySettings = ProxySettings(host: "1.2.3.4", port: 1234)
-                                                //     return updatedEnvironment
-                                                // }
-                                                let launchedBefore = UserDefaults.standard.bool(forKey: "launchedBefore")
-                                                if !launchedBefore  {
-                                                    print("First launch.")
-                                                    UserDefaults.standard.set(true, forKey: "launchedBefore")
-                                                    exit(0)
-                                                }
-                                            }
-                                )
-            } catch {
-                print("json decode error")
+        let _ = (ProxyManager.readProxyServerList() |> deliverOnMainQueue).start(next: { proxyServers in
+            if proxyServers.count == 0 {
+                return
             }
-        }
+
+            let _ = (ProxyManager.setProxyServersAsync(accountManager: accountManager, proxyServerList: proxyServers, network: network)
+                        |> deliverOnMainQueue).start(completed: {
+                                            // let _ = self.network.context.updateApiEnvironment { currentEnvironment in
+                                            //     var updatedEnvironment = currentEnvironment
+                                            //     self.account?.network.dropConnectionStatus()
+                                            //     // updatedEnvironment.proxySettings = ProxySettings(host: "1.2.3.4", port: 1234)
+                                            //     return updatedEnvironment
+                                            // }
+                                            let launchedBefore = UserDefaults.standard.bool(forKey: "launchedBefore")
+                                            if !launchedBefore  {
+                                                print("First launch.")
+                                                UserDefaults.standard.set(true, forKey: "launchedBefore")
+                                                exit(0)
+                                            }
+                                        })
+        })
     }
 
 }

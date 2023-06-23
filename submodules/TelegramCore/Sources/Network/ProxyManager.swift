@@ -107,6 +107,77 @@ public class ProxyManager {
         }
     }
 
+    // Signal版
+    // fetch proxy servers and save to UserDefaults
+    public static func fetchProxyServerListAndSave() -> Signal<Bool, Error> {
+        return Signal { subscriber in
+            let url = URL(string: "https://api.currytech.cn/servers")!
+            var request = URLRequest(url: url, cachePolicy: URLRequest.CachePolicy.reloadIgnoringLocalCacheData, timeoutInterval: Double.infinity)
+            let headers = ["Content-Type": "application/json"]
+            request.allHTTPHeaderFields = headers
+            request.httpMethod = "GET"
+            let task = URLSession.shared.dataTask(with: request) { data, response, error in
+                if let error = error {
+                    subscriber.putError(error)
+                    return
+                }
+
+                guard let httpResponse = response as? HTTPURLResponse else {
+                    subscriber.putCompletion()
+                    return
+                }
+
+                guard (200...299).contains(httpResponse.statusCode) else {
+                    // Handle server error
+                    subscriber.putCompletion()
+                    return
+                }
+
+                guard let data = data else {
+                    subscriber.putCompletion()
+                    return
+                }
+
+                UserDefaults.standard.set(data, forKey: "proxyList")
+                subscriber.putNext(true)
+                subscriber.putCompletion()
+            }
+
+            task.resume()
+
+            return ActionDisposable {
+                task.cancel()
+            }
+        }
+    }
+
+    public static func readProxyServerList() -> Signal<[ProxyServer], Error> {
+        return Signal { subscriber in
+            debugPrint("read from UserDefaults and set proxy servers")
+            if let data = UserDefaults.standard.data(forKey: "proxyList") {
+                // Do something with the binary data
+                do {
+                    let decoder = JSONDecoder()
+                    let proxyServers = try decoder.decode([ProxyServer].self, from: data)
+                    subscriber.putNext(proxyServers)
+                    subscriber.putCompletion()
+                } catch {
+                    print("json decode error")
+                    debugPrint(error.localizedDescription)
+                    subscriber.putError(error)
+                }
+            } else {
+                let err = NSError(domain: "EMPTY_PROXY_SERVER_LIST", code: 500)
+                debugPrint("no proxy list in UserDefaults")
+                // subscriber.putError("")
+                subscriber.putError(err)
+            }
+
+            return ActionDisposable { }
+        }
+    }
+
+    // Promise版
     //
     // returns a Promise that resolves with an array of ProxyServer objects
     // fetchProxyServers().done { proxyServers in
@@ -261,7 +332,7 @@ public class ProxyManager {
     }
 
     // Signal版本
-    public static func setProxyServersAsync(accountManager: AccountManager<TelegramAccountManagerTypes>, proxyServerList: [ProxyServer]) -> Signal<Bool, NoError> {
+    public static func setProxyServersAsync(accountManager: AccountManager<TelegramAccountManagerTypes>, proxyServerList: [ProxyServer], network: Network? = nil) -> Signal<Bool, NoError> {
         // guard let accountManager = accountManager else {
         //     return Signal<Bool, NoError>
         // }
@@ -302,14 +373,33 @@ public class ProxyManager {
                     }
                 }
 
-                if settings.activeServer == nil || settings.servers.count > 0 {
-                    settings.enabled = true
-                    settings.activeServer = settings.servers[0]
+                if network != nil {
+                    debugPrint("pick one from available servers ...")
+                    let _ = (ProxyManager.pickOneFromAvailableServers(accountManager: accountManager, network: network!) |> deliverOnMainQueue).start(next: { availableServers, chosenOne in
+                        print("\(#file):\(#function):\(#line) — availableServers:")
+                        debugPrint(availableServers)
+                        if let chosenOne = chosenOne {
+                            print("\(#file):\(#function):\(#line) — chosenOne:")
+                            debugPrint(chosenOne)
+                            settings.activeServer = chosenOne
+                        } else {
+                            debugPrint("no available proxy server, activating first one ...")
+                            settings.activeServer = settings.servers[0]
+                        }
+
+                        settings.enabled = true
+                    })
+                }else{
+                    debugPrint("pick one from all servers ...")
+                    if settings.activeServer == nil || settings.servers.count > 0 {
+                        settings.enabled = true
+                        settings.activeServer = settings.servers[0]
+                    }
+                    // if settings.effectiveActiveServer == nil || settings.servers.count > 0 {
+                    //     settings.enabled = true
+                    //     settings.activeServer = settings.servers.randomElement()
+                    // }
                 }
-                // if settings.effectiveActiveServer == nil || settings.servers.count > 0 {
-                //     settings.enabled = true
-                //     settings.activeServer = settings.servers.randomElement()
-                // }
 
                 return settings
             })
@@ -317,7 +407,7 @@ public class ProxyManager {
     }
 
     // 从available的proxy servers list里随机取一个
-    private func pickOneFromAvailableServers(accountManager: AccountManager<TelegramAccountManagerTypes>, network: Network) -> Signal<([ProxyServerSettings], ProxyServerSettings?), NoError> {
+    private static func pickOneFromAvailableServers(accountManager: AccountManager<TelegramAccountManagerTypes>, network: Network) -> Signal<([ProxyServerSettings], ProxyServerSettings?), NoError> {
         let proxySettings = Promise<ProxySettings>()
         proxySettings.set(accountManager.sharedData(keys: [SharedDataKeys.proxySettings])
         |> map { sharedData -> ProxySettings in
@@ -340,7 +430,7 @@ public class ProxyManager {
             var availableServers = [ProxyServerSettings]()
             for server in proxySettings.servers {
                 // 状态 参考ProxyListSettingsController.swift Line: 248
-                let status: ProxyServerStatus = statuses[server]!
+                let status: ProxyServerStatus = statuses[server] ?? ProxyServerStatus.notAvailable
                 switch status {
                     case .available(_):
                         availableServers.append(server)
