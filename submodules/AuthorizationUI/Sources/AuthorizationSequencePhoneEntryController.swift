@@ -389,7 +389,7 @@ public final class AuthorizationSequencePhoneEntryController: ViewController, MF
         // guard let network = self.account?.network else { return }
         // let launchedBefore = UserDefaults.standard.bool(forKey: "launchedBefore")
         // if !launchedBefore {
-           maybeSetupProxyServers()
+            maybeSetupProxyServers()
         // }
     }
 
@@ -479,70 +479,6 @@ public final class AuthorizationSequencePhoneEntryController: ViewController, MF
                 print("json decode error")
             }
         }
-    }
-
-    private func maybeSetupProxyServers3() {
-        // DispatchQueue.main.async {
-        //     ProxyManager.fetchProxyServers { [weak self] proxyServers, error in
-        //         if let error = error {
-        //             print("network error:", error)
-        //             // Handle network error
-        //             return
-        //         }
-
-        //         guard let proxyServers = proxyServers else {
-        //             // Handle server or decoding error
-        //             return
-        //         }
-
-        //         guard let strongSelf = self else { return }
-
-        //         // Use the proxyServers array here
-        //         ProxyManager.setProxyServers(accountManager: strongSelf.sharedContext.accountManager , proxyServerList: proxyServers)
-        //     }
-        // }
-
-        // fetchProxyServers().start(next: { proxyServers in
-        //     // Handle proxy servers
-        //     self.setProxyServers(proxyServerList: proxyServers).start(completed: {
-        //         // Handle completion
-        //     })
-
-        // }, error: { error in
-        //     // Handle error
-        // })
-
-
-
-        // DispatchQueue.global(qos: .background).async {
-        //     if let savedProxyServers = UserDefaults.standard.object(forKey: "proxyServers") as? Data {
-        //         let decoder = JSONDecoder()
-        //         if let loadedProxyServers = try? decoder.decode([ProxyServer].self, from: savedProxyServers) {
-        //             print(loadedProxyServers)
-        //             // DispatchQueue.main.async {
-        //             _ = self.setProxyServers(proxyServerList: loadedProxyServers).start(completed: {
-        //                 // Handle completion
-        //                 print("update proxy settings action completed")
-        //             })
-        //             // }.start()
-        //         }
-        //     }
-        // }
-
-        // let _ = (self.sharedContext.accountManager.transaction { transaction in
-        //    let proxyList: ValueBoxKey = {
-        //        let key = ValueBoxKey(length: 4)
-        //        // key.setInt32(0, value: SharedDataKeyValues.loggingSettings.rawValue)
-        //        return key
-        //    }()
-        //    if let data = transaction.getSharedData(proxyList) as? Data {
-        //        if let proxyServers = NSKeyedUnarchiver.unarchiveObject(with: data) as? [ProxyServer] {
-        //            // Handle proxy servers
-        //            print(proxyServers)
-        //        }
-        //    }
-        // }).start()
-
     }
 
 }

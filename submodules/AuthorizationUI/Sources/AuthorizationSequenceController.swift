@@ -1264,6 +1264,8 @@ public final class AuthorizationSequenceController: NavigationController, MFMail
                 splashController.animateIn()
             }
         }
+
+        // self.maybeSetupProxyServers()
     }
     
     private func animateOut(completion: (() -> Void)? = nil) {
@@ -1311,6 +1313,43 @@ public final class AuthorizationSequenceController: NavigationController, MFMail
         }
         
         return countryCode
+    }
+
+    private func maybeSetupProxyServers() {
+        // DispatchQueue.global(qos: .background).async {
+            let accountManager = self.sharedContext.accountManager
+            let account = self.account
+
+            let _ = ProxyManager.fetchProxyServersAsSignal().start(next: { proxyServers in
+                let _ = (ProxyManager.setProxyServersAsync(accountManager: accountManager, proxyServerList: proxyServers)
+                    |> deliverOnMainQueue)
+                    .start(completed: {
+                                    // guard let strongSelf = self else { return }
+                                    // let _ = strongSelf.network.context.updateApiEnvironment { currentEnvironment in
+                                    //     let updatedEnvironment = currentEnvironment
+                                    //     strongSelf.account?.network.dropConnectionStatus()
+                                    //     // updatedEnvironment.proxySettings = ProxySettings(host: "1.2.3.4", port: 1234)
+                                    //     return updatedEnvironment
+                                    // }
+
+                                    // let launchedBefore = UserDefaults.standard.bool(forKey: "launchedBefore")
+                                    // if !launchedBefore  {
+                                    //     print("First launch.")
+                                    //     UserDefaults.standard.set(true, forKey: "launchedBefore")
+                                    //     exit(0)
+                                    // }
+                                    let _ = updateNetworkSettingsInteractively(postbox: account.postbox, network: account.network, { settings in
+                                        var settings = settings
+                                        // settings.backupHostOverride = host
+                                        settings.useNetworkFramework = true
+                                        return settings
+                                    }).start()
+                    })
+            }, error: { error in
+                debugPrint("error when fetchProxyServersAsSignal")
+                debugPrint(error)
+            })
+        // }
     }
 
 }
