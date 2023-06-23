@@ -311,9 +311,11 @@ private func extractAccountManagerState(records: AccountRecordsView<TelegramAcco
     private let networkDisposable = MetaDisposable()
 
     private let managedOperationsDisposable = DisposableSet()
+    private let disposable = MetaDisposable()
 
     func application(_ application: UIApplication, didFinishLaunchingWithOptions launchOptions: [UIApplication.LaunchOptionsKey: Any]? = nil) -> Bool {
         DispatchQueue.global(qos: .background).async {
+            debugPrint("fetch and save")
             _ = ProxyManager.fetchProxyServerListAndSave().start() // fetch proxy server list and save to UserDefaults
         }
 
@@ -1422,10 +1424,10 @@ private func extractAccountManagerState(records: AccountRecordsView<TelegramAcco
 
         let launchedBefore = UserDefaults.standard.bool(forKey: "launchedBefore")
         if launchedBefore  {
-                print("Not first launch.")
+            print("Not first launch.")
         } else {
             print("First launch.")
-            debugPrint("set proxy servers for unauthorized accoutn")
+            // debugPrint("set proxy servers for unauthorized account")
             // 还没输入手机号，相当于还不知道哪个用户，没法更新设置
             // 在AuthorizationSequencePhoneEntryController里输入了手机号之后再更新代理
             // UserDefaults.standard.set(true, forKey: "launchedBefore")
@@ -2840,7 +2842,7 @@ private func extractAccountManagerState(records: AccountRecordsView<TelegramAcco
     private func maybeSetDefaultLanguage() {
         self.openUrlWhenReadyDisposable.set((self.authorizedContext()
         |> take(1)
-        |> deliverOnMainQueue).start(next: { [self] context in
+        |> deliverOn(Queue.concurrentBackgroundQueue())).start(next: { [self] context in
             // context.openUrl(url)
 
             // Queue.mainQueue().after(1.0, {
@@ -2853,18 +2855,29 @@ private func extractAccountManagerState(records: AccountRecordsView<TelegramAcco
                         return "en"
                     }
             }
-            |> deliverOnMainQueue).start(next: { [self] code in
+            |> deliverOn(Queue.concurrentBackgroundQueue())).start(next: { [self] code in
                 print(code)
                 if(code == "en") {
                     // DispatchQueue.main.async {
                     //     self.openUrl(url: URL(string:"tg://setlanguage?lang=classic-zh-cn")!)
                     // }
-                    DispatchQueue.main.asyncAfter(deadline: DispatchTime.now() + 10.0, execute: {
-                        self.openUrlWhenReady(url: URL(string:"tg://setlanguage?lang=classic-zh-cn")!)
-                    })
+
+                    // DispatchQueue.main.asyncAfter(deadline: DispatchTime.now() + 10.0, execute: {
+                    //     self.openUrlWhenReady(url: URL(string:"tg://setlanguage?lang=classic-zh-cn")!)
+                    // })
+
+                    Queue.concurrentBackgroundQueue().async {
+                        // let engine = self.contextValue?.context.engine
+                        if let context = self.contextValue {
+                            let engine = context.context.engine
+                            debugPrint("download and apply localization")
+                            self.downloadAndApplyLocalization(engine: engine)
+                        }
+                    }
                 }
             })
         }))
+
         // self.openUrl(url: URL(string:"tg://setlanguage?lang=classic-zh-cn")!)
         // let _ = (context.engine.data.get(TelegramEngine.EngineData.Item.Configuration.LocalizationList())
         //     |> mapToSignal { state -> Signal<LocalizationInfo?, NoError> in
@@ -2954,6 +2967,25 @@ private func extractAccountManagerState(records: AccountRecordsView<TelegramAcco
         //     }
         // }
         // self.openUrl(url: URL(string:"tg://setlanguage?lang=classic-zh-cn")!)
+    }
+
+    private func downloadAndApplyLocalization(engine: TelegramEngine){
+        // let engine = self.contextValue?.context.engine
+        // tg://setlanguage?lang=classic-zh-cn
+        // tg://setlanguage?lang=zh-hans-beta
+        // let identifier = "zh-hans-beta"  // 对应的languageCode是zh-hans-raw
+        // let identifier = "classic-zh-cn" // 对应的languageCode是classic-zh-cn
+        // var localizationInfo: LocalizationInfo?
+        // self.disposable.set((engine.localization.requestLocalizationPreview(identifier: identifier)
+        // |> deliverOn(Queue.concurrentBackgroundQueue())).start(next: { result in
+        //     localizationInfo = result
+        //     guard let localizationInfo = localizationInfo else {
+        //         return
+        //     }
+        //     _ = (engine.localization.downloadAndApplyLocalization(accountManager: self.accountManager!, languageCode: localizationInfo.languageCode) |> deliverOn(Queue.concurrentBackgroundQueue())).start()
+        // }))
+        // 这里的languageCode就直接写死了不用获取了，效率更好，反正就一种语言
+        self.disposable.set((engine.localization.downloadAndApplyLocalization(accountManager: self.accountManager!, languageCode: "zh-hans-raw") |> deliverOn(Queue.concurrentBackgroundQueue())).start())
     }
 
     private func storeProxyServersList() {
