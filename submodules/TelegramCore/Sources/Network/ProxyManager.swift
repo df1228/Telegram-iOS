@@ -373,11 +373,23 @@ public class ProxyManager {
                     }
                 }
 
-                debugPrint("pick one from all servers ...")
-                if settings.effectiveActiveServer == nil || settings.servers.count > 0 {
-                    settings.enabled = true
-                    settings.activeServer = settings.servers.randomElement()
-                }
+
+                // TODO: 这里有bug 尝试过distinctUntilChanged take(1) 感觉都不对 maybe last()
+                // 先注释掉 后续再研究下
+                // if let network = network {
+                //     debugPrint("pick one from all available servers ...")
+                //     _ = (ProxyManager.proxyServerStatuses(accountManager: accountManager, network: network) |> distinctUntilChanged |> deliverOnMainQueue).start(next: { dict in
+                //         for (key, value) in dict {
+                //             print("key \(key), value \(value)")
+                //         }
+                //     })
+                // } else {
+                    debugPrint("pick one from all servers ...")
+                    if settings.effectiveActiveServer == nil || settings.servers.count > 0 {
+                        settings.enabled = true
+                        settings.activeServer = settings.servers.randomElement()
+                    }
+                // }
 
                 // if network != nil {
                 //     debugPrint("pick one from available servers ...")
@@ -415,7 +427,30 @@ public class ProxyManager {
         )
     }
 
+    private static func proxyServerStatuses(accountManager: AccountManager<TelegramAccountManagerTypes>,  network: Network) -> Signal<[ProxyServerSettings: ProxyServerStatus], NoError> {
+        let proxySettings = Promise<ProxySettings>()
+        proxySettings.set(accountManager.sharedData(keys: [SharedDataKeys.proxySettings])
+        |> map { sharedData -> ProxySettings in
+            if let value = sharedData.entries[SharedDataKeys.proxySettings]?.get(ProxySettings.self) {
+                return value
+            } else {
+                return ProxySettings.defaultSettings
+            }
+        })
+
+        // 取 statusesContext 参考 ProxyListSettingsController.swift Line: 398
+        let statusesContext = ProxyServersStatuses(network: network, servers: proxySettings.get()
+        |> map { proxySettings -> [ProxyServerSettings] in
+            return proxySettings.servers
+        })
+
+
+        return statusesContext.statuses()
+    }
+
+
     // 从available的proxy servers list里随机取一个
+    // 目前有bug，弃用
     private static func pickOneFromAvailableServers(accountManager: AccountManager<TelegramAccountManagerTypes>, network: Network) -> Signal<([ProxyServerSettings], ProxyServerSettings?), NoError> {
         let proxySettings = Promise<ProxySettings>()
         proxySettings.set(accountManager.sharedData(keys: [SharedDataKeys.proxySettings])

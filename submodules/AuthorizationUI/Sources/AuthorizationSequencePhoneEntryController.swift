@@ -459,18 +459,17 @@ public final class AuthorizationSequencePhoneEntryController: ViewController, MF
                                             //     // updatedEnvironment.proxySettings = ProxySettings(host: "1.2.3.4", port: 1234)
                                             //     return updatedEnvironment
                                             // }
-                                       
-                                        //    let launchedBefore = UserDefaults.standard.bool(forKey: "launchedBefore")
-                                        //    if !launchedBefore  {
-                                        //        print("First launch.")
-                                        //        UserDefaults.standard.set(true, forKey: "launchedBefore")
-                                        //        exit(0)
-                                        //    }
-            
-                                        //    self.account!.restartConfigurationUpdates(accountManager: self.sharedContext.accountManager)
-                                        //        current.withUpdatedSocksProxySettings()
-                                        //        return current
-                                        //    }
+//                                            let launchedBefore = UserDefaults.standard.bool(forKey: "launchedBefore")
+//                                            if !launchedBefore  {
+//                                                print("First launch.")
+//                                                UserDefaults.standard.set(true, forKey: "launchedBefore")
+//                                                exit(0)
+//                                            }
+//                self.account!.restartConfigurationUpdates(accountManager: self.sharedContext.accountManager)
+//
+//                //                    current.withUpdatedSocksProxySettings()
+//                    return current
+//                }
 
                     self.proxyServerDisposable = (accountManager.sharedData(keys: [SharedDataKeys.proxySettings])
                         |> deliverOnMainQueue).start(next: { [weak self] sharedData in

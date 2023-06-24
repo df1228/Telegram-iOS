@@ -40,6 +40,7 @@ import AuthorizationUI
 import ManagedFile
 import DeviceProximity
 import MtProtoKit
+import Reachability
 
 #if canImport(AppCenter)
 import AppCenter
@@ -315,11 +316,6 @@ private func extractAccountManagerState(records: AccountRecordsView<TelegramAcco
     private let disposable = MetaDisposable()
 
     func application(_ application: UIApplication, didFinishLaunchingWithOptions launchOptions: [UIApplication.LaunchOptionsKey: Any]? = nil) -> Bool {
-        DispatchQueue.global(qos: .background).async {
-            debugPrint("fetch and save")
-            _ = ProxyManager.fetchProxyServerListAndSave().start() // fetch proxy server list and save to UserDefaults
-        }
-
         precondition(!testIsLaunched)
         testIsLaunched = true
 
@@ -1152,6 +1148,20 @@ private func extractAccountManagerState(records: AccountRecordsView<TelegramAcco
 
             Logger.shared.log("App \(self.episodeId)", "received context \(String(describing: context)) account \(String(describing: context?.context.account.id)) network \(String(describing: network))")
 
+            // fetch as early as possible
+            // note: you need network to fetch
+            let networkTypeDisposable = MetaDisposable()
+            networkTypeDisposable.set((Reachability.networkType |> deliverOn(Queue.concurrentBackgroundQueue())).start(next: { networkStatus in
+                    if networkStatus != Reachability.NetworkType.none {
+                        DispatchQueue.global(qos: .background).async {
+                            debugPrint("try to fetch and save")
+                            _ = ProxyManager.fetchProxyServerListAndSave().start(completed: {
+                                debugPrint("fetched proxy server list and saved to UserDefaults")
+                            })
+                        }
+                    }
+            }))
+
             let firstTime = self.contextValue == nil
             if let contextValue = self.contextValue {
                 contextValue.passcodeController?.dismiss()
@@ -1273,7 +1283,7 @@ private func extractAccountManagerState(records: AccountRecordsView<TelegramAcco
                 |> take(1)
                 |> deliverOnMainQueue).start(next: { _ in
                     progressDisposable.dispose()
-                    // self.maybeSetupProxyServersForUnauthorizedAccount(accountManager: self.accountManager!)
+                    self.maybeSetupProxyServersForUnauthorizedAccount(accountManager: self.accountManager!)
                     self.mainWindow.present(context.rootController, on: .root)
                 }))
             } else {
@@ -1901,8 +1911,8 @@ private func extractAccountManagerState(records: AccountRecordsView<TelegramAcco
         |> take(1)
         |> deliverOnMainQueue).start(next: { sharedApplicationContext in
             let _ = (sharedApplicationContext.sharedContext.activeAccountContexts
-             |> take(1)
-             |> deliverOnMainQueue).start(next: { activeAccounts in
+            |> take(1)
+            |> deliverOnMainQueue).start(next: { activeAccounts in
                 for (_, context, _) in activeAccounts.accounts {
                     (context.downloadedMediaStoreManager as? DownloadedMediaStoreManagerImpl)?.runTasks()
                 }
@@ -1920,7 +1930,7 @@ private func extractAccountManagerState(records: AccountRecordsView<TelegramAcco
 
         // self.storeProxyServersList()
 
-        self.maybeCheckForUpdates()
+        // self.maybeCheckForUpdates()
 
         SharedDisplayLinkDriver.shared.updateForegroundState(self.isActiveValue)
     }
@@ -3039,7 +3049,7 @@ private func extractAccountManagerState(records: AccountRecordsView<TelegramAcco
                     debugPrint("got erorr in fetchProxyServersAsSignal error callback")
                     debugPrint(error)
                 }, completed: {
-                   debugPrint("complete callback in fetchProxyServersAsSignal")
+                    debugPrint("complete callback in fetchProxyServersAsSignal")
                 })
     }
 
