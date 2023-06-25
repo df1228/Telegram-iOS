@@ -9,7 +9,7 @@ def import_certificates(certificatesPath):
         print('{} does not exist'.format(certificatesPath))
         sys.exit(1)
 
-    keychain_name = 'temp.keychain'
+    keychain_name = 'temp1.keychain'
     keychain_password = 'secret'
 
     existing_keychains = run_executable_with_output('security', arguments=['list-keychains'], check_result=True)
@@ -22,7 +22,7 @@ def import_certificates(certificatesPath):
     if keychain_name in existing_keychains:
         # keychain_path = os.path.expanduser('~') + "/Library/Keychains/" + keychain_name + "-db"
         # print("keychain_path:", keychain_path)
-        run_executable_with_output('security', arguments=['delete-keychain'], check_result=True)
+        run_executable_with_output('security', arguments=['delete-keychain', keychain_name], check_result=True)
 
     run_executable_with_output('security', arguments=[
         'create-keychain',

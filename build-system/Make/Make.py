@@ -8,6 +8,9 @@ import tempfile
 import subprocess
 import shutil
 import glob
+import logging
+import pprint
+# import pdb; pdb.set_trace()
 
 from BuildEnvironment import resolve_executable, call_executable, run_executable_with_output, BuildEnvironment
 from ProjectGeneration import generate
@@ -460,6 +463,7 @@ def resolve_codesigning(arguments, base_path, build_configuration, provisioning_
     workdir_path = '{}/build-input/configuration-repository-workdir'.format(base_path)
     os.makedirs(workdir_path, exist_ok=True)
     profile_source.load_data(working_dir=workdir_path)
+    # breakpoint()
 
     if provisioning_profiles_path is not None:
         profile_source.copy_profiles_to_destination(destination_path=provisioning_profiles_path)
@@ -498,6 +502,9 @@ def resolve_configuration(base_path, bazel_command_line: BazelCommandLine, argum
         provisioning_profiles_path=provisioning_path,
         additional_codesigning_output_path=additional_codesigning_output_path
     )
+    logging.debug("codesigning_data: %r" % codesigning_data)
+    pprint.pprint(codesigning_data.aps_environment)
+
     if codesigning_data.aps_environment is None:
         print('Could not find a valid aps-environment entitlement in the provided provisioning profiles')
         sys.exit(1)
@@ -730,6 +737,8 @@ def add_project_and_build_common_arguments(current_parser: argparse.ArgumentPars
 
 
 if __name__ == '__main__':
+    logging.basicConfig(stream=sys.stderr, level=logging.DEBUG)
+
     parser = argparse.ArgumentParser(prog='Make')
 
     parser.add_argument(
@@ -1036,6 +1045,9 @@ if __name__ == '__main__':
         elif args.commandName == 'generateProject':
             generate_project(bazel=bazel_path, arguments=args)
         elif args.commandName == 'build':
+            pprint.pprint("BUILD.......")
+            pprint.pprint(bazel_path)
+            pprint.pprint(args)
             build(bazel=bazel_path, arguments=args)
         elif args.commandName == 'remote-build':
             base_path = os.getcwd()

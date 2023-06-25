@@ -153,6 +153,7 @@ def load_codesigning_data_from_git(working_dir, repo_url, temp_key_path, branch,
 
 
 def copy_profiles_from_directory(source_path, destination_path, team_id, bundle_id):
+    # breakpoint()
     profile_name_mapping = {
         '.SiriIntents': 'Intents',
         '.NotificationContent': 'NotificationContent',
@@ -211,7 +212,7 @@ def resolve_aps_environment_from_directory(source_path, team_id, bundle_id):
 
             profile_dict = plistlib.loads(profile_data)
             profile_name = profile_dict['Entitlements']['application-identifier']
-
+            # breakpoint()
             if profile_name.startswith(team_id + '.' + bundle_id):
                 profile_base_name = profile_name[len(team_id + '.' + bundle_id):]
                 if profile_base_name == '':
@@ -223,6 +224,7 @@ def resolve_aps_environment_from_directory(source_path, team_id, bundle_id):
 
 
 def copy_certificates_from_directory(source_path, destination_path):
+    # breakpoint()
     for file_name in os.listdir(source_path):
         file_path = source_path + '/' + file_name
         if os.path.isfile(file_path):
@@ -313,6 +315,7 @@ class DirectoryCodesigningSource(CodesigningSource):
         copy_profiles_from_directory(source_path=self.directory_path + '/profiles', destination_path=destination_path, team_id=self.team_id, bundle_id=self.bundle_id)
 
     def resolve_aps_environment(self):
+        # breakpoint()
         return resolve_aps_environment_from_directory(source_path=self.directory_path + '/profiles', team_id=self.team_id, bundle_id=self.bundle_id)
 
     def use_xcode_managed_codesigning(self):
