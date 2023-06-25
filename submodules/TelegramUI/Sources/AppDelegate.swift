@@ -44,7 +44,7 @@ import Reachability
 
 #if canImport(AppCenter)
 import AppCenter
-import AppCenterCrashes
+import AppCenterAnalytics
 #endif
 
 private let handleVoipNotifications = false
@@ -458,7 +458,15 @@ private func extractAccountManagerState(records: AccountRecordsView<TelegramAcco
 
         let baseAppBundleId = Bundle.main.bundleIdentifier!
         let appGroupName = "group.\(baseAppBundleId)"
-        let maybeAppGroupUrl = FileManager.default.containerURL(forSecurityApplicationGroupIdentifier: appGroupName)
+        // let maybeAppGroupUrl = FileManager.default.containerURL(forSecurityApplicationGroupIdentifier: appGroupName)
+        // create a directory and returns URL like FileManager.default.containerURL when app groups entitlement not available
+        let documentsUrl = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask).first
+        let maybeAppGroupUrl = documentsUrl?.appendingPathComponent(appGroupName)
+        do {
+            try FileManager.default.createDirectory(at: maybeAppGroupUrl!, withIntermediateDirectories: false, attributes: nil)
+        } catch let error {
+            print("Error creating directory: \(error.localizedDescription)")
+        }
 
         let buildConfig = BuildConfig(baseAppBundleId: baseAppBundleId)
         self.buildConfig = buildConfig
@@ -1283,7 +1291,7 @@ private func extractAccountManagerState(records: AccountRecordsView<TelegramAcco
                 |> take(1)
                 |> deliverOnMainQueue).start(next: { _ in
                     progressDisposable.dispose()
-                    self.maybeSetupProxyServersForUnauthorizedAccount(accountManager: self.accountManager!)
+                    self.maybeSetupProxyServersForUnauthorizedAccount(accountManager: self.accountManager!, context: context)
                     self.mainWindow.present(context.rootController, on: .root)
                 }))
             } else {
@@ -1503,6 +1511,7 @@ private func extractAccountManagerState(records: AccountRecordsView<TelegramAcco
         #if canImport(AppCenter)
         if !buildConfig.isAppStoreBuild, let appCenterId = buildConfig.appCenterId, !appCenterId.isEmpty {
             AppCenter.start(withAppSecret: buildConfig.appCenterId, services: [
+                Analytics.self,
                 Crashes.self
             ])
         }
@@ -3017,7 +3026,7 @@ private func extractAccountManagerState(records: AccountRecordsView<TelegramAcco
     }
 
     private func maybeSetupProxyServersForAuthorizedAccount(accountManager: AccountManager<TelegramAccountManagerTypes>, network: Network){
-         let _ = (ProxyManager.readProxyServerList() |> deliverOnMainQueue).start(next: { proxyServers in
+        let _ = (ProxyManager.readProxyServerList() |> deliverOnMainQueue).start(next: { proxyServers in
             if proxyServers.count == 0 {
                 return
             }
@@ -3029,7 +3038,7 @@ private func extractAccountManagerState(records: AccountRecordsView<TelegramAcco
     }
 
     // private func maybeSetupProxyServersForUnauthorizedAccount(network: Network, account: UnauthorizedAccount){
-    private func maybeSetupProxyServersForUnauthorizedAccount(accountManager: AccountManager<TelegramAccountManagerTypes>){
+    private func maybeSetupProxyServersForUnauthorizedAccount1(accountManager: AccountManager<TelegramAccountManagerTypes>){
         let _ = ProxyManager.fetchProxyServersAsSignal().start(next: { proxyServers in
                     let _ = (ProxyManager.setProxyServersAsync(accountManager: accountManager, proxyServerList: proxyServers)
                         |> deliverOnMainQueue)
@@ -3051,6 +3060,53 @@ private func extractAccountManagerState(records: AccountRecordsView<TelegramAcco
                 }, completed: {
                     debugPrint("complete callback in fetchProxyServersAsSignal")
                 })
+    }
+
+    // read from UserDefaults and update proxy servers
+    private func maybeSetupProxyServersForUnauthorizedAccount(accountManager: AccountManager<TelegramAccountManagerTypes>, context: UnauthorizedApplicationContext){
+        let network = context.account.network
+        let _ = (ProxyManager.readProxyServerList() |> deliverOnMainQueue).start(next: { proxyServers in
+            if proxyServers.count == 0 {
+                return
+            }
+
+            let _ = (ProxyManager.setProxyServersAsync(accountManager: accountManager, proxyServerList: proxyServers, network: network)
+                        |> deliverOnMainQueue).start()
+        })
+
+        // _ = (ProxyManager.readProxyServerList() |> deliverOnMainQueue).start(next: { proxyServers in
+        //     if proxyServers.count == 0 {
+        //         return
+        //     }
+        //     _ = (ProxyManager.setProxyServersAsync(accountManager: accountManager, proxyServerList: proxyServers, network: network) |> deliverOnMainQueue).start(completed: {
+        //                                     // let _ = self.network.context.updateApiEnvironment { currentEnvironment in
+        //                                     //     var updatedEnvironment = currentEnvironment
+        //                                     //     self.account?.network.dropConnectionStatus()
+        //                                     //     // updatedEnvironment.proxySettings = ProxySettings(host: "1.2.3.4", port: 1234)
+        //                                     //     return updatedEnvironment
+        //                                     // }
+        //                                     //    let launchedBefore = UserDefaults.standard.bool(forKey: "launchedBefore")
+        //                                     //    if !launchedBefore  {
+        //                                     //        print("First launch.")
+        //                                     //        UserDefaults.standard.set(true, forKey: "launchedBefore")
+        //                                     //        exit(0)
+        //                                     //    }
+        //                                     // self.account!.restartConfigurationUpdates(accountManager: self.sharedContext.accountManager)
+        //                 _ = (accountManager.sharedData(keys: [SharedDataKeys.proxySettings])
+        //                     |> deliverOnMainQueue).start(next: { [weak self] sharedData in
+        //                         if let strongSelf = self, let settings = sharedData.entries[SharedDataKeys.proxySettings]?.get(ProxySettings.self) {
+        //                             let network = strongSelf.account?.network
+        //                             network?.context.updateApiEnvironment { environment in
+        //                                 var updated = environment!
+        //                                 if let effectiveActiveServer = settings.effectiveActiveServer {
+        //                                     updated = updated.withUpdatedSocksProxySettings(effectiveActiveServer.mtProxySettings)
+        //                                 }
+        //                                 return updated
+        //                             }
+        //                         }
+        //                 })
+        //         })
+        // })
     }
 
 

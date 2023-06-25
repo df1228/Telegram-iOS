@@ -12,6 +12,7 @@
 OUTPUT_PATH                     := "build/artifacts"
 BAZEL_USER_ROOT_DEBUG           := "/private/var/tmp/_bazel_for_debug"
 BAZEL_USER_ROOT_RELEASE         := "/private/var/tmp/_bazel_for_release"
+BAZEL_USER_ROOT_RELEASE_QSQ     := "/private/var/tmp/_bazel_for_qsq"
 GIT_COMMIT_COUNT                := `git rev-list HEAD --count`
 BUILD_NUMBER_OFFSET             :=`cat build_number_offset`
 BUILD_NUMBER                    := BUILD_NUMBER_OFFSET + GIT_COMMIT_COUNT
@@ -76,6 +77,23 @@ build-release: prepare rebuild-keychain-prod && collect-ipa notify-telegram
         build \
         --configurationPath="build-system/prod-configuration.json" \
         --codesigningInformationPath=build-system/prod-codesigning \
+        --configuration=release_arm64 \
+        --buildNumber={{BUILD_NUMBER}}
+    mkdir -p {{OUTPUT_PATH}}
+    chmod -R 777 build/artifacts/
+    for f in bazel-out/applebin_ios-ios_arm*-opt-ST-*/bin/Telegram/Telegram.ipa; do
+        cp -f "$f" {{OUTPUT_PATH}}/
+    done
+
+build-qsq: && collect-ipa notify-telegram
+    #! /bin/bash
+    set -xeuo pipefail
+    python3 build-system/Make/ImportCertificates.py --path build-system/qsq-codesigning/certs
+    python3 -u build-system/Make/Make.py \
+        --bazelUserRoot="{{BAZEL_USER_ROOT_RELEASE_QSQ}}" \
+        build \
+        --configurationPath="build-system/qsq-configuration.json" \
+        --codesigningInformationPath=build-system/qsq-codesigning \
         --configuration=release_arm64 \
         --buildNumber={{BUILD_NUMBER}}
     mkdir -p {{OUTPUT_PATH}}
