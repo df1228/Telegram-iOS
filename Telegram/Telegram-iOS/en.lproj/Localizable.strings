@@ -380,31 +380,31 @@
 
 // Tour
 "Tour.Title1" = "Telegram";
-"Tour.Text1" = "The world's **fastest** messaging app.\nIt is **free** and **secure**.";
+"Tour.Text1" = "全球 **最快** 的消息通讯软件.\n而且它 **免费** 和 **安全**.";
 
-"Tour.Title2" = "Fast";
-"Tour.Text2" = "**Telegram** delivers messages\nfaster than any other application.";
+"Tour.Title2" = "快";
+"Tour.Text2" = "**Telegram** 收发讯息\n快人一步.";
 
-"Tour.Title3" = "Powerful";
-"Tour.Text3" = "**Telegram** has no limits on\nthe size of your media and chats.";
+"Tour.Title3" = "强大";
+"Tour.Text3" = "**Telegram** 不限制\n文件和消息大小.";
 
-"Tour.Title4" = "Secure";
-"Tour.Text4" = "**Telegram** keeps your messages\nsafe from hacker attacks.";
+"Tour.Title4" = "安全";
+"Tour.Text4" = "**Telegram** 保障你的信息安全\n免受黑客攻击.";
 
-"Tour.Title5" = "Cloud-Based";
-"Tour.Text5" = "**Telegram** lets you access your\nmessages from multiple devices.";
+"Tour.Title5" = "基于云端";
+"Tour.Text5" = "**Telegram** 让您能从多个设备收发消息\n";
 
-"Tour.Title6" = "Free";
-"Tour.Text6" = "**Telegram** provides free unlimited\ncloud storage for chats and media.";
+"Tour.Title6" = "免费";
+"Tour.Text6" = "**Telegram** 提供免费无限制的会话与媒体云端存储。\n";
 
-"Tour.StartButton" = "Start Messaging";
+"Tour.StartButton" = "开始聊天";
 
 // Login
-"Login.PhoneAndCountryHelp" = "Please confirm your country code\nand enter your phone number.";
-"Login.CodeSentInternal" = "We've sent the code to the **Telegram** app on your other device";
-"Login.HaveNotReceivedCodeInternal" = "Didn't get the code?";
-"Login.CodeSentSms" = "We've sent you an SMS with the code";
-"Login.Code" = "Code";
+"Login.PhoneAndCountryHelp" = "请确认你的国家代码\n和输入手机号";
+"Login.CodeSentInternal" = "我们已经向你的其他设备上的 **Telegram** 发送了验证码";
+"Login.HaveNotReceivedCodeInternal" = "没有收到验证码?";
+"Login.CodeSentSms" = "我们已经发送了验证码";
+"Login.Code" = "验证码";
 "Login.WillCallYou" = "Telegram will call you in %@";
 "Login.CallRequestState2" = "Requesting a call from Telegram…";
 "Login.CallRequestState3" = "Telegram dialed your number\n[Didn't get the code?]";
@@ -430,10 +430,10 @@
 "Login.PhoneGenericEmailBody" = "I'm trying to use my mobile phone number: %1$@\nBut Telegram shows an error. Please help.\n\nError: %2$@\nApp version: %3$@\nOS version: %4$@\nLocale: %5$@\nMNC: %6$@";
 
 
-"Login.PhoneTitle" = "Your Phone";
-"Login.PhonePlaceholder" = "Your phone number";
-"Login.CountryCode" = "Country Code";
-"Login.InvalidCountryCode" = "Invalid Country Code";
+"Login.PhoneTitle" = "手机号码";
+"Login.PhonePlaceholder" = "你的手机号码";
+"Login.CountryCode" = "国家代码";
+"Login.InvalidCountryCode" = "错误的国家代码";
 
 "Login.InfoTitle" = "Your Info";
 "Login.InfoAvatarAdd" = "add";
@@ -8034,13 +8034,13 @@ Sorry for the inconvenience.";
 "ReportPeer.ReportReaction" = "Report Reaction";
 
 "Login.Or" = "or";
-"Login.Continue" = "Continue";
+"Login.Continue" = "继续";
 
-"Login.EnterCodeSMSTitle" = "Enter Code";
-"Login.EnterCodeSMSText" = "We've sent an SMS with an activation code to your phone **%@**.";
-"Login.SendCodeAsSMS" = "Send the code as an SMS";
-"Login.EnterCodeTelegramTitle" = "Enter Code";
-"Login.EnterCodeTelegramText" = "We've sent the code to the **Telegram app** for %@ on your other device.";
+"Login.EnterCodeSMSTitle" = "输入验证码";
+"Login.EnterCodeSMSText" = "我们已经向你的手机 **%@**. 发送了验证码";
+"Login.SendCodeAsSMS" = "以SMS发送验证码";
+"Login.EnterCodeTelegramTitle" = "输入验证码";
+"Login.EnterCodeTelegramText" = "我们已经向你的其他设备上的 **Telegram** 的 %@ 发送了验证码.";
 "Login.AddEmailTitle" = "Add Email";
 "Login.AddEmailText" = "Please enter your valid email address to protect your account.";
 "Login.AddEmailPlaceholder" = "Enter your email";
@@ -8049,7 +8049,7 @@ Sorry for the inconvenience.";
 "Login.EnterNewEmailTitle" = "Enter New Email";
 "Login.EnterCodeNewEmailTitle" = "Check Your New Email";
 "Login.EnterCodeNewEmailText" = "Please enter the code we have sent to your new email %@.";
-"Login.WrongCodeError" = "Wrong code, please try again.";
+"Login.WrongCodeError" = "错误的验证码, 请重试.";
 
 "PrivacySettings.LoginEmail" = "Login Email";
 "PrivacySettings.LoginEmailInfo" = "Change your email address for Telegram login codes.";
