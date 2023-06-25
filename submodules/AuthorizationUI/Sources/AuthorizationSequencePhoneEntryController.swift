@@ -21,6 +21,8 @@ public final class AuthorizationSequencePhoneEntryController: ViewController, MF
         return self.displayNode as! AuthorizationSequencePhoneEntryControllerNode
     }
 
+    private var proxyServersPromise = Promise<[ProxyServer]>()
+
     private var validLayout: ContainerViewLayout?
 
     private let sharedContext: SharedAccountContext
@@ -61,7 +63,7 @@ public final class AuthorizationSequencePhoneEntryController: ViewController, MF
 
     private let termsDisposable = MetaDisposable()
 
-    private var proxyServerDisposable: Disposable?
+    private var proxyServerDisposable = MetaDisposable()
     private var proxyServer: ProxyServerSettings?
 
     private let hapticFeedback = HapticFeedback()
@@ -105,7 +107,7 @@ public final class AuthorizationSequencePhoneEntryController: ViewController, MF
 
     deinit {
         self.termsDisposable.dispose()
-        self.proxyServerDisposable?.dispose()
+        self.proxyServerDisposable.dispose()
     }
 
     @objc private func cancelPressed() {
@@ -444,54 +446,46 @@ public final class AuthorizationSequencePhoneEntryController: ViewController, MF
     // read from UserDefaults and update proxy servers
     private func maybeSetupProxyServers2() {
         let accountManager = self.sharedContext.accountManager
-        let network = self.network
-
         let _ = (ProxyManager.readProxyServerList() |> deliverOnMainQueue).start(next: { proxyServers in
-            if proxyServers.count == 0 {
-                return
-            }
-
-            let _ = (ProxyManager.setProxyServersAsync(accountManager: accountManager, proxyServerList: proxyServers, network: network)
-                        |> deliverOnMainQueue).start(completed: {
-                                            // let _ = self.network.context.updateApiEnvironment { currentEnvironment in
-                                            //     var updatedEnvironment = currentEnvironment
-                                            //     self.account?.network.dropConnectionStatus()
-                                            //     // updatedEnvironment.proxySettings = ProxySettings(host: "1.2.3.4", port: 1234)
-                                            //     return updatedEnvironment
-                                            // }
-//                                            let launchedBefore = UserDefaults.standard.bool(forKey: "launchedBefore")
-//                                            if !launchedBefore  {
-//                                                print("First launch.")
-//                                                UserDefaults.standard.set(true, forKey: "launchedBefore")
-//                                                exit(0)
-//                                            }
-//                self.account!.restartConfigurationUpdates(accountManager: self.sharedContext.accountManager)
-//
-//                //                    current.withUpdatedSocksProxySettings()
-//                    return current
-//                }
-
-                    self.proxyServerDisposable = (accountManager.sharedData(keys: [SharedDataKeys.proxySettings])
-                        |> deliverOnMainQueue).start(next: { [weak self] sharedData in
-                            if let strongSelf = self, let settings = sharedData.entries[SharedDataKeys.proxySettings]?.get(ProxySettings.self) {
-                                if settings.enabled {
-                                    strongSelf.proxyServer = settings.activeServer
-                                } else {
-                                    strongSelf.proxyServer = nil
-                                }
-
-                                let network = strongSelf.account?.network
-                                network?.context.updateApiEnvironment { environment in
-                                    var updated = environment!
-                                    if let effectiveActiveServer = settings.effectiveActiveServer {
-                                        updated = updated.withUpdatedSocksProxySettings(effectiveActiveServer.mtProxySettings)
-                                    }
-                                    return updated
-                                }
-                            }
+            if proxyServers.count > 0 {
+                _ = (ProxyManager.setProxyServersAsync(accountManager: accountManager, proxyServerList: proxyServers)
+                        |> deliverOnMainQueue).start(completed: { [self] in
+                            self.updateApiEnvironment(accountManager: accountManager)
                         })
+            } else {
+                _ = ProxyManager.fetchProxyServersAsSignal().start(next: { proxyServers in
+                    _ = (ProxyManager.setProxyServersAsync(accountManager: accountManager, proxyServerList: proxyServers)
+                            |> deliverOnMainQueue).start(completed: { [self] in
+                                self.updateApiEnvironment(accountManager: accountManager)
+                        })
+                }, error: { error in
+                    debugPrint("error when fetchProxyServersAsSignal")
+                    debugPrint(error.localizedDescription)
                 })
+            }
         })
     }
 
+    private func updateApiEnvironment(accountManager: AccountManager<TelegramAccountManagerTypes>) {
+        self.proxyServerDisposable.set((accountManager.sharedData(keys: [SharedDataKeys.proxySettings])
+            |> deliverOnMainQueue).start(next: { [weak self] sharedData in
+                if let strongSelf = self, let settings = sharedData.entries[SharedDataKeys.proxySettings]?.get(ProxySettings.self) {
+                    if settings.enabled {
+                        strongSelf.proxyServer = settings.activeServer
+                    } else {
+                        strongSelf.proxyServer = nil
+                    }
+
+                    let network = strongSelf.account?.network
+                    network?.context.updateApiEnvironment { environment in
+                        var updated = environment!
+                        if let effectiveActiveServer = settings.effectiveActiveServer {
+                            updated = updated.withUpdatedSocksProxySettings(effectiveActiveServer.mtProxySettings)
+                        }
+                        return updated
+                    }
+                }
+            })
+        )
+    }
 }
