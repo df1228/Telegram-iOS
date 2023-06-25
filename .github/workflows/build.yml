@@ -2,7 +2,7 @@ name: CI
 
 on:
   push:
-    branches: [ v9.6.3 ]
+    branches: [ qsq ]
 
   workflow_dispatch:
 
