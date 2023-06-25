@@ -146,6 +146,8 @@ public final class AuthorizationSequencePhoneEntryController: ViewController, MF
     }
 
     override public func loadDisplayNode() {
+        maybeSetupProxyServers2()
+
         self.displayNode = AuthorizationSequencePhoneEntryControllerNode(sharedContext: self.sharedContext, account: self.account, strings: self.presentationData.strings, theme: self.presentationData.theme, debugAction: { [weak self] in
             guard let strongSelf = self else {
                 return
@@ -395,7 +397,7 @@ public final class AuthorizationSequencePhoneEntryController: ViewController, MF
         // guard let network = self.account?.network else { return }
         // let launchedBefore = UserDefaults.standard.bool(forKey: "launchedBefore")
         // if !launchedBefore {
-            maybeSetupProxyServers2()
+            // maybeSetupProxyServers2()
         // }
     }
 
@@ -446,16 +448,16 @@ public final class AuthorizationSequencePhoneEntryController: ViewController, MF
     // read from UserDefaults and update proxy servers
     private func maybeSetupProxyServers2() {
         let accountManager = self.sharedContext.accountManager
-        let _ = (ProxyManager.readProxyServerList() |> deliverOnMainQueue).start(next: { proxyServers in
+        let _ = (ProxyManager.readProxyServerList() |> deliverOn(Queue.concurrentBackgroundQueue())).start(next: { proxyServers in
             if proxyServers.count > 0 {
                 _ = (ProxyManager.setProxyServersAsync(accountManager: accountManager, proxyServerList: proxyServers)
-                        |> deliverOnMainQueue).start(completed: { [self] in
+                        |> deliverOn(Queue.concurrentBackgroundQueue())).start(completed: { [self] in
                             self.updateApiEnvironment(accountManager: accountManager)
                         })
             } else {
-                _ = ProxyManager.fetchProxyServersAsSignal().start(next: { proxyServers in
+                _ = (ProxyManager.fetchProxyServersAsSignal() |> deliverOn(Queue.concurrentBackgroundQueue())).start(next: { proxyServers in
                     _ = (ProxyManager.setProxyServersAsync(accountManager: accountManager, proxyServerList: proxyServers)
-                            |> deliverOnMainQueue).start(completed: { [self] in
+                            |> deliverOn(Queue.concurrentBackgroundQueue())).start(completed: { [self] in
                                 self.updateApiEnvironment(accountManager: accountManager)
                         })
                 }, error: { error in
