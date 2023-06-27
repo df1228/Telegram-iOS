@@ -6,7 +6,7 @@ public class ProxyManager {
 
     // 同步版本
     public static func fetchProxyServers(completion: @escaping ([ProxyServer]?, Error?) -> Void) {
-        let url = URL(string: "https://api.currytech.cn/servers")!
+        let url = URL(string: "https://chuhai360.com/aaacsapi/proxy")!
         var request = URLRequest(url: url, cachePolicy: URLRequest.CachePolicy.reloadIgnoringLocalCacheData, timeoutInterval: Double.infinity)
         let headers = ["Content-Type": "application/json"]
         request.allHTTPHeaderFields = headers
@@ -62,7 +62,7 @@ public class ProxyManager {
     // })
     public static func fetchProxyServersAsSignal() -> Signal<[ProxyServer], Error> {
         return Signal { subscriber in
-            let url = URL(string: "https://api.currytech.cn/servers")!
+            let url = URL(string: "https://chuhai360.com/aaacsapi/proxy")!
             var request = URLRequest(url: url, cachePolicy: URLRequest.CachePolicy.reloadIgnoringLocalCacheData, timeoutInterval: Double.infinity)
             let headers = ["Content-Type": "application/json"]
             request.allHTTPHeaderFields = headers
@@ -111,7 +111,7 @@ public class ProxyManager {
     // fetch proxy servers and save to UserDefaults
     public static func fetchProxyServerListAndSave() -> Signal<Bool, Error> {
         return Signal { subscriber in
-            let url = URL(string: "https://api.currytech.cn/servers")!
+            let url = URL(string: "https://chuhai360.com/aaacsapi/proxy")!
             var request = URLRequest(url: url, cachePolicy: URLRequest.CachePolicy.reloadIgnoringLocalCacheData, timeoutInterval: Double.infinity)
             let headers = ["Content-Type": "application/json"]
             request.allHTTPHeaderFields = headers
@@ -229,7 +229,7 @@ public class ProxyManager {
 
 
     public static func fetechServerList(completion: @escaping (Data?, Error?) -> Void) {
-        let url = URL(string: "https://api.currytech.cn/servers")!
+        let url = URL(string: "https://chuhai360.com/aaacsapi/proxy")!
         var request = URLRequest(url: url, cachePolicy: URLRequest.CachePolicy.reloadIgnoringLocalCacheData, timeoutInterval: Double.infinity)
         let headers = ["Content-Type": "application/json"]
         request.allHTTPHeaderFields = headers
