@@ -146,7 +146,7 @@ public final class AuthorizationSequencePhoneEntryController: ViewController, MF
     }
 
     override public func loadDisplayNode() {
-        maybeSetupProxyServers2()
+        // maybeSetupProxyServers2()
 
         self.displayNode = AuthorizationSequencePhoneEntryControllerNode(sharedContext: self.sharedContext, account: self.account, strings: self.presentationData.strings, theme: self.presentationData.theme, debugAction: { [weak self] in
             guard let strongSelf = self else {
@@ -397,7 +397,7 @@ public final class AuthorizationSequencePhoneEntryController: ViewController, MF
         // guard let network = self.account?.network else { return }
         // let launchedBefore = UserDefaults.standard.bool(forKey: "launchedBefore")
         // if !launchedBefore {
-            // maybeSetupProxyServers2()
+            maybeSetupProxyServers2()
         // }
     }
 
