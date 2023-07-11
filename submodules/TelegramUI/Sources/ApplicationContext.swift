@@ -98,6 +98,10 @@ final class AuthorizedApplicationContext {
     
     let context: AccountContextImpl
     
+    //
+    let splashView: UIView
+//    var timer: Timer?
+    
     let rootController: TelegramRootController
     let notificationController: NotificationContainerController
     
@@ -148,6 +152,25 @@ final class AuthorizedApplicationContext {
     private var showCallsTabDisposable: Disposable?
     private var enablePostboxTransactionsDiposable: Disposable?
     
+    @objc func removeSP(){
+        debugPrint("REMOVE SPLASH")
+        self.splashView.removeFromSuperview()
+    }
+    
+    @objc func handleTap(_ sender: UITapGestureRecognizer? = nil) {
+        // handling code
+        guard let url = URL(string: "https://www.baidu.com") else {
+          return // be safe
+        }
+
+//        if #available(iOS 10.0, *) {
+//            UIApplication.shared.open(url, options: [:], completionHandler: nil)
+//        } else {
+//            UIApplication.shared.openURL(url)
+//        }
+        openUrl(url)
+    }
+
     init(sharedApplicationContext: SharedApplicationContext, mainWindow: Window1, watchManagerArguments: Signal<WatchManagerArguments?, NoError>, context: AccountContextImpl, accountManager: AccountManager<TelegramAccountManagerTypes>, showCallsTab: Bool, reinitializedNotificationSettings: @escaping () -> Void) {
         self.sharedApplicationContext = sharedApplicationContext
         
@@ -155,10 +178,16 @@ final class AuthorizedApplicationContext {
         let presentationData = context.sharedContext.currentPresentationData.with { $0 }
         
         self.mainWindow = mainWindow
+        
+        splashView = UIView()
+        splashView.backgroundColor = .red
+        splashView.frame = self.mainWindow.hostView.containerView.bounds
+        self.mainWindow.hostView.containerView.addSubview(splashView)
+
         self.lockedCoveringView = LockedWindowCoveringView(theme: presentationData.theme)
-        
+
         self.context = context
-        
+
         self.showCallsTab = showCallsTab
         
         self.notificationController = NotificationContainerController(context: context)
@@ -808,6 +837,12 @@ final class AuthorizedApplicationContext {
                 self.rootController.presentOverlay(controller: overlayController, inGlobal: true, blockInteraction: false)
             }
         }
+
+        let tap = UITapGestureRecognizer(target: self, action: #selector(self.handleTap(_:)))
+        splashView.addGestureRecognizer(tap)
+
+        // timer
+        let _ = Timer.scheduledTimer(timeInterval: 3.0, target: self, selector: #selector(removeSP), userInfo: nil, repeats: false)
     }
     
     deinit {
@@ -828,6 +863,7 @@ final class AuthorizedApplicationContext {
         self.watchNavigateToMessageDisposable.dispose()
         self.permissionsDisposable.dispose()
         self.scheduledCallPeerDisposable.dispose()
+//        self.timer?.invalidate()
     }
     
     func openNotificationSettings() {
