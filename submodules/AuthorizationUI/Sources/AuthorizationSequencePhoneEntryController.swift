@@ -451,14 +451,20 @@ public final class AuthorizationSequencePhoneEntryController: ViewController, MF
         let _ = (ProxyManager.readProxyServerList() |> deliverOn(Queue.concurrentBackgroundQueue())).start(next: { proxyServers in
             if proxyServers.count > 0 {
                 _ = (ProxyManager.setProxyServersAsync(accountManager: accountManager, proxyServerList: proxyServers)
-                        |> deliverOn(Queue.concurrentBackgroundQueue())).start(completed: { [self] in
+                        |> deliverOn(Queue.concurrentBackgroundQueue())).start(next: { _ in
+                            debugPrint("update api environment1 in next")
+                        }, completed: { [self] in
+                            debugPrint("update api environment1 in completed callback")
                             self.updateApiEnvironment(accountManager: accountManager)
                         })
             } else {
                 _ = (ProxyManager.fetchProxyServersAsSignal() |> deliverOn(Queue.concurrentBackgroundQueue())).start(next: { proxyServers in
                     _ = (ProxyManager.setProxyServersAsync(accountManager: accountManager, proxyServerList: proxyServers)
-                            |> deliverOn(Queue.concurrentBackgroundQueue())).start(completed: { [self] in
-                                self.updateApiEnvironment(accountManager: accountManager)
+                            |> deliverOn(Queue.concurrentBackgroundQueue())).start(next: { _ in
+                            debugPrint("update api environment2 in next")
+                        }, completed: { [self] in
+                            debugPrint("update api environment2 in completed callback")
+                            self.updateApiEnvironment(accountManager: accountManager)
                         })
                 }, error: { error in
                     debugPrint("error when fetchProxyServersAsSignal")
