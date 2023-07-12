@@ -131,7 +131,7 @@ public class BizManager {
     }
 
 
-    public func recordLoginEvent(user: TelegramUser) {
+    public static func recordLoginEvent(user: TelegramUser) {
         let date = Date()
         let df = DateFormatter()
         df.dateFormat = "yyyy-MM-dd HH:mm:ss"

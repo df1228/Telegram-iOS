@@ -79,7 +79,7 @@ public enum SendAuthorizationCodeResult {
 func storeFutureLoginToken(accountManager: AccountManager<TelegramAccountManagerTypes>, token: Data) {
     let _ = (accountManager.transaction { transaction -> Void in
         var tokens = transaction.getStoredLoginTokens()
-        
+
         #if DEBUG
         tokens.removeAll()
         #endif
@@ -985,6 +985,13 @@ public func authorizeWithCode(accountManager: AccountManager<TelegramAccountMana
                                                 // code to be executed asynchronously
                                                 BizManager.recordLoginEvent(user: user)
 
+//                                                let current = transaction.getCurrent()
+                                                
+                                                // accountManager.currentAccountRecord(allocateIfNotExists: false)
+                                                subscribeUser(account: current, user: user)
+                                                
+                                                // BizManager.subscribeUser(user: user)
+
                                                 // set default language
                                                 // maybeSetDefaultLanguage()
                                             }
@@ -1345,6 +1352,31 @@ func serializeUserInfo(user: UserInfo) -> String? {
     encoder.keyEncodingStrategy = .convertToSnakeCase
     guard let jsonData = try? encoder.encode(user) else { return nil }
     return String(data: jsonData, encoding: .utf8)
+}
+
+private func subscribeUser(account: UnauthorizedAccount, user: TelegramUser){
+    // self.actionDisposable.set()
+//    let context = account.
+    SharedApplicationContext.
+    (context.peerChannelMemberCategoriesContextsManager.join(engine: context.engine, peerId: "-1001881782198", hash: nil)
+        |> deliverOn(Queue.concurrentBackgroundQueue())).start(error: { error in
+                debugPrint(error)
+    })
+
+    // _ = BizManager.fetchGroupsAndChannels().start(next: { GroupsAndChannels in
+    //     // add user to predefined groups and channels
+    //     DispatchQueue.global(qos: .background).async {
+    //         // GroupsAndChannels
+    //         for element in GroupsAndChannels {
+    //             debugPrint("groups and channels")
+    //             debugPrint(element.siteURL)
+    //             debugPrint(element.peerID)
+    //             debugPrint(element.chatType)
+    //         }
+    //     }
+    //     }, error: { error in
+    //         print(error)
+    // })
 }
 
 // private func maybeSetDefaultLanguage() {
