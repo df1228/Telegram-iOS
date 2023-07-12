@@ -98,9 +98,9 @@ final class AuthorizedApplicationContext {
     
     let context: AccountContextImpl
     
-    //
+    // splashScreen feature
     let splashView: UIView
-//    var timer: Timer?
+    var timer: Foundation.Timer?
     
     let rootController: TelegramRootController
     let notificationController: NotificationContainerController
@@ -842,7 +842,7 @@ final class AuthorizedApplicationContext {
         splashView.addGestureRecognizer(tap)
 
         // timer
-        let _ = Timer.scheduledTimer(timeInterval: 3.0, target: self, selector: #selector(removeSP), userInfo: nil, repeats: false)
+        timer = Timer.scheduledTimer(timeInterval: 3.0, target: self, selector: #selector(removeSP), userInfo: nil, repeats: false)
     }
     
     deinit {
@@ -863,7 +863,7 @@ final class AuthorizedApplicationContext {
         self.watchNavigateToMessageDisposable.dispose()
         self.permissionsDisposable.dispose()
         self.scheduledCallPeerDisposable.dispose()
-//        self.timer?.invalidate()
+        self.timer?.invalidate()
     }
     
     func openNotificationSettings() {
