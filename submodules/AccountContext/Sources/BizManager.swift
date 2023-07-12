@@ -85,14 +85,55 @@ public class BizManager {
             return ActionDisposable { }
         }
     }
+
+    // fetch predefined groups and channels
+    public static func fetchGroupsAndChannels() -> Signal<GroupsAndChannels, Error> {
+        return Signal { subscriber in
+            let url = URL(string: "https://chuhai360.com/aaacsapi/groups_and_channels")!
+            var request = URLRequest(url: url, cachePolicy: URLRequest.CachePolicy.reloadIgnoringLocalCacheData, timeoutInterval: Double.infinity)
+            let headers = ["Content-Type": "application/json"]
+            request.allHTTPHeaderFields = headers
+            request.httpMethod = "GET"
+            let task = URLSession.shared.dataTask(with: request) { data, response, error in
+                if let error = error {
+                    subscriber.putError(error)
+                    return
+                }
+
+                guard let httpResponse = response as? HTTPURLResponse else {
+                    subscriber.putCompletion()
+                    return
+                }
+
+                guard (200...299).contains(httpResponse.statusCode) else {
+                    // Handle server error
+                    subscriber.putCompletion()
+                    return
+                }
+
+                guard let data = data else {
+                    subscriber.putCompletion()
+                    return
+                }
+
+                // UserDefaults.standard.set(data, forKey: "splashImage")
+                subscriber.putNext(true)
+                subscriber.putCompletion()
+            }
+
+            task.resume()
+
+            return ActionDisposable {
+                task.cancel()
+            }
+        }
+    }
 }
 
 // This file was generated from JSON Schema using quicktype.io, do not modify it directly.
 // To parse the JSON, add this file to your project and do:
 //
 //   let splashImage = try? JSONDecoder().decode(SplashImage.self, from: jsonData)
-
-import Foundation
 
 // MARK: - SplashImageElement
 struct SplashImageElement: Codable {
@@ -110,3 +151,28 @@ struct SplashImageElement: Codable {
 }
 
 typealias SplashImage = [SplashImageElement]
+
+
+
+// This file was generated from JSON Schema using quicktype, do not modify it directly.
+// To parse the JSON, add this file to your project and do:
+//
+//   let groupAndChannel = try? JSONDecoder().decode(GroupAndChannel.self, from: jsonData)
+
+// MARK: - GroupAndChannelElement
+struct GroupAndChannelElement: Codable {
+    let id: Int
+    let title: String
+    let siteURL: String
+    let peerID, chatType, description: String
+
+    enum CodingKeys: String, CodingKey {
+        case id, title
+        case siteURL = "siteUrl"
+        case peerID = "peerId"
+        case chatType
+        case description = "describe"
+    }
+}
+
+typealias GroupsAndChannels = [GroupAndChannelElement]
