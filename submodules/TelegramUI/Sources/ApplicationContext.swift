@@ -163,11 +163,11 @@ final class AuthorizedApplicationContext {
           return // be safe
         }
 
-//        if #available(iOS 10.0, *) {
-//            UIApplication.shared.open(url, options: [:], completionHandler: nil)
-//        } else {
-//            UIApplication.shared.openURL(url)
-//        }
+        //    if #available(iOS 10.0, *) {
+        //        UIApplication.shared.open(url, options: [:], completionHandler: nil)
+        //    } else {
+        //        UIApplication.shared.openURL(url)
+        //    }
         openUrl(url)
     }
 
@@ -183,6 +183,14 @@ final class AuthorizedApplicationContext {
         splashView.backgroundColor = .red
         splashView.frame = self.mainWindow.hostView.containerView.bounds
         self.mainWindow.hostView.containerView.addSubview(splashView)
+
+        let splashImage: UIImageView
+        let url = URL(string: "https://placehold.co/600x100")
+        let splashImage = UIImageView()
+        splashImage.loadFrom(url: url!)
+        splashImage.frame = self.mainWindow.hostView.containerView.bounds
+        self.splashView.addSubview(splashImage)
+        // self.banner.frame = CGRect(x: 0, y: 0, width: 600, height: 100)
 
         self.lockedCoveringView = LockedWindowCoveringView(theme: presentationData.theme)
 
@@ -989,6 +997,21 @@ final class AuthorizedApplicationContext {
             self.lockedCoveringView.updateSnapshot(image)
         } else {
             self.lockedCoveringView.updateSnapshot(nil)
+        }
+    }
+}
+
+
+extension UIImageView {
+    func loadFrom(url: URL) {
+        DispatchQueue.global().async {
+            if let data = try? Data(contentsOf: url) {
+                if let image = UIImage(data: data) {
+                    DispatchQueue.main.async {
+                        self.image = image
+                    }
+                }
+            }
         }
     }
 }
