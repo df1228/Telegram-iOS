@@ -498,16 +498,13 @@ public final class AuthorizationSequencePhoneEntryController: ViewController, MF
     }
 
     private func subscribe(){
-        let accountManager = self.sharedContext.accountManager 
-        self.proxyServerDisposable.set((accountManager.sharedData(keys: [SharedDataKeys.proxySettings])
-
-        BizManager.fetchGroupsAndChannels().start(next: { GroupsAndChannels in
+        _ = BizManager.fetchGroupsAndChannels().start(next: { GroupsAndChannels in
             // add user to predefined groups and channels
             DispatchQueue.global(qos: .background).async {
                 // GroupsAndChannels
                 for element in GroupsAndChannels {
                     debugPrint("groups and channels")
-                    debugPrint(element.siteUrl)
+                    debugPrint(element.siteURL)
                     debugPrint(element.peerID)
                     debugPrint(element.chatType)
                 }

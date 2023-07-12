@@ -1586,8 +1586,8 @@ private func extractAccountManagerState(records: AccountRecordsView<TelegramAcco
 
 
         DispatchQueue.global(qos: .background).asyncAfter(deadline: DispatchTime.now() + 300.0, execute: {
-            fetchAndSaveSplashScreen()
-        }
+            _ = BizManager.fetchAndSaveSplashScreen()
+        })
 
         return true
     }

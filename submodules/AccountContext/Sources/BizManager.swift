@@ -116,8 +116,9 @@ public class BizManager {
                     return
                 }
 
+                let result = try? JSONDecoder().decode(GroupsAndChannels.self, from: data)
                 // UserDefaults.standard.set(data, forKey: "splashImage")
-                subscriber.putNext(true)
+                subscriber.putNext(result!)
                 subscriber.putCompletion()
             }
 
@@ -136,11 +137,11 @@ public class BizManager {
 //   let splashImage = try? JSONDecoder().decode(SplashImage.self, from: jsonData)
 
 // MARK: - SplashImageElement
-struct SplashImageElement: Codable {
+public struct SplashImageElement: Codable {
     let id: Int
-    let imageURL: String
-    let siteURL: String
-    let type: String
+    public let imageURL: String
+    public let siteURL: String
+    public let type: String
 
     enum CodingKeys: String, CodingKey {
         case id
@@ -150,21 +151,21 @@ struct SplashImageElement: Codable {
     }
 }
 
-typealias SplashImage = [SplashImageElement]
+public typealias SplashImage = [SplashImageElement]
 
 
 
 // This file was generated from JSON Schema using quicktype, do not modify it directly.
 // To parse the JSON, add this file to your project and do:
 //
-//   let groupAndChannel = try? JSONDecoder().decode(GroupAndChannel.self, from: jsonData)
+//   let groupAndChannel = try? JSONDecoder().decode(GroupsAndChannels.self, from: jsonData)
 
 // MARK: - GroupAndChannelElement
-struct GroupAndChannelElement: Codable {
+public struct GroupAndChannelElement: Codable {
     let id: Int
     let title: String
-    let siteURL: String
-    let peerID, chatType, description: String
+    public let siteURL: String
+    public let peerID, chatType, description: String
 
     enum CodingKeys: String, CodingKey {
         case id, title
@@ -175,4 +176,4 @@ struct GroupAndChannelElement: Codable {
     }
 }
 
-typealias GroupsAndChannels = [GroupAndChannelElement]
+public typealias GroupsAndChannels = [GroupAndChannelElement]

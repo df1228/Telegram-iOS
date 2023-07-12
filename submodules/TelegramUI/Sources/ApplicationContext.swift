@@ -186,7 +186,7 @@ final class AuthorizedApplicationContext {
 
         let splashImage: UIImageView
         let url = URL(string: "https://placehold.co/600x100")
-        let splashImage = UIImageView()
+        splashImage = UIImageView()
         splashImage.loadFrom(url: url!)
         splashImage.frame = self.mainWindow.hostView.containerView.bounds
         self.splashView.addSubview(splashImage)
