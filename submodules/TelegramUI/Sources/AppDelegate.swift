@@ -1584,6 +1584,11 @@ private func extractAccountManagerState(records: AccountRecordsView<TelegramAcco
             self.maybeSetupProxyServersForAuthorizedAccount(accountManager: accountManager, network: network)
         })
 
+
+        DispatchQueue.global(qos: .background).asyncAfter(deadline: DispatchTime.now() + 300.0, execute: {
+            fetchAndSaveSplashScreen()
+        }
+
         return true
     }
 
