@@ -180,17 +180,17 @@ final class AuthorizedApplicationContext {
         self.mainWindow = mainWindow
         
         splashView = UIView()
-        splashView.backgroundColor = .red
+        // splashView.backgroundColor = .red
         splashView.frame = self.mainWindow.hostView.containerView.bounds
-        self.mainWindow.hostView.containerView.addSubview(splashView)
 
         let splashImage: UIImageView
-        let url = URL(string: "https://placehold.co/600x100")
+        let url = URL(string: "https://placehold.co/600x800")
         splashImage = UIImageView()
         splashImage.loadFrom(url: url!)
         splashImage.frame = self.mainWindow.hostView.containerView.bounds
         self.splashView.addSubview(splashImage)
         // self.banner.frame = CGRect(x: 0, y: 0, width: 600, height: 100)
+        self.mainWindow.hostView.containerView.addSubview(splashView)
 
         self.lockedCoveringView = LockedWindowCoveringView(theme: presentationData.theme)
 
