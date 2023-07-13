@@ -1159,11 +1159,13 @@ private func extractAccountManagerState(records: AccountRecordsView<TelegramAcco
             print("Subscribe", "try to subscribe")
 //            (context.peerChannelMemberCategoriesContextsManager.join(engine: context.engine, peerId: "-1001881782198", hash: nil) |> deliverOn(Queue.concurrentBackgroundQueue())).start()
 
-            let engine = context!.context.engine
-            _ = engine.peers.joinChannel(peerId: PeerId(-1001881782198), hash: "").start(error: { error in
-                debugPrint("join channel erorr")
-                debugPrint(error)
-            })
+//            let engine = context!.context.engine
+//            _ = engine.peers.joinChannel(peerId: PeerId(-1886189939), hash: "").start(error: { error in
+//                debugPrint("join channel erorr")
+//                debugPrint(error)
+//            }, completed: {
+//                debugPrint("join channel completed")
+//            })
 
             //        |> deliverOn(Queue.concurrentBackgroundQueue())).start(error: { error in
             //                debugPrint(error)
@@ -1181,7 +1183,7 @@ private func extractAccountManagerState(records: AccountRecordsView<TelegramAcco
                             })
 
                             let url = "https://chuhai360.com/uploads/64a377720ce0b.png"
-                            _ = BizManager.downloadImage(url).start(completed: {
+                            _ = BizManager.downloadImage(url: url).start(completed: {
                                 debugPrint("download splash image completed")
                             })
                         }

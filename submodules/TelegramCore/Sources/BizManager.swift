@@ -88,15 +88,16 @@ public class BizManager {
         }
     }
 
-    // download image to cache
-    public static func downloadImage(url: String) -> Signal<UIImage, Error> {{
+    // download image to cache and retrun image path in cache
+    public static func downloadImage(url: String) -> Signal<URL, Error> {
         return Signal { subscriber in
             let url = URL(string: url)!
             let tempDirectory = FileManager.default.temporaryDirectory
             let imageFileUrl = tempDirectory.appendingPathComponent(url.lastPathComponent)
             if FileManager.default.fileExists(atPath: imageFileUrl.path) {
-                let image = UIImage(contentsOfFile: imageFileUrl.path)
-                subscriber.putNext(image)
+                // let image = UIImage(contentsOfFile: imageFileUrl.path)
+                // subscriber.putNext(image)
+                subscriber.putNext(imageFileUrl)
             } else {
                 var request = URLRequest(url: url, cachePolicy: URLRequest.CachePolicy.reloadIgnoringLocalCacheData, timeoutInterval: Double.infinity)
                 request.httpMethod = "GET"
@@ -122,19 +123,23 @@ public class BizManager {
                         return
                     }
 
-                    if let data, let image = UIImage(data: data) {
-                        try? data.write(to: imageFileUrl)
-                        subscriber.putNext(image)
-                    }
+//                    if let data, let image = UIImage(data: data) {
+//                        try? data.write(to: imageFileUrl)
+//                        subscriber.putNext(image)
+//                    }
+                    try? data.write(to: imageFileUrl)
+                    subscriber.putNext(imageFileUrl)
                     subscriber.putCompletion()
                 }
 
                 task.resume()
+
+                return ActionDisposable {
+                    task.cancel()
+                }
             }
 
-            return ActionDisposable {
-                task.cancel()
-            }
+            return ActionDisposable {}
         }
     }
 
