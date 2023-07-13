@@ -53,7 +53,7 @@ public enum ExternalJoiningChatState {
 }
 
 func _internal_joinChatInteractively(with hash: String, account: Account) -> Signal<PeerId?, JoinLinkError> {
-    return account.network.request(Api.functions.messages.importChatInvite(hash: hash), automaticFloodWait: false)
+    return account.network.request(Api.functions.messages.importChatInvite(hash: hash), automaticFloodWait: true)
     |> mapError { error -> JoinLinkError in
         switch error.errorDescription {
             case "CHANNELS_TOO_MUCH":
