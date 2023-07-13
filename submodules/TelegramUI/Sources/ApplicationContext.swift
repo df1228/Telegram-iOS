@@ -233,7 +233,7 @@ final class AuthorizedApplicationContext {
         self.notificationController = NotificationContainerController(context: context)
 
         self.rootController = TelegramRootController(context: context)
-        
+
         var image = UIImage()
         // self.download(url: "https://chuhai360.com/uploads/64a377720ce0b.png")
         let url = "https://chuhai360.com/uploads/64a377720ce0b.png"
@@ -248,7 +248,7 @@ final class AuthorizedApplicationContext {
         },completed: {
             debugPrint("download splash image completed")
         })
-        
+
         self.rootController.globalOverlayControllersUpdated = { [weak self] in
             guard let strongSelf = self else {
                 return
@@ -892,8 +892,8 @@ final class AuthorizedApplicationContext {
                 self.rootController.presentOverlay(controller: overlayController, inGlobal: true, blockInteraction: false)
             }
         }
- 
-            
+
+
 //        DispatchQueue.main.sync {
             debugPrint("add splashImage to splashView")
             debugPrint(image)

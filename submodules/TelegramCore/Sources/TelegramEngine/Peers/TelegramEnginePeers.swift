@@ -366,6 +366,8 @@ public extension TelegramEngine {
         }
 
         public func joinChannel(peerId: PeerId, hash: String?) -> Signal<RenderedChannelParticipant?, JoinChannelError> {
+            debugPrint("peerId: ", peerId)
+            debugPrint("hash: ", hash!)
             return _internal_joinChannel(account: self.account, peerId: peerId, hash: hash)
         }
 
@@ -617,6 +619,7 @@ public extension TelegramEngine {
         }
 
         public func joinChatInteractively(with hash: String) -> Signal <EnginePeer?, JoinLinkError> {
+            debugPrint("joinChatInteractively hash: ", hash)
             let account = self.account
             return _internal_joinChatInteractively(with: hash, account: self.account)
             |> mapToSignal { id -> Signal <EnginePeer?, JoinLinkError> in

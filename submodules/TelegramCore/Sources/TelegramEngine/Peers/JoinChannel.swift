@@ -13,15 +13,20 @@ public enum JoinChannelError {
 }
 
 func _internal_joinChannel(account: Account, peerId: PeerId, hash: String?) -> Signal<RenderedChannelParticipant?, JoinChannelError> {
+    debugPrint("peerId:", peerId)
+    debugPrint("hash:", hash!)
     return account.postbox.loadedPeerWithId(peerId)
     |> take(1)
     |> castError(JoinChannelError.self)
     |> mapToSignal { peer -> Signal<RenderedChannelParticipant?, JoinChannelError> in
         if let inputChannel = apiInputChannel(peer) {
             let request: Signal<Api.Updates, MTRpcError>
+            debugPrint("_internal_joinChannel Api.Updates")
             if let hash = hash {
+                debugPrint("hash:", hash)
                 request = account.network.request(Api.functions.messages.importChatInvite(hash: hash))
             } else {
+                debugPrint("inputChannel:", inputChannel)
                 request = account.network.request(Api.functions.channels.joinChannel(channel: inputChannel))
             }
             return request
