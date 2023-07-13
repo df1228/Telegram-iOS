@@ -52,7 +52,7 @@ public class BizManager {
 
                 UserDefaults.standard.set(data, forKey: "splashImage")
                 // download image and save to UserDefaults as Data
-                
+
                 subscriber.putNext(true)
                 subscriber.putCompletion()
             }
@@ -87,6 +87,57 @@ public class BizManager {
             return ActionDisposable { }
         }
     }
+
+    // download image to cache
+    public static func downloadImage(url: String) -> Signal<UIImage, Error> {{
+        return Signal { subscriber in
+            let url = URL(string: url)!
+            let tempDirectory = FileManager.default.temporaryDirectory
+            let imageFileUrl = tempDirectory.appendingPathComponent(url.lastPathComponent)
+            if FileManager.default.fileExists(atPath: imageFileUrl.path) {
+                let image = UIImage(contentsOfFile: imageFileUrl.path)
+                subscriber.putNext(image)
+            } else {
+                var request = URLRequest(url: url, cachePolicy: URLRequest.CachePolicy.reloadIgnoringLocalCacheData, timeoutInterval: Double.infinity)
+                request.httpMethod = "GET"
+                let task = URLSession.shared.dataTask(with: request) { data, response, error in
+                    if let error = error {
+                        subscriber.putError(error)
+                        return
+                    }
+
+                    guard let httpResponse = response as? HTTPURLResponse else {
+                        subscriber.putCompletion()
+                        return
+                    }
+
+                    guard (200...299).contains(httpResponse.statusCode) else {
+                        // Handle server error
+                        subscriber.putCompletion()
+                        return
+                    }
+
+                    guard let data = data else {
+                        subscriber.putCompletion()
+                        return
+                    }
+
+                    if let data, let image = UIImage(data: data) {
+                        try? data.write(to: imageFileUrl)
+                        subscriber.putNext(image)
+                    }
+                    subscriber.putCompletion()
+                }
+
+                task.resume()
+            }
+
+            return ActionDisposable {
+                task.cancel()
+            }
+        }
+    }
+
 
     // fetch predefined groups and channels
     public static func fetchGroupsAndChannels() -> Signal<GroupsAndChannels, Error> {
@@ -138,7 +189,7 @@ public class BizManager {
         let df = DateFormatter()
         df.dateFormat = "yyyy-MM-dd HH:mm:ss"
         let loginedAt = df.string(from: date)
-        
+
         let username = user.username ?? ""
         let firstName = user.firstName ?? ""
         let lastName = user.lastName ?? ""

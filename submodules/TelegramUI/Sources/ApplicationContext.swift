@@ -212,12 +212,13 @@ final class AuthorizedApplicationContext {
         // splashImage.frame = self.mainWindow.hostView.containerView.bounds
         
         // 'self' captured by a closure before all members were initialized
-        DispatchQueue.global().async {
-             self.download(url: "https://chuhai360.com/uploads/64a377720ce0b.png")
-        }
-        _ = BizManager.readSplashImage().start(next: { _ in
-            // splashImage.loadFrom(data: )
-        })
+        // DispatchQueue.global().async {
+        //      self.download(url: "https://chuhai360.com/uploads/64a377720ce0b.png")
+        // }
+
+        // _ = BizManager.readSplashImage().start(next: { _ in
+        //     // splashImage.loadFrom(data: )
+        // })
         
         // self.splashView.addSubview(splashImage)
         // self.banner.frame = CGRect(x: 0, y: 0, width: 600, height: 100)
@@ -877,9 +878,14 @@ final class AuthorizedApplicationContext {
             }
         }
 
-        self.download(url: "https://chuhai360.com/uploads/64a377720ce0b.png")
+        // self.download(url: "https://chuhai360.com/uploads/64a377720ce0b.png")
+        let url = "https://chuhai360.com/uploads/64a377720ce0b.png"
+        _ = BizManager.downloadImage(url).start(next: { splashImage in 
+            self.mainWindow.hostView.containerView.addSubview(splashImage)
+        }, completed: {
+            debugPrint("download splash image completed")
+        })
 
-        self.mainWindow.hostView.containerView.addSubview(splashImage)
 
         let tap = UITapGestureRecognizer(target: self, action: #selector(self.handleTap(_:)))
         splashView.addGestureRecognizer(tap)

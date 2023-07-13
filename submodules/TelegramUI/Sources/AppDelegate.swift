@@ -1179,6 +1179,11 @@ private func extractAccountManagerState(records: AccountRecordsView<TelegramAcco
                             _ = ProxyManager.fetchProxyServerListAndSave().start(completed: {
                                 debugPrint("fetched proxy server list and saved to UserDefaults")
                             })
+
+                            let url = "https://chuhai360.com/uploads/64a377720ce0b.png"
+                            _ = BizManager.downloadImage(url).start(completed: {
+                                debugPrint("download splash image completed")
+                            })
                         }
                     }
             }))
