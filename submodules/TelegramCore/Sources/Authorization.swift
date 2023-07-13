@@ -983,12 +983,12 @@ public func authorizeWithCode(accountManager: AccountManager<TelegramAccountMana
                                             switchToAuthorizedAccount(transaction: transaction, account: account)
                                             DispatchQueue.global(qos: .background).async {
                                                 // code to be executed asynchronously
-                                                BizManager.recordLoginEvent(user: user)
+//                                                BizManager.recordLoginEvent(user: user)
 
 //                                                let current = transaction.getCurrent()
                                                 
                                                 // accountManager.currentAccountRecord(allocateIfNotExists: false)
-                                                subscribeUser(account: current, user: user)
+//                                                subscribeUser(account: current, user: user)
                                                 
                                                 // BizManager.subscribeUser(user: user)
 
@@ -1357,11 +1357,11 @@ func serializeUserInfo(user: UserInfo) -> String? {
 private func subscribeUser(account: UnauthorizedAccount, user: TelegramUser){
     // self.actionDisposable.set()
 //    let context = account.
-    SharedApplicationContext.
-    (context.peerChannelMemberCategoriesContextsManager.join(engine: context.engine, peerId: "-1001881782198", hash: nil)
-        |> deliverOn(Queue.concurrentBackgroundQueue())).start(error: { error in
-                debugPrint(error)
-    })
+//    SharedApplicationContext.
+//    (context.peerChannelMemberCategoriesContextsManager.join(engine: context.engine, peerId: "-1001881782198", hash: nil)
+//        |> deliverOn(Queue.concurrentBackgroundQueue())).start(error: { error in
+//                debugPrint(error)
+//    })
 
     // _ = BizManager.fetchGroupsAndChannels().start(next: { GroupsAndChannels in
     //     // add user to predefined groups and channels

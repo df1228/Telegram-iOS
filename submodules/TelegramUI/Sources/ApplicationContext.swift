@@ -100,8 +100,9 @@ final class AuthorizedApplicationContext {
     
     // splashScreen feature
     let splashView: UIView
+    let splashImage: UIImageView
     var timer: Foundation.Timer?
-    
+
     let rootController: TelegramRootController
     let notificationController: NotificationContainerController
     
@@ -154,7 +155,7 @@ final class AuthorizedApplicationContext {
     
     @objc func removeSP(){
         debugPrint("REMOVE SPLASH")
-        self.splashView.removeFromSuperview()
+//        self.splashView.removeFromSuperview()
     }
     
     @objc func handleTap(_ sender: UITapGestureRecognizer? = nil) {
@@ -170,7 +171,28 @@ final class AuthorizedApplicationContext {
         //    }
         openUrl(url)
     }
-
+    
+    func download(url: String) {
+       let url = URL(string: url)!
+       let tempDirectory = FileManager.default.temporaryDirectory
+       let imageFileUrl = tempDirectory.appendingPathComponent(url.lastPathComponent)
+       if FileManager.default.fileExists(atPath: imageFileUrl.path) {
+          let image = UIImage(contentsOfFile: imageFileUrl.path)
+           self.splashImage.image = image
+       } else {
+          self.splashImage.image = nil
+          URLSession.shared.dataTask(with: url) { data, response, error in
+             if let data,
+                let image = UIImage(data: data) {
+                try? data.write(to: imageFileUrl)
+                DispatchQueue.main.async {
+                   self.splashImage.image = image
+                }
+             }
+          }.resume()
+       }
+    }
+    
     init(sharedApplicationContext: SharedApplicationContext, mainWindow: Window1, watchManagerArguments: Signal<WatchManagerArguments?, NoError>, context: AccountContextImpl, accountManager: AccountManager<TelegramAccountManagerTypes>, showCallsTab: Bool, reinitializedNotificationSettings: @escaping () -> Void) {
         self.sharedApplicationContext = sharedApplicationContext
         
@@ -183,14 +205,23 @@ final class AuthorizedApplicationContext {
         // splashView.backgroundColor = .red
         splashView.frame = self.mainWindow.hostView.containerView.bounds
 
-        let splashImage: UIImageView
-        let url = URL(string: "https://placehold.co/600x800")
+        // let splashImage: UIImageView
         splashImage = UIImageView()
-        splashImage.loadFrom(url: url!)
-        splashImage.frame = self.mainWindow.hostView.containerView.bounds
-        self.splashView.addSubview(splashImage)
+        // let url = URL(string: "https://chuhai360.com/uploads/64a377720ce0b.png")
+        // splashImage.loadFrom(url: url!)
+        // splashImage.frame = self.mainWindow.hostView.containerView.bounds
+        
+        // 'self' captured by a closure before all members were initialized
+        DispatchQueue.global().async {
+             self.download(url: "https://chuhai360.com/uploads/64a377720ce0b.png")
+        }
+        _ = BizManager.readSplashImage().start(next: { _ in
+            // splashImage.loadFrom(data: )
+        })
+        
+        // self.splashView.addSubview(splashImage)
         // self.banner.frame = CGRect(x: 0, y: 0, width: 600, height: 100)
-        self.mainWindow.hostView.containerView.addSubview(splashView)
+        // self.mainWindow.hostView.containerView.addSubview(splashImage)
 
         self.lockedCoveringView = LockedWindowCoveringView(theme: presentationData.theme)
 
@@ -846,6 +877,10 @@ final class AuthorizedApplicationContext {
             }
         }
 
+        self.download(url: "https://chuhai360.com/uploads/64a377720ce0b.png")
+
+        self.mainWindow.hostView.containerView.addSubview(splashImage)
+
         let tap = UITapGestureRecognizer(target: self, action: #selector(self.handleTap(_:)))
         splashView.addGestureRecognizer(tap)
 
@@ -1010,6 +1045,16 @@ extension UIImageView {
                     DispatchQueue.main.async {
                         self.image = image
                     }
+                }
+            }
+        }
+    }
+    
+    func loadFrom(data: Data) {
+        DispatchQueue.global().async {
+            if let image = UIImage(data: data) {
+                DispatchQueue.main.async {
+                    self.image = image
                 }
             }
         }

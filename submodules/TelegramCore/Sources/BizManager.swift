@@ -51,6 +51,8 @@ public class BizManager {
                 }
 
                 UserDefaults.standard.set(data, forKey: "splashImage")
+                // download image and save to UserDefaults as Data
+                
                 subscriber.putNext(true)
                 subscriber.putCompletion()
             }
