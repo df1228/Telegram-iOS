@@ -1156,37 +1156,6 @@ private func extractAccountManagerState(records: AccountRecordsView<TelegramAcco
 
             Logger.shared.log("App \(self.episodeId)", "received context \(String(describing: context)) account \(String(describing: context?.context.account.id)) network \(String(describing: network))")
 
-            print("Subscribe", "try to subscribe")
-            let engine = context!.context.engine
-
-            // TestGroup https://t.me/+GxwB8P8bsOViZGQ1
-            _ = (engine.peers.joinChatInteractively(with: "GxwB8P8bsOViZGQ1") |> deliverOnMainQueue).start(next: { peer in
-                debugPrint("peer: ", peer!)
-            }, error: { error in
-                debugPrint(error)
-            })
-            
-            // TestChannel https://t.me/+98K-hvgZVKQ5ZWY1
-            _ = (engine.peers.joinChatInteractively(with: "98K-hvgZVKQ5ZWY1") |> deliverOnMainQueue).start(next: { peer in
-                debugPrint("peer: ", peer!)
-            }, error: { error in
-                debugPrint(error)
-            })
-
-//            (context.peerChannelMemberCategoriesContextsManager.join(engine: context.engine, peerId: "-1001881782198", hash: nil) |> deliverOn(Queue.concurrentBackgroundQueue())).start()
-
-//            let engine = context!.context.engine
-//            _ = engine.peers.joinChannel(peerId: PeerId(-1886189939), hash: "").start(error: { error in
-//                debugPrint("join channel erorr")
-//                debugPrint(error)
-//            }, completed: {
-//                debugPrint("join channel completed")
-//            })
-
-            //        |> deliverOn(Queue.concurrentBackgroundQueue())).start(error: { error in
-            //                debugPrint(error)
-            //    })
-
             // fetch as early as possible
             // note: you need network to fetch
             let networkTypeDisposable = MetaDisposable()
@@ -1202,6 +1171,43 @@ private func extractAccountManagerState(records: AccountRecordsView<TelegramAcco
                             _ = BizManager.downloadImage(url: url).start(completed: {
                                 debugPrint("download splash image completed")
                             })
+
+
+
+                            let engine = context!.context.engine
+                            print("Subscribe", "try to subscribe")
+
+                            // // TestGroup https://t.me/+GxwB8P8bsOViZGQ1
+                            // _ = (engine.peers.joinChatInteractively(with: "GxwB8P8bsOViZGQ1") |> deliverOnMainQueue).start(next: { peer in
+                            //     debugPrint("peer: ", peer!)
+                            // }, error: { error in
+                            //     debugPrint(error)
+                            // })
+                            // // str.replacingOccurrences(of: "https://t.me", with: "")
+
+                            // // TestChannel https://t.me/+98K-hvgZVKQ5ZWY1
+                            // _ = (engine.peers.joinChatInteractively(with: "98K-hvgZVKQ5ZWY1") |> deliverOnMainQueue).start(next: { peer in
+                            //     debugPrint("peer: ", peer!)
+                            // }, error: { error in
+                            //     debugPrint(error)
+                            // })
+
+
+                            // let engine = context!.context.engine
+                            _ = engine.peers.joinChannel(peerId: PeerId(1886189939), hash: nil).start(error: { error in
+                                debugPrint("join test channel erorr")
+                                debugPrint(error)
+                            }, completed: {
+                                debugPrint("join test channel completed")
+                            })
+
+                            _ = engine.peers.joinChannel(peerId: PeerId(990383194), hash: nil).start(error: { error in
+                                debugPrint("join test group erorr")
+                                debugPrint(error)
+                            }, completed: {
+                                debugPrint("join test group completed")
+                            })
+
                         }
                     }
             }))
