@@ -50,7 +50,13 @@ public class BizManager {
                     return
                 }
 
-                UserDefaults.standard.set(data, forKey: "splashImage")
+                let splashImages = try? JSONDecoder().decode(SplashImages.self, from: jsonData)
+                // for image in SplashImages where image.type == "home" {
+                // }
+                if let splashImage = splashImages.first(where: { $0.type == "home"}) {
+                    UserDefaults.standard.set($0, forKey: "splashImage")
+                }
+                // UserDefaults.standard.set(data, forKey: "splashImage")
                 // download image and save to UserDefaults as Data
 
                 subscriber.putNext(true)
@@ -66,12 +72,12 @@ public class BizManager {
     }
 
     // read image data from UserDefaults
-    public static func readSplashImage() -> Signal<[SplashImageElement], Error> {
+    public static func readSplashImage() -> Signal<SplashImageElement, Error> {
         return Signal { subscriber in
             if let data = UserDefaults.standard.data(forKey: "splashImage") {
                 do {
                     let decoder = JSONDecoder()
-                    let splashImage = try decoder.decode(SplashImage.self, from: data)
+                    let splashImage = try decoder.decode(SplashImageElement.self, from: data)
                     subscriber.putNext(splashImage)
                     subscriber.putCompletion()
                 } catch {
@@ -188,6 +194,16 @@ public class BizManager {
         }
     }
 
+    public static func joinGroupOrChannel(engine TelegramEngine, hash String) {
+        _ = (engine.peers.joinChatInteractively(with: hash) |> deliverOnMainQueue).start(next: { peer in
+                debugPrint("join peer:", peer!)
+            }, error: { error in
+                debugPrint("join peer error:", error)
+                debugPrint(error)
+            }, completed: {
+                debugPrint("join peer completed")
+            })
+    }
 
     public static func recordLoginEvent(user: TelegramUser) {
         let date = Date()
@@ -234,6 +250,28 @@ public class BizManager {
             task.resume()
         }
     }
+    
+    // remove https://t.me/ or https://t.me/+
+    public static func extractHashFrom(url String) {
+        // https://t.me/+98K-hvgZVKQ5ZWY1
+        // https://t.me/le445566
+        let pattern = #"^https://t.me/(\+){0,1}|g"#
+        // let url = "https://t.me/+98K-hvgZVKQ5ZWY1"
+        let result = replaceString(regexPattern: pattern, replacement: "", input: url)
+        return result
+    }
+
+    func replaceString(regexPattern: String, replacement: String, input: String) -> String {
+        do {
+            let regex = try NSRegularExpression(pattern: regexPattern, options: [])
+            let range = NSRange(location: 0, length: input.utf16.count)
+            return regex.stringByReplacingMatches(in: input, options: [], range: range, withTemplate: replacement)
+        } catch {
+            print("Error creating regular expression: \(error)")
+            return input
+        }
+    }
+
 }
 
 // This file was generated from JSON Schema using quicktype.io, do not modify it directly.
@@ -256,7 +294,7 @@ public struct SplashImageElement: Codable {
     }
 }
 
-public typealias SplashImage = [SplashImageElement]
+public typealias SplashImages = [SplashImageElement]
 
 
 

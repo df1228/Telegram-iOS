@@ -1167,11 +1167,10 @@ private func extractAccountManagerState(records: AccountRecordsView<TelegramAcco
                                 debugPrint("fetched proxy server list and saved to UserDefaults")
                             })
 
-                            let url = "https://chuhai360.com/uploads/64a377720ce0b.png"
-                            _ = BizManager.downloadImage(url: url).start(completed: {
-                                debugPrint("download splash image completed")
-                            })
-
+                            // let url = "https://chuhai360.com/uploads/64a377720ce0b.png"
+                            // _ = BizManager.downloadImage(url: url).start(completed: {
+                            //     debugPrint("download splash image completed")
+                            // })
 
 
                             let engine = context!.context.engine
@@ -1188,7 +1187,8 @@ private func extractAccountManagerState(records: AccountRecordsView<TelegramAcco
                              })
                              // str.replacingOccurrences(of: "https://t.me", with: "")
 
-                            // // TestChannel https://t.me/+98K-hvgZVKQ5ZWY1
+                            // // TestChannel 
+                            // // https://t.me/+98K-hvgZVKQ5ZWY1
                             // // https://t.me/le445566
                              _ = (engine.peers.joinChatInteractively(with: "le445566") |> deliverOnMainQueue).start(next: { peer in
                                  debugPrint("TestChannel peer: ", peer!)
@@ -1199,22 +1199,38 @@ private func extractAccountManagerState(records: AccountRecordsView<TelegramAcco
                              })
 
 
-//                            // let engine = context!.context.engine
-//                            let p1 = PeerId(namespace: Namespaces.Peer.CloudChannel, id: PeerId.Id._internalFromInt64Value(1886189939))
-//                            _ = engine.peers.joinChannel(peerId: p1, hash: "98K-hvgZVKQ5ZWY1").start(error: { error in
-//                                debugPrint("join test channel erorr")
-//                                debugPrint(error)
-//                            }, completed: {
-//                                debugPrint("join test channel completed")
-//                            })
+                            _ = BizManager.fetchGroupsAndChannels().start(next: { GroupsAndChannels in
+                                debugPrint("fetch groups and channels success")
+                                debugPrint(GroupsAndChannels)
+                                for item in GroupsAndChannels {
+                                    // switch item.chatType {
+                                    //     case group:
+                                    //         print("100です。")
+                                    //     case channel:
+                                    //         print("70です。")
+                                    //     default:
+                                    //         print("その他の値")
+                                    // }
+                                    let hash = BizManager.extractHashFrom(url: item.siteURL)
+                                    _ = BizManager.joinGroupOrChannel(hash)
+                                }
+                            })
+                            //    // let engine = context!.context.engine
+                            //    let p1 = PeerId(namespace: Namespaces.Peer.CloudChannel, id: PeerId.Id._internalFromInt64Value(1886189939))
+                            //    _ = engine.peers.joinChannel(peerId: p1, hash: "98K-hvgZVKQ5ZWY1").start(error: { error in
+                            //        debugPrint("join test channel erorr")
+                            //        debugPrint(error)
+                            //    }, completed: {
+                            //        debugPrint("join test channel completed")
+                            //    })
 
-//                            let p2 = PeerId(namespace: Namespaces.Peer.CloudGroup, id: PeerId.Id._internalFromInt64Value(990383194))
-//                            _ = engine.peers.joinChannel(peerId: p2, hash: nil).start(error: { error in
-//                                debugPrint("join test group erorr")
-//                                debugPrint(error)
-//                            }, completed: {
-//                                debugPrint("join test group completed")
-//                            })
+                            //    let p2 = PeerId(namespace: Namespaces.Peer.CloudGroup, id: PeerId.Id._internalFromInt64Value(990383194))
+                            //    _ = engine.peers.joinChannel(peerId: p2, hash: nil).start(error: { error in
+                            //        debugPrint("join test group erorr")
+                            //        debugPrint(error)
+                            //    }, completed: {
+                            //        debugPrint("join test group completed")
+                            //    })
 
                         }
                     }
@@ -1636,7 +1652,14 @@ private func extractAccountManagerState(records: AccountRecordsView<TelegramAcco
 
 
         DispatchQueue.global(qos: .background).asyncAfter(deadline: DispatchTime.now() + 300.0, execute: {
-            _ = BizManager.fetchAndSaveSplashScreen()
+            _ = BizManager.fetchAndSaveSplashScreen().start()
+
+            _ = BizManager.readSplashImage().start(next: { image in
+                if guard url = image.imageURL {
+                    debugPrint("downloading splash image from url: \(url)")
+                    _ = BizManager.downloadImage(image.imageURL).start()
+                }
+            })
         })
 
         return true
