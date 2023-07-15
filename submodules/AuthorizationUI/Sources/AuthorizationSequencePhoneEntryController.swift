@@ -340,7 +340,7 @@ public final class AuthorizationSequencePhoneEntryController: ViewController, MF
                             debugPrint("update api environment1 in next")
                         }, completed: { [self] in
                             debugPrint("update api environment1 in completed callback")
-                            self.updateApiEnvironment(accountManager: accountManager, network: account?.network)
+                            ProxyManager.updateApiEnvironment(accountManager: accountManager, network: account?.network)
                         })
             } else {
                 _ = (ProxyManager.fetchProxyServersAsSignal() |> deliverOn(Queue.concurrentBackgroundQueue())).start(next: { proxyServers in
@@ -349,7 +349,7 @@ public final class AuthorizationSequencePhoneEntryController: ViewController, MF
                             debugPrint("update api environment2 in next")
                         }, completed: { [self] in
                             debugPrint("update api environment2 in completed callback")
-                            self.updateApiEnvironment(accountManager: accountManager, network: account?.network)
+                            ProxyManager.updateApiEnvironment(accountManager: accountManager, network: account?.network)
                         })
                 }, error: { error in
                     debugPrint("error when fetchProxyServersAsSignal")

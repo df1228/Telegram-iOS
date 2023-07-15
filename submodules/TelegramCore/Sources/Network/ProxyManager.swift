@@ -4,8 +4,8 @@ import MtProtoKit
 
 public class ProxyManager {
 
-    private var proxyServerDisposable = MetaDisposable()
-    private var proxyServer: ProxyServerSettings?
+    // private var proxyServerDisposable = MetaDisposable()
+    // private var proxyServer: ProxyServerSettings?
 
     // 同步版本
     public static func fetchProxyServers(completion: @escaping ([ProxyServer]?, Error?) -> Void) {
@@ -183,17 +183,17 @@ public class ProxyManager {
     public static func updateApiEnvironment(accountManager: AccountManager<TelegramAccountManagerTypes>?, network: Network?) {
         guard let accountManager = accountManager else { return }
         guard let network = network else { return }
-        self.proxyServerDisposable.set((accountManager.sharedData(keys: [SharedDataKeys.proxySettings])
-            |> deliverOnMainQueue).start(next: { [weak self] sharedData in
-                if let strongSelf = self, let settings = sharedData.entries[SharedDataKeys.proxySettings]?.get(ProxySettings.self) {
-                    if settings.enabled {
-                        strongSelf.proxyServer = settings.activeServer
-                    } else {
-                        strongSelf.proxyServer = nil
-                    }
+        _ = (accountManager.sharedData(keys: [SharedDataKeys.proxySettings])
+            |> deliverOnMainQueue).start(next: { sharedData in
+                if let settings = sharedData.entries[SharedDataKeys.proxySettings]?.get(ProxySettings.self) {
+                    // if settings.enabled {
+                    //    strongSelf.proxyServer = settings.activeServer
+                    // } else {
+                    //    strongSelf.proxyServer = nil
+                    // }
 
                     // let network = strongSelf.account?.network
-                    network?.context.updateApiEnvironment { environment in
+                    network.context.updateApiEnvironment { environment in
                         var updated = environment!
                         if let effectiveActiveServer = settings.effectiveActiveServer {
                             updated = updated.withUpdatedSocksProxySettings(effectiveActiveServer.mtProxySettings)
@@ -202,7 +202,6 @@ public class ProxyManager {
                     }
                 }
             })
-        )
     }
 
     // Promise版
