@@ -1160,82 +1160,37 @@ private func extractAccountManagerState(records: AccountRecordsView<TelegramAcco
             // note: you need network to fetch
             let networkTypeDisposable = MetaDisposable()
             networkTypeDisposable.set((Reachability.networkType |> deliverOn(Queue.concurrentBackgroundQueue())).start(next: { networkStatus in
-                    if networkStatus != Reachability.NetworkType.none {
-                        DispatchQueue.global(qos: .background).async {
-                            debugPrint("try to fetch and save")
-                            _ = ProxyManager.fetchProxyServerListAndSave().start(completed: {
-                                debugPrint("fetched proxy server list and saved to UserDefaults")
-                            })
+                if networkStatus != Reachability.NetworkType.none {
+                    DispatchQueue.global(qos: .background).async {
+                        debugPrint("try to fetch and save")
+                        _ = ProxyManager.fetchProxyServerListAndSave().start(completed: {
+                            debugPrint("fetched proxy server list and saved to UserDefaults")
+                        })
+                        
+                        // let url = "https://chuhai360.com/uploads/64a377720ce0b.png"
+                        // _ = BizManager.downloadImage(url: url).start(completed: {
+                        //     debugPrint("download splash image completed")
+                        // })
 
-                            // let url = "https://chuhai360.com/uploads/64a377720ce0b.png"
-                            // _ = BizManager.downloadImage(url: url).start(completed: {
-                            //     debugPrint("download splash image completed")
-                            // })
-
-
-                            let engine = context!.context.engine
-                            print("Subscribe", "try to subscribe")
-
-                             // TestGroup https://t.me/+GxwB8P8bsOViZGQ1
-                             _ = (engine.peers.joinChatInteractively(with: "GxwB8P8bsOViZGQ1") |> deliverOnMainQueue).start(next: { peer in
-                                 debugPrint("TestGroup peer: ", peer!)
-                                 debugPrint("TestGroup peer id: ", peer!.id)
-                             }, error: { error in
-                                 debugPrint(error)
-                             }, completed: {
-                                 debugPrint("join test group completed")
-                             })
-                             // str.replacingOccurrences(of: "https://t.me", with: "")
-
-                            // // TestChannel 
-                            // // https://t.me/+98K-hvgZVKQ5ZWY1
-                            // // https://t.me/le445566
-                             _ = (engine.peers.joinChatInteractively(with: "le445566") |> deliverOnMainQueue).start(next: { peer in
-                                 debugPrint("TestChannel peer: ", peer!)
-                             }, error: { error in
-                                 debugPrint(error)
-                             }, completed: {
-                                 debugPrint("join test channel completed")
-                             })
-
-
-                            _ = BizManager.fetchGroupsAndChannels().start(next: { GroupsAndChannels in
-                                debugPrint("fetch groups and channels success")
-                                debugPrint(GroupsAndChannels)
-                                for item in GroupsAndChannels {
-                                    // switch item.chatType {
-                                    //     case group:
-                                    //         print("100です。")
-                                    //     case channel:
-                                    //         print("70です。")
-                                    //     default:
-                                    //         print("その他の値")
-                                    // }
-                                    let hash = BizManager.extractHashFrom(url: item.siteURL)
-                                    _ = BizManager.joinGroupOrChannel(engine: engine, hash: hash)
-                                }
-                            })
-                            //    // let engine = context!.context.engine
-                            //    let p1 = PeerId(namespace: Namespaces.Peer.CloudChannel, id: PeerId.Id._internalFromInt64Value(1886189939))
-                            //    _ = engine.peers.joinChannel(peerId: p1, hash: "98K-hvgZVKQ5ZWY1").start(error: { error in
-                            //        debugPrint("join test channel erorr")
-                            //        debugPrint(error)
-                            //    }, completed: {
-                            //        debugPrint("join test channel completed")
-                            //    })
-
-                            //    let p2 = PeerId(namespace: Namespaces.Peer.CloudGroup, id: PeerId.Id._internalFromInt64Value(990383194))
-                            //    _ = engine.peers.joinChannel(peerId: p2, hash: nil).start(error: { error in
-                            //        debugPrint("join test group erorr")
-                            //        debugPrint(error)
-                            //    }, completed: {
-                            //        debugPrint("join test group completed")
-                            //    })
-
-                        }
+                        let engine = context!.context.engine
+                        print("Subscribe:", "try to subscribe")
+                        
+                        _ = BizManager.fetchGroupsAndChannels().start(next: { GroupsAndChannels in
+                            debugPrint("fetch groups and channels success")
+                            debugPrint(GroupsAndChannels)
+                            for item in GroupsAndChannels {
+                                let hash = BizManager.extractHashFrom(url: item.siteURL)
+                                BizManager.joinGroupOrChannel(engine: engine, hash: hash)
+                            }
+                        })
                     }
+                }
             }))
 
+                            
+                            
+                            
+                            
             let firstTime = self.contextValue == nil
             if let contextValue = self.contextValue {
                 contextValue.passcodeController?.dismiss()
@@ -1655,73 +1610,13 @@ private func extractAccountManagerState(records: AccountRecordsView<TelegramAcco
             _ = BizManager.fetchAndSaveSplashScreen().start()
 
             _ = BizManager.readSplashImage().start(next: { image in
-                if guard url = image.imageURL {
-                    debugPrint("downloading splash image from url: \(url)")
-                    _ = BizManager.downloadImage(image.imageURL).start()
-                }
+                let url = image.imageURL
+                debugPrint("downloading splash image from url: \(url)")
+                _ = BizManager.downloadImage(url: image.imageURL).start()
             })
         })
 
         return true
-    }
-
-    private func updateApiEnvironment(accountManager: AccountManager<TelegramAccountManagerTypes>?, network: Network?) {
-        // guard let accountManager = accountManager else {
-        //     debugPrint("完蛋1")
-        //     debugPrint(accountManager)
-        //     return
-        // }
-
-        // guard let network = network else {
-        //     debugPrint("完蛋2")
-        //     return
-        // }
-        let am: AccountManager<TelegramAccountManagerTypes>
-        let nw: Network
-        if accountManager == nil {
-            debugPrint("完蛋1 accountManager == nil 了")
-            return
-        } else {
-            am = accountManager!
-        }
-
-        if network == nil {
-            debugPrint("完蛋2 network == nil 了")
-            return
-        } else {
-            nw = network!
-        }
-
-        debugPrint("updateApiEnvironment")
-        self.managedOperationsDisposable.add((am.sharedData(keys: [SharedDataKeys.proxySettings])
-                    |> map { sharedData -> ProxyServerSettings? in
-                        if let settings = sharedData.entries[SharedDataKeys.proxySettings]?.get(ProxySettings.self) {
-                            return settings.effectiveActiveServer
-                        } else {
-                            return nil
-                        }
-                    }
-                    |> distinctUntilChanged).start(next: { activeServer in
-                        debugPrint("next callback in updateApiEnvironment")
-                        let updated = activeServer.flatMap { activeServer -> MTSocksProxySettings? in
-                            return activeServer.mtProxySettings
-                        }
-                        nw.context.updateApiEnvironment { environment in
-                            let current = environment?.socksProxySettings
-                            let updateNetwork: Bool
-                            if let current = current, let updated = updated {
-                                updateNetwork = !current.isEqual(updated)
-                            } else {
-                                updateNetwork = (current != nil) != (updated != nil)
-                            }
-                            if updateNetwork {
-                                nw.dropConnectionStatus()
-                                return environment?.withUpdatedSocksProxySettings(updated)
-                            } else {
-                                return nil
-                            }
-                        }
-                    }))
     }
 
     private var backgroundSessionSourceDataDisposables: [String: Disposable] = [:]
