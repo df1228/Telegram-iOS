@@ -13,6 +13,7 @@ public enum JoinChannelError {
 }
 
 func _internal_joinChannel(account: Account, peerId: PeerId, hash: String?) -> Signal<RenderedChannelParticipant?, JoinChannelError> {
+    debugPrint("JoinChannel.swift _internal_joinChannel")
     debugPrint("peerId:", peerId)
     debugPrint("hash:", hash!)
     return account.postbox.loadedPeerWithId(peerId)

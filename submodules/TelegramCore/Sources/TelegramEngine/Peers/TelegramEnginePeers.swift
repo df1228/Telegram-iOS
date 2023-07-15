@@ -366,6 +366,7 @@ public extension TelegramEngine {
         }
 
         public func joinChannel(peerId: PeerId, hash: String?) -> Signal<RenderedChannelParticipant?, JoinChannelError> {
+            debugPrint("TelegramEnginePeers.swift joinChannel")
             debugPrint("peerId: ", peerId)
             debugPrint("hash: ", hash!)
             return _internal_joinChannel(account: self.account, peerId: peerId, hash: hash)
