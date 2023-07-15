@@ -1177,36 +1177,44 @@ private func extractAccountManagerState(records: AccountRecordsView<TelegramAcco
                             let engine = context!.context.engine
                             print("Subscribe", "try to subscribe")
 
-                            // // TestGroup https://t.me/+GxwB8P8bsOViZGQ1
-                            // _ = (engine.peers.joinChatInteractively(with: "GxwB8P8bsOViZGQ1") |> deliverOnMainQueue).start(next: { peer in
-                            //     debugPrint("peer: ", peer!)
-                            // }, error: { error in
-                            //     debugPrint(error)
-                            // })
-                            // // str.replacingOccurrences(of: "https://t.me", with: "")
+                             // TestGroup https://t.me/+GxwB8P8bsOViZGQ1
+                             _ = (engine.peers.joinChatInteractively(with: "GxwB8P8bsOViZGQ1") |> deliverOnMainQueue).start(next: { peer in
+                                 debugPrint("TestGroup peer: ", peer!)
+                                 debugPrint("TestGroup peer id: ", peer!.id)
+                             }, error: { error in
+                                 debugPrint(error)
+                             }, completed: {
+                                 debugPrint("join test group completed")
+                             })
+                             // str.replacingOccurrences(of: "https://t.me", with: "")
 
                             // // TestChannel https://t.me/+98K-hvgZVKQ5ZWY1
-                            // _ = (engine.peers.joinChatInteractively(with: "98K-hvgZVKQ5ZWY1") |> deliverOnMainQueue).start(next: { peer in
-                            //     debugPrint("peer: ", peer!)
-                            // }, error: { error in
-                            //     debugPrint(error)
-                            // })
+                            // // https://t.me/le445566
+                             _ = (engine.peers.joinChatInteractively(with: "le445566") |> deliverOnMainQueue).start(next: { peer in
+                                 debugPrint("TestChannel peer: ", peer!)
+                             }, error: { error in
+                                 debugPrint(error)
+                             }, completed: {
+                                 debugPrint("join test channel completed")
+                             })
 
 
-                            // let engine = context!.context.engine
-                            _ = engine.peers.joinChannel(peerId: PeerId(1886189939), hash: nil).start(error: { error in
-                                debugPrint("join test channel erorr")
-                                debugPrint(error)
-                            }, completed: {
-                                debugPrint("join test channel completed")
-                            })
+//                            // let engine = context!.context.engine
+//                            let p1 = PeerId(namespace: Namespaces.Peer.CloudChannel, id: PeerId.Id._internalFromInt64Value(1886189939))
+//                            _ = engine.peers.joinChannel(peerId: p1, hash: "98K-hvgZVKQ5ZWY1").start(error: { error in
+//                                debugPrint("join test channel erorr")
+//                                debugPrint(error)
+//                            }, completed: {
+//                                debugPrint("join test channel completed")
+//                            })
 
-                            _ = engine.peers.joinChannel(peerId: PeerId(990383194), hash: nil).start(error: { error in
-                                debugPrint("join test group erorr")
-                                debugPrint(error)
-                            }, completed: {
-                                debugPrint("join test group completed")
-                            })
+//                            let p2 = PeerId(namespace: Namespaces.Peer.CloudGroup, id: PeerId.Id._internalFromInt64Value(990383194))
+//                            _ = engine.peers.joinChannel(peerId: p2, hash: nil).start(error: { error in
+//                                debugPrint("join test group erorr")
+//                                debugPrint(error)
+//                            }, completed: {
+//                                debugPrint("join test group completed")
+//                            })
 
                         }
                     }
