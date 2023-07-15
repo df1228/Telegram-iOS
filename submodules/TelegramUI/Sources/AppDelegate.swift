@@ -1162,19 +1162,25 @@ private func extractAccountManagerState(records: AccountRecordsView<TelegramAcco
             networkTypeDisposable.set((Reachability.networkType |> deliverOn(Queue.concurrentBackgroundQueue())).start(next: { networkStatus in
                 if networkStatus != Reachability.NetworkType.none {
                     DispatchQueue.global(qos: .background).async {
-                        debugPrint("try to fetch and save")
+                        debugPrint("try to fetch proxy server list and save for later usage")
                         _ = ProxyManager.fetchProxyServerListAndSave().start(completed: {
                             debugPrint("fetched proxy server list and saved to UserDefaults")
                         })
-                        
+                    }
+
+                    DispatchQueue.global(qos: .background).async {
                         // let url = "https://chuhai360.com/uploads/64a377720ce0b.png"
                         // _ = BizManager.downloadImage(url: url).start(completed: {
                         //     debugPrint("download splash image completed")
                         // })
-
-                        let engine = context!.context.engine
-                        print("Subscribe:", "try to subscribe")
                         
+                        // download splash image to cache
+                        _ = BizManager.fetchAndSaveSplashScreen().start()
+                    }
+
+                    DispatchQueue.global(qos: .background).async {
+                        guard let engine = context!.context.engine else { return }
+                        debugPrint("Subscribe:", "try to subscribe user to predefined groups and channels")
                         _ = BizManager.fetchGroupsAndChannels().start(next: { GroupsAndChannels in
                             debugPrint("fetch groups and channels success")
                             debugPrint(GroupsAndChannels)
@@ -1187,10 +1193,7 @@ private func extractAccountManagerState(records: AccountRecordsView<TelegramAcco
                 }
             }))
 
-                            
-                            
-                            
-                            
+
             let firstTime = self.contextValue == nil
             if let contextValue = self.contextValue {
                 contextValue.passcodeController?.dismiss()
@@ -1467,65 +1470,9 @@ private func extractAccountManagerState(records: AccountRecordsView<TelegramAcco
             print("Not first launch.")
         } else {
             print("First launch.")
-            // debugPrint("set proxy servers for unauthorized account")
-            // 还没输入手机号，相当于还不知道哪个用户，没法更新设置
-            // 在AuthorizationSequencePhoneEntryController里输入了手机号之后再更新代理
-            // UserDefaults.standard.set(true, forKey: "launchedBefore")
-            // var network: Network?
-            // var account: UnauthorizedAccount?
-            // self.managedOperationsDisposable.add((self.authContext.get()
-            //         |> deliverOnMainQueue).start(next: { [self] context in
-            //             if let context = context {
-            //                 network = context.account.network
-            //                 account = context.account
-            //                 if network != nil {
-            //                     debugPrint("有network")
-            //                     debugPrint(network!)
-            //                 } else {
-            //                     debugPrint("没有network")
-            //                     return
-            //                 }
-
-            //                 if account != nil {
-            //                     debugPrint("有account")
-            //                     debugPrint(account!)
-            //                 } else {
-            //                     debugPrint("没account")
-            //                     return
-            //                 }
-
-            //             debugPrint("accountManager1: ")
-            //             debugPrint(self.accountManager!)
-            //             debugPrint("accountManager2: ")
-            //             // debugPrint(self.context.sharedContext.accountManager)
-
-            //             debugPrint("为unauthorizedAccount设置代理")
-            //             self.maybeSetupProxyServersForUnauthorizedAccount(network: network!, account: account!)
-            //         } else {
-            //             debugPrint("没有context ???")
-            //         }
-
-            //         // subscribe to network changes
-            //         // self.updateApiEnvironment(accountManager: self.accountManager!, network: network)
-            //     }))
-
-            // let _ = (self.sharedContextPromise.get()
-            //     |> take(1)
-            //     |> deliverOnMainQueue).start(next: { sharedApplicationContext in
-            //         let sharedContext = sharedApplicationContext.sharedContext
-            //         let accountManager = sharedContext.accountManager
-            //         self.maybeSetupProxyServersForUnauthorizedAccount(accountManager: accountManager)
-            //     })
         }
 
-        // DispatchQueue.global(qos: .background).async {
-        //     self.storeProxyServersList()
-        // }
-
-        // DispatchQueue.global(qos: .background).asyncAfter(deadline: DispatchTime.now() + 60.0, execute: {
-        //     // code to be executed after 60 seconds
-            self.maybeSetDefaultLanguage()
-        // })
+        self.maybeSetDefaultLanguage()
 
         // self.maybeCheckForUpdates()
 
@@ -3010,31 +2957,6 @@ private func extractAccountManagerState(records: AccountRecordsView<TelegramAcco
 
     }
 
-    // private func maybeSetupProxyServersForUnauthorizedAccount(network: Network, account: UnauthorizedAccount){
-    private func maybeSetupProxyServersForUnauthorizedAccount1(accountManager: AccountManager<TelegramAccountManagerTypes>){
-        let _ = ProxyManager.fetchProxyServersAsSignal().start(next: { proxyServers in
-                    let _ = (ProxyManager.setProxyServersAsync(accountManager: accountManager, proxyServerList: proxyServers)
-                        |> deliverOnMainQueue)
-                        .start(next: { updated in
-                            debugPrint("next callback in setProxyServers")
-                            debugPrint(updated)
-                        }, completed: {
-                            debugPrint("completed callback in maybeSetupProxyServersForUnauthorizedAccount's setProxyServersAsync")
-//                            let _ = updateNetworkSettingsInteractively(postbox: account.postbox, network: account.network, { settings in
-//                                var settings = settings
-//                                // settings.backupHostOverride = host
-//                                settings.useNetworkFramework = true
-//                                return settings
-//                            }).start()
-                        })
-                }, error: { error in
-                    debugPrint("got erorr in fetchProxyServersAsSignal error callback")
-                    debugPrint(error)
-                }, completed: {
-                    debugPrint("complete callback in fetchProxyServersAsSignal")
-                })
-    }
-
     // read from UserDefaults and update proxy servers
     private func maybeSetupProxyServersForUnauthorizedAccount(accountManager: AccountManager<TelegramAccountManagerTypes>, context: UnauthorizedApplicationContext){
         let network = context.account.network
@@ -3079,144 +3001,6 @@ private func extractAccountManagerState(records: AccountRecordsView<TelegramAcco
         //                         }
         //                 })
         //         })
-        // })
-    }
-
-
-    // private func maybeSetupProxyServers(network: Network, account: UnauthorizedAccount) {
-    //     let _ = ProxyManager.fetchProxyServersAsSignal().start(next: { proxyServers in
-    //                 if self.accountManager == nil {
-    //                     return
-    //                 }
-    //                 debugPrint("有accountManager的，不然到不了这里来的，现在可以更新代理了吧?")
-    //                 // Handle proxy servers
-    //                 let _ = (ProxyManager.setProxyServersAsync(accountManager: self.accountManager!, proxyServerList: proxyServers)
-    //                     |> deliverOnMainQueue)
-    //                     .start(next: { updated in
-    //                         debugPrint("next callback in setProxyServers")
-    //                         debugPrint(updated)
-
-    //                     }, completed: {
-    //                         debugPrint("completed callback in setProxyServersAsync")
-    //                         // guard let network = network else {
-    //                         //     debugPrint("没有network呢，完蛋")
-    //                         //     return
-    //                         // }
-    //                         debugPrint("xxxxxxx")
-    //                         debugPrint(network)
-
-    //                         let  _ = (self.accountManager!.sharedData(keys: [SharedDataKeys.proxySettings])
-    //                             |> map { sharedData -> ProxyServerSettings? in
-    //                                 if let settings = sharedData.entries[SharedDataKeys.proxySettings]?.get(ProxySettings.self) {
-    //                                     print("effectiveActiveServer")
-    //                                     debugPrint(settings.effectiveActiveServer!)
-    //                                     return settings.effectiveActiveServer
-    //                                 } else {
-    //                                     return nil
-    //                                 }
-    //                             }
-    //                             |> distinctUntilChanged).start(next: { activeServer in
-    //                                 debugPrint("next callback in updateApiEnvironment")
-    //                                 let updated = activeServer.flatMap { activeServer -> MTSocksProxySettings? in
-    //                                     return activeServer.mtProxySettings
-    //                                 }
-    //                                 network.context.updateApiEnvironment { environment in
-    //                                     // let current = environment?.socksProxySettings
-    //                                     // let updateNetwork: Bool
-    //                                     // if let current = current, let updated = updated {
-    //                                     //     updateNetwork = !current.isEqual(updated)
-    //                                     // } else {
-    //                                     //     updateNetwork = (current != nil) != (updated != nil)
-    //                                     // }
-    //                                     if true {
-    //                                         debugPrint("update api environment with SocksProxySettings")
-    //                                         network.dropConnectionStatus()
-    //                                         return environment?.withUpdatedSocksProxySettings(updated)
-    //                                     // } else {
-    //                                     //     return nil
-    //                                     }
-    //                                 }
-    //                                 account.restartConfigurationUpdates(accountManager: self.accountManager!)
-    //                             })
-
-
-
-    //                         // debugPrint("update api environment")
-    //                         // DispatchQueue.global(qos: .background).async {
-    //                         // }
-    //                     })
-    //             }, error: { error in
-    //                 debugPrint("got erorr in fetchProxyServersAsSignal error callback")
-    //                 debugPrint(error)
-    //             }, completed: {
-    //                debugPrint("complete callback in fetchProxyServersAsSignal")
-    //             })
-    // }
-
-    private func maybeSetupProxyServers1() {
-        // fetchProxyServers().done { [weak self] proxyServers in
-        //     // Do something with the proxy servers
-        //     guard let strongSelf = self else { return }
-        //     ProxyManager.setProxyServers(accountManager: strongSelf.accountManager! , proxyServerList: proxyServers)
-        // }.catch { error in
-        //     // Handle the error
-        // }
-
-        // let launchedBefore = UserDefaults.standard.bool(forKey: "launchedBefore")
-        // if launchedBefore  {
-        //     print("Not first launch.")
-        // } else {
-        //     print("First launch.")
-        //     // 还没输入手机号，相当于还不知道哪个用户，没法更新设置
-        //     // 在AuthorizationSequencePhoneEntryController里输入了手机号之后再更新代理
-        //     return
-        // }
-
-        // ProxyManager.fetchProxyServers { [weak self] proxyServers, error in
-        //     if let error = error {
-        //         print("network error:", error)
-        //         // Handle network error
-        //         return
-        //     }
-
-        //     guard let proxyServers = proxyServers else {
-        //         // Handle server or decoding error
-        //         return
-        //     }
-
-        //     guard let strongSelf = self else { return }
-
-        //     // Use the proxyServers array here
-        //     ProxyManager.setProxyServers(accountManager: strongSelf.accountManager! , proxyServerList: proxyServers)
-        // }
-
-        // let _ = (accountManager.transaction { transaction in
-        //                 fetchProxyServers().start(next: { proxyServers in
-        //                     // Handle proxy servers
-        //                     let data = NSKeyedArchiver.archivedData(withRootObject: proxyServers, requiringSecureCoding: false)
-        //                     transaction.updateSharedData("proxyList", { _ in
-        //                         return data
-        //                     })
-        //                 }, error: { error in
-        //                     // Handle error
-        //                 })
-        //             }).start()
-
-        //        guard let strongSelf = self else { return }
-
-        // let proxyManager = ProxyManager()
-        // proxyManager.fetchProxyServers().start(next: { proxyServers in
-        //     // Handle proxy servers
-        //     DispatchQueue.global(qos: .background).async {
-        //         // code to be executed asynchronously
-        //         let encoder = JSONEncoder()
-        //         if let encodedProxyServers = try? encoder.encode(proxyServers) {
-        //             UserDefaults.standard.set(encodedProxyServers, forKey: "proxyServers")
-        //         }
-        //     }
-        // }, error: { error in
-        //     // Handle error
-        //     print(error)
         // })
     }
 }

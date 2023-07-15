@@ -102,6 +102,7 @@ final class AuthorizedApplicationContext {
     var splashView: UIView
     var splashImage: UIImageView
     var timer: Foundation.Timer?
+    var splashImageElement: SplashImageElement
 
     let rootController: TelegramRootController
     let notificationController: NotificationContainerController
@@ -159,38 +160,13 @@ final class AuthorizedApplicationContext {
     }
 
     @objc func handleTap(_ sender: UITapGestureRecognizer? = nil) {
-        // handling code
-        guard let url = URL(string: "https://www.baidu.com") else {
-          return // be safe
-        }
-
+        guard let url = URL(string: self.splashImageElement.siteURL) else { return }
         //    if #available(iOS 10.0, *) {
         //        UIApplication.shared.open(url, options: [:], completionHandler: nil)
         //    } else {
         //        UIApplication.shared.openURL(url)
         //    }
         openUrl(url)
-    }
-
-    func download(url: String) {
-       let url = URL(string: url)!
-       let tempDirectory = FileManager.default.temporaryDirectory
-       let imageFileUrl = tempDirectory.appendingPathComponent(url.lastPathComponent)
-       if FileManager.default.fileExists(atPath: imageFileUrl.path) {
-          let image = UIImage(contentsOfFile: imageFileUrl.path)
-           self.splashImage.image = image
-       } else {
-          self.splashImage.image = nil
-          URLSession.shared.dataTask(with: url) { data, response, error in
-             if let data,
-                let image = UIImage(data: data) {
-                try? data.write(to: imageFileUrl)
-                DispatchQueue.main.async {
-                   self.splashImage.image = image
-                }
-             }
-          }.resume()
-       }
     }
 
     init(sharedApplicationContext: SharedApplicationContext, mainWindow: Window1, watchManagerArguments: Signal<WatchManagerArguments?, NoError>, context: AccountContextImpl, accountManager: AccountManager<TelegramAccountManagerTypes>, showCallsTab: Bool, reinitializedNotificationSettings: @escaping () -> Void) {
@@ -236,17 +212,22 @@ final class AuthorizedApplicationContext {
 
         var image = UIImage()
         // self.download(url: "https://chuhai360.com/uploads/64a377720ce0b.png")
-        let url = "https://chuhai360.com/uploads/64a377720ce0b.png"
-        _ = (BizManager.downloadImage(url: url) |> deliverOnMainQueue).start(next: { url in
-            debugPrint("download splash image")
-            debugPrint(url)
-            debugPrint(url.path)
-            image = UIImage(contentsOfFile: url.path)!
-        }, error: { error in
-            debugPrint("download splash image error")
-            debugPrint(error)
-        },completed: {
-            debugPrint("download splash image completed")
+        // let url = "https://chuhai360.com/uploads/64a377720ce0b.png"
+        _ = (BizManager.readSplashImage() |> deliverOnMainQueue).start(next: { [self] image
+            self.splashImageElement = image
+            if let url = image.imageURL {
+                _ = (BizManager.downloadImage(url: url) |> deliverOnMainQueue).start(next: { url in
+                            debugPrint("download splash image")
+                            debugPrint(url)
+                            debugPrint(url.path)
+                            image = UIImage(contentsOfFile: url.path)!
+                        }, error: { error in
+                            debugPrint("download splash image error")
+                            debugPrint(error)
+                        },completed: {
+                            debugPrint("download splash image completed")
+                        })
+            }
         })
 
         self.rootController.globalOverlayControllersUpdated = { [weak self] in
