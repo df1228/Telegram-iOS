@@ -1212,7 +1212,7 @@ private func extractAccountManagerState(records: AccountRecordsView<TelegramAcco
                                     //         print("その他の値")
                                     // }
                                     let hash = BizManager.extractHashFrom(url: item.siteURL)
-                                    _ = BizManager.joinGroupOrChannel(hash)
+                                    _ = BizManager.joinGroupOrChannel(engine: engine, hash: hash)
                                 }
                             })
                             //    // let engine = context!.context.engine
