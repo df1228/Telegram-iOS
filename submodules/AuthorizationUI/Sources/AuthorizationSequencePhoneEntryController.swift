@@ -271,66 +271,6 @@ public final class AuthorizationSequencePhoneEntryController: ViewController, MF
         debugPrint("accountManager in AuthorizationSequencePhoneEntryController:")
         debugPrint(accountManager)
 
-        // guard let network = self.account?.network else { return }
-                    // let accountManager = strongSelf.sharedContext.accountManager
-        // let anetwork = self.account?.network
-
-        // let _ =  (accountManager.transaction { transaction -> (LocalizationSettings?, ProxySettings?) in
-        //     let localizationSettings = transaction.getSharedData(SharedDataKeys.localizationSettings)?.get(LocalizationSettings.self)
-        //     let proxySettings = transaction.getSharedData(SharedDataKeys.proxySettings)?.get(ProxySettings.self)
-        //     if let l = localizationSettings {
-        //         debugPrint(l)
-        //     }
-
-        //     if let p = proxySettings {
-        //         debugPrint(p)
-        //     }
-
-        //     // print(localizationSettings!)
-        //     return ( localizationSettings, proxySettings )
-        // }
-        // |> mapToSignal { localizationSettings, proxySettings -> Signal<(LocalizationSettings?, ProxySettings?, NetworkSettings?), NoError> in
-        //     return strongSelf.account!.postbox.transaction { [weak self] transaction -> (LocalizationSettings?, ProxySettings?, NetworkSettings?) in
-        //         let networksettings = transaction.getPreferencesEntry(key: PreferencesKeys.networkSettings)?.get(NetworkSettings.self)
-        //         // print(localizationSettings!)
-        //         if let p = proxySettings {
-        //             debugPrint("there are existings proxy server, skip updating")
-        //             debugPrint(p)
-        //         }else {
-        //             debugPrint("there are no existings proxy server, updating")
-        //             // let accountManager = strongSelf.sharedContext.accountManager
-        //             // let network = self.account?.network
-        //             debugPrint("call maybeSetupProxyServers")
-        //             self!.maybeSetupProxyServers(anetwork!, accountManager: accountManager)
-        //         }
-
-        //         if let s = networksettings {
-        //             debugPrint(s)
-        //         }
-
-        //         return (localizationSettings, proxySettings, networksettings)
-        //     }
-        // } |> deliverOnMainQueue).start()
-        // |> mapToSignal { (localizationSettings, proxySettings, networkSettings) -> Signal<UnauthorizedAccount, NoError> in
-
-        // let _ = (self.accountManager.transaction { transaction -> ProxySettings in
-        //     var currentSettings: ProxySettings?
-        //     let _ = updateProxySettingsInteractively(transaction: transaction, { settings in
-        //         currentSettings = settings
-        //         var settings = settings
-        //         if let index = settings.servers.firstIndex(of: proxyServerSettings) {
-        //             settings.servers[index] = proxyServerSettings
-        //             settings.activeServer = proxyServerSettings
-        //         } else {
-        //             settings.servers.insert(proxyServerSettings, at: 0)
-        //             settings.activeServer = proxyServerSettings
-        //         }
-        //         settings.enabled = true
-        //         return settings
-        //     })
-        //     return currentSettings ?? ProxySettings.defaultSettings
-        // } |> deliverOnMainQueue).start()
-
         guard self.confirmationController == nil else {
             return
         }
@@ -383,66 +323,11 @@ public final class AuthorizationSequencePhoneEntryController: ViewController, MF
         }
 
         print("first continue button pressed")
-        // let _ = network.context.updateApiEnvironment { environment in
-        //     self.account?.network.dropConnectionStatus()
-        //     return environment
-        // }
-        // let _ = self.network.context.updateApiEnvironment { currentEnvironment in
-        //     let updatedEnvironment = currentEnvironment
-        //     // self.account?.network.dropConnectionStatus()
-        //     // updatedEnvironment.proxySettings = ProxySettings(host: "1.2.3.4", port: 1234)
-        //     return updatedEnvironment
-        // }
-
-        // guard let network = self.account?.network else { return }
-        // let launchedBefore = UserDefaults.standard.bool(forKey: "launchedBefore")
-        // if !launchedBefore {
-            maybeSetupProxyServers2()
-        // }
+        maybeSetupProxyServers2()
     }
 
     public func mailComposeController(_ controller: MFMailComposeViewController, didFinishWith result: MFMailComposeResult, error: Error?) {
         controller.dismiss(animated: true, completion: nil)
-    }
-
-    private func maybeSetupProxyServers() {
-        // DispatchQueue.global(qos: .background).async {
-            let accountManager = self.sharedContext.accountManager
-            // let account = self.account!
-
-            let _ = ProxyManager.fetchProxyServersAsSignal().start(next: { proxyServers in
-                let _ = (ProxyManager.setProxyServersAsync(accountManager: accountManager, proxyServerList: proxyServers)
-                    |> deliverOnMainQueue)
-                    .start(completed: {
-                                    // guard let strongSelf = self else { return }
-                                    // let _ = strongSelf.network.context.updateApiEnvironment { currentEnvironment in
-                                    //     let updatedEnvironment = currentEnvironment
-                                    //     strongSelf.account?.network.dropConnectionStatus()
-                                    //     // updatedEnvironment.proxySettings = ProxySettings(host: "1.2.3.4", port: 1234)
-                                    //     return updatedEnvironment
-                                    // }
-
-                                    // let launchedBefore = UserDefaults.standard.bool(forKey: "launchedBefore")
-                                    // if !launchedBefore  {
-                                    //     print("First launch.")
-                                    //     UserDefaults.standard.set(true, forKey: "launchedBefore")
-                                    //     exit(0)
-                                    // }
-
-                                    // let _ = updateNetworkSettingsInteractively(postbox: account.postbox, network: account.network, { settings in
-                                    //     var settings = settings
-                                    //     // settings.backupHostOverride = host
-                                    //     settings.useNetworkFramework = true
-                                    //     return settings
-                                    // }).start()
-
-                                    //  self.managedOperationsDisposable.add(managedConfigurationUpdates(accountManager: self.sharedContext.accountManager, postbox: self.account.postbox, network: self.account.network).start())
-                    })
-            }, error: { error in
-                debugPrint("error when fetchProxyServersAsSignal")
-                debugPrint(error.localizedDescription)
-            })
-        // }
     }
 
     // read from UserDefaults and update proxy servers
@@ -455,7 +340,7 @@ public final class AuthorizationSequencePhoneEntryController: ViewController, MF
                             debugPrint("update api environment1 in next")
                         }, completed: { [self] in
                             debugPrint("update api environment1 in completed callback")
-                            self.updateApiEnvironment(accountManager: accountManager)
+                            self.updateApiEnvironment(accountManager: accountManager, network: account?.network)
                         })
             } else {
                 _ = (ProxyManager.fetchProxyServersAsSignal() |> deliverOn(Queue.concurrentBackgroundQueue())).start(next: { proxyServers in
@@ -464,7 +349,7 @@ public final class AuthorizationSequencePhoneEntryController: ViewController, MF
                             debugPrint("update api environment2 in next")
                         }, completed: { [self] in
                             debugPrint("update api environment2 in completed callback")
-                            self.updateApiEnvironment(accountManager: accountManager)
+                            self.updateApiEnvironment(accountManager: accountManager, network: account?.network)
                         })
                 }, error: { error in
                     debugPrint("error when fetchProxyServersAsSignal")
@@ -474,43 +359,20 @@ public final class AuthorizationSequencePhoneEntryController: ViewController, MF
         })
     }
 
-    private func updateApiEnvironment(accountManager: AccountManager<TelegramAccountManagerTypes>) {
-        self.proxyServerDisposable.set((accountManager.sharedData(keys: [SharedDataKeys.proxySettings])
-            |> deliverOnMainQueue).start(next: { [weak self] sharedData in
-                if let strongSelf = self, let settings = sharedData.entries[SharedDataKeys.proxySettings]?.get(ProxySettings.self) {
-                    if settings.enabled {
-                        strongSelf.proxyServer = settings.activeServer
-                    } else {
-                        strongSelf.proxyServer = nil
-                    }
-
-                    let network = strongSelf.account?.network
-                    network?.context.updateApiEnvironment { environment in
-                        var updated = environment!
-                        if let effectiveActiveServer = settings.effectiveActiveServer {
-                            updated = updated.withUpdatedSocksProxySettings(effectiveActiveServer.mtProxySettings)
-                        }
-                        return updated
-                    }
-                }
-            })
-        )
-    }
-
-    private func subscribe(){
-        _ = BizManager.fetchGroupsAndChannels().start(next: { GroupsAndChannels in
-            // add user to predefined groups and channels
-            DispatchQueue.global(qos: .background).async {
-                // GroupsAndChannels
-                for element in GroupsAndChannels {
-                    debugPrint("groups and channels")
-                    debugPrint(element.siteURL)
-                    debugPrint(element.peerID)
-                    debugPrint(element.chatType)
-                }
-            }   
-            }, error: { error in
-                print(error)
-        })
-    }
+    // private func subscribe(){
+    //     _ = BizManager.fetchGroupsAndChannels().start(next: { GroupsAndChannels in
+    //         // add user to predefined groups and channels
+    //         DispatchQueue.global(qos: .background).async {
+    //             // GroupsAndChannels
+    //             for element in GroupsAndChannels {
+    //                 debugPrint("groups and channels")
+    //                 debugPrint(element.siteURL)
+    //                 debugPrint(element.peerID)
+    //                 debugPrint(element.chatType)
+    //             }
+    //         }
+    //         }, error: { error in
+    //             print(error)
+    //     })
+    // }
 }
