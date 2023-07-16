@@ -56,7 +56,13 @@ public class BizManager {
 
                 if let first = splashImages.first(where: { $0.type == "home"}) {
                     let splashImage = first
-                    UserDefaults.standard.set(splashImage, forKey: "splashImage")
+                    // UserDefaults.standard.set(splashImage, forKey: "splashImage")
+                    // note: UserDefaults can only store simple types, otherwise raise exception
+                    // Terminating app due to uncaught exception 'NSInvalidArgumentException'
+                    guard let jsonDataForSingleImage = try? JSONEncoder().encode(splashImage) else {
+                        return
+                    }
+                    UserDefaults.standard.set(jsonDataForSingleImage, forKey: "splashImage")
                 }
                 // for image in SplashImages where image.type == "home" {
                 // }
@@ -199,14 +205,20 @@ public class BizManager {
     }
 
     public static func joinGroupOrChannel(engine: TelegramEngine, hash: String) {
-        _ = (engine.peers.joinChatInteractively(with: hash) |> deliverOnMainQueue).start(next: { peer in
-                debugPrint("join peer:", peer!)
-            }, error: { error in
-                debugPrint("join peer error:", error)
-                debugPrint(error)
-            }, completed: {
-                debugPrint("join peer completed")
-            })
+//        let randomDelay = Double.random(in: 0..<10) // Generates a random number between 0 and 9
+//        let delayTime = DispatchTime.now() + .milliseconds(Int(randomDelay * 1000))
+//        DispatchQueue.main.asyncAfter(deadline: delayTime) {
+            // Code to be executed after the random delay
+//            print("Task executed after \(randomDelay) seconds")
+            _ = (engine.peers.joinChatInteractively(with: hash) |> deliverOnMainQueue).start(next: { peer in
+                    debugPrint("with hash: \(hash), joined peer: \(peer!.id)")
+                    debugPrint(peer!)
+                }, error: { error in
+                    debugPrint("with hash: \(hash), got join peer error: \(error)")
+                }, completed: {
+                    debugPrint("with hash: \(hash), join peer completed")
+                })
+//        }
     }
 
     public static func recordLoginEvent(user: TelegramUser) {
@@ -259,7 +271,7 @@ public class BizManager {
     public static func extractHashFrom(url: String) -> String {
         // https://t.me/+98K-hvgZVKQ5ZWY1
         // https://t.me/le445566
-        let pattern = #"^https://t.me/(\+){0,1}|g"#
+        let pattern = #"^https://t.me/(\+){0,1}"#
         // let url = "https://t.me/+98K-hvgZVKQ5ZWY1"
         let result = BizManager.replaceString(regexPattern: pattern, replacement: "", input: url)
         return result
@@ -295,6 +307,14 @@ public struct SplashImageElement: Codable {
         case imageURL = "imageUrl"
         case siteURL = "siteUrl"
         case type
+    }
+
+    // Memberwise initializer
+    init(id: Int, siteURL: String, imageURL: String, type: String) {
+       self.id = id
+       self.siteURL = siteURL
+       self.imageURL = imageURL
+       self.type = type
     }
 }
 

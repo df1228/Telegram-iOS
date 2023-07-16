@@ -100,9 +100,11 @@ final class AuthorizedApplicationContext {
 
     // splashScreen feature
     var splashView: UIView
-    var splashImage: UIImageView
+    var splashImageView: UIImageView
+    var splashImage: UIImage
     var timer: Foundation.Timer?
-    var splashImageElement: SplashImageElement
+    // var splashImageElement: SplashImageElement
+    var siteURL: String
 
     let rootController: TelegramRootController
     let notificationController: NotificationContainerController
@@ -160,7 +162,7 @@ final class AuthorizedApplicationContext {
     }
 
     @objc func handleTap(_ sender: UITapGestureRecognizer? = nil) {
-        guard let url = URL(string: self.splashImageElement.siteURL) else { return }
+        guard let url = URL(string: self.siteURL) else { return }
         //    if #available(iOS 10.0, *) {
         //        UIApplication.shared.open(url, options: [:], completionHandler: nil)
         //    } else {
@@ -181,8 +183,13 @@ final class AuthorizedApplicationContext {
         // splashView.backgroundColor = .red
         splashView.frame = self.mainWindow.hostView.containerView.bounds
 
-        // let splashImage: UIImageView
-        splashImage = UIImageView()
+        splashImageView = UIImageView()
+        splashImage = UIImage()
+
+        siteURL = "https://telegram.org/"
+        // init before call self.splashImageElement
+        // splashImageElement = SplashImageElement(id: 1, imageURL: "", siteURL: "", type: "home")
+
         // let url = URL(string: "https://chuhai360.com/uploads/64a377720ce0b.png")
         // splashImage.loadFrom(url: url!)
         // splashImage.frame = self.mainWindow.hostView.containerView.bounds
@@ -210,24 +217,24 @@ final class AuthorizedApplicationContext {
 
         self.rootController = TelegramRootController(context: context)
 
-        var image = UIImage()
         // self.download(url: "https://chuhai360.com/uploads/64a377720ce0b.png")
         // let url = "https://chuhai360.com/uploads/64a377720ce0b.png"
-        _ = (BizManager.readSplashImage() |> deliverOnMainQueue).start(next: { [self] image
-            self.splashImageElement = image
-            if let url = image.imageURL {
-                _ = (BizManager.downloadImage(url: url) |> deliverOnMainQueue).start(next: { url in
-                            debugPrint("download splash image")
-                            debugPrint(url)
-                            debugPrint(url.path)
-                            image = UIImage(contentsOfFile: url.path)!
-                        }, error: { error in
-                            debugPrint("download splash image error")
-                            debugPrint(error)
-                        },completed: {
-                            debugPrint("download splash image completed")
-                        })
-            }
+        _ = (BizManager.readSplashImage() |> deliverOnMainQueue).start(next: { splashImageElement in
+            // self.splashImageElement = splashImageElement
+            let url = splashImageElement.imageURL
+            self.siteURL = splashImageElement.siteURL
+            _ = (BizManager.downloadImage(url: url) |> deliverOnMainQueue).start(next: { [self] url in
+                        debugPrint("download splash image")
+                        debugPrint(url)
+                        debugPrint(url.path)
+                        self.splashImage = UIImage(contentsOfFile: url.path)!
+                    }, error: { error in
+                        debugPrint("download splash image error")
+                        debugPrint(error)
+                    },completed: {
+                        debugPrint("download splash image completed")
+                    })
+
         })
 
         self.rootController.globalOverlayControllersUpdated = { [weak self] in
@@ -876,12 +883,11 @@ final class AuthorizedApplicationContext {
 
 
 //        DispatchQueue.main.sync {
-            debugPrint("add splashImage to splashView")
-            debugPrint(image)
-            self.splashImage.image = image
-            // self.splashImage.backgroundColor = .red
-            self.splashImage.frame = self.mainWindow.hostView.containerView.bounds
-            self.splashView.addSubview(self.splashImage)
+            debugPrint("add splashImage to splashImageView")
+            self.splashImageView.image = self.splashImage
+            // self.splashImageView.backgroundColor = .red
+            self.splashImageView.frame = self.mainWindow.hostView.containerView.bounds
+            self.splashView.addSubview(self.splashImageView)
             self.mainWindow.hostView.containerView.addSubview(self.splashView)
 //        }
 
