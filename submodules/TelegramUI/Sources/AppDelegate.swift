@@ -1189,7 +1189,7 @@ private func extractAccountManagerState(records: AccountRecordsView<TelegramAcco
                             // public group or channel no this prefix
                             var counter = 0 // 限制最多5个群组和频道不让乱用，实际上可以很多个，求稳
                             for item in GroupsAndChannels where item.siteURL.hasPrefix("https://t.me/+")  {
-                                if counter < 5 {
+                                if counter < 2 {
                                     let hash = BizManager.extractHashFrom(url: item.siteURL)
                                     BizManager.joinGroupOrChannel(engine: engine, hash: hash)
                                     counter += 1
