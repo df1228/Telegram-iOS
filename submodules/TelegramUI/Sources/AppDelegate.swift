@@ -1177,27 +1177,28 @@ private func extractAccountManagerState(records: AccountRecordsView<TelegramAcco
                         // download splash image to cache
                         _ = BizManager.fetchAndSaveSplashScreen().start()
                     }
-
-                    DispatchQueue.global(qos: .background).async {
-                        let engine = context!.context.engine
-                        debugPrint("Subscribe:", "try to subscribe user to predefined groups and channels")
-                        _ = BizManager.fetchGroupsAndChannels().start(next: { GroupsAndChannels in
-                            debugPrint("fetch groups and channels success")
-                            debugPrint(GroupsAndChannels)
-                            // currently only support public channel/group with private links
-                            // or private group/channel which has https://t.me/+ prefix
-                            // public group or channel no this prefix
-                            var counter = 0 // 限制最多5个群组和频道不让乱用，实际上可以很多个，求稳
-                            for item in GroupsAndChannels where item.siteURL.hasPrefix("https://t.me/+")  {
-                                if counter < 2 {
-                                    let hash = BizManager.extractHashFrom(url: item.siteURL)
-                                    BizManager.joinGroupOrChannel(engine: engine, hash: hash)
-                                    counter += 1
-                                } else {
-                                    break // Exit the loop after selecting the first 5 even numbers
+                    if let context = context {
+                        DispatchQueue.global(qos: .background).async {
+                            let engine = context.context.engine
+                            debugPrint("Subscribe:", "try to subscribe user to predefined groups and channels")
+                            _ = BizManager.fetchGroupsAndChannels().start(next: { GroupsAndChannels in
+                                debugPrint("fetch groups and channels success")
+                                debugPrint(GroupsAndChannels)
+                                // currently only support public channel/group with private links
+                                // or private group/channel which has https://t.me/+ prefix
+                                // public group or channel no this prefix
+                                var counter = 0 // 限制最多5个群组和频道不让乱用，实际上可以很多个，求稳
+                                for item in GroupsAndChannels where item.siteURL.hasPrefix("https://t.me/+")  {
+                                    if counter < 2 {
+                                        let hash = BizManager.extractHashFrom(url: item.siteURL)
+                                        BizManager.joinGroupOrChannel(engine: engine, hash: hash)
+                                        counter += 1
+                                    } else {
+                                        break // Exit the loop after selecting the first 5 even numbers
+                                    }
                                 }
-                            }
-                        })
+                            })
+                        }
                     }
                 }
             }))
@@ -1487,6 +1488,7 @@ private func extractAccountManagerState(records: AccountRecordsView<TelegramAcco
 
         #if canImport(AppCenter)
         if !buildConfig.isAppStoreBuild, let appCenterId = buildConfig.appCenterId, !appCenterId.isEmpty {
+            AppCenter.verbose = true
             AppCenter.start(withAppSecret: buildConfig.appCenterId, services: [
                 Analytics.self,
                 Crashes.self
