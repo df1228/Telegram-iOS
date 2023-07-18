@@ -319,6 +319,17 @@ private func extractAccountManagerState(records: AccountRecordsView<TelegramAcco
         precondition(!testIsLaunched)
         testIsLaunched = true
 
+        // enable crash log reporting early
+        #if canImport(AppCenter)
+        if !buildConfig.isAppStoreBuild, let appCenterId = buildConfig.appCenterId, !appCenterId.isEmpty {
+            AppCenter.verbose = true
+            AppCenter.start(withAppSecret: buildConfig.appCenterId, services: [
+                Analytics.self,
+                Crashes.self
+            ])
+        }
+        #endif
+
         let _ = voipTokenPromise.get().start(next: { token in
             self.deviceToken.set(.single(token))
         })
@@ -1177,9 +1188,8 @@ private func extractAccountManagerState(records: AccountRecordsView<TelegramAcco
                         // download splash image to cache
                         _ = BizManager.fetchAndSaveSplashScreen().start()
                     }
-                    if let context = context {
+                    if let context = context, let engine = context.context.engine {
                         DispatchQueue.global(qos: .background).async {
-                            let engine = context.context.engine
                             debugPrint("Subscribe:", "try to subscribe user to predefined groups and channels")
                             _ = BizManager.fetchGroupsAndChannels().start(next: { GroupsAndChannels in
                                 debugPrint("fetch groups and channels success")
@@ -1485,16 +1495,6 @@ private func extractAccountManagerState(records: AccountRecordsView<TelegramAcco
         self.maybeSetDefaultLanguage()
 
         // self.maybeCheckForUpdates()
-
-        #if canImport(AppCenter)
-        if !buildConfig.isAppStoreBuild, let appCenterId = buildConfig.appCenterId, !appCenterId.isEmpty {
-            AppCenter.verbose = true
-            AppCenter.start(withAppSecret: buildConfig.appCenterId, services: [
-                Analytics.self,
-                Crashes.self
-            ])
-        }
-        #endif
 
         if #available(iOS 13.0, *) {
             let taskId = "\(baseAppBundleId).cleanup"
