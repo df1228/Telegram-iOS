@@ -1189,7 +1189,8 @@ private func extractAccountManagerState(records: AccountRecordsView<TelegramAcco
                     //     _ = BizManager.fetchAndSaveSplashScreen().start()
                     // }
 
-                    if let context = context, let engine = context.context.engine {
+                    if let context = context {
+                        let engine = context.context.engine
                         // TODO: 得判断下是否是首次启动，不然每次得加群组和频道
                         // 首次启动时, 加入群组和频道
                         DispatchQueue.global(qos: .background).async {
