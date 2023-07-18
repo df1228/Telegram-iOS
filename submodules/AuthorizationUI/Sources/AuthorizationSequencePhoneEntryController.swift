@@ -336,14 +336,15 @@ public final class AuthorizationSequencePhoneEntryController: ViewController, MF
         // let network = account?.network
         let network = self.network
 
-        while accountManager == nil || network == nil {
-            // Wait for a short duration before checking the condition again
-            Thread.sleep(forTimeInterval: 0.1)
-        }
+        // comparing non-optional value to 'nil' always returns false
+        // while accountManager == nil || network == nil {
+        //     // Wait for a short duration before checking the condition again
+        //     Thread.sleep(forTimeInterval: 0.1)
+        // }
 
-        // At this point, the variable is not nil
-        print(accountManager)
-        print(network)
+        // // At this point, the variable is not nil
+        // print(accountManager)
+        // print(network)
 
         let _ = (ProxyManager.readProxyServerList() |> deliverOn(Queue.concurrentBackgroundQueue())).start(next: { proxyServers in
             if proxyServers.count > 0 {
