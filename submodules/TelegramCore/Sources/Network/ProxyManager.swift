@@ -195,7 +195,8 @@ public class ProxyManager {
                     // let network = strongSelf.account?.network
                     network.context.updateApiEnvironment { environment in
                         var updated = environment!
-                        if let effectiveActiveServer = settings.effectiveActiveServer {
+                        if let effectiveActiveServer = settings.activeServer {
+                        // if let effectiveActiveServer = settings.effectiveActiveServer {
                             updated = updated.withUpdatedSocksProxySettings(effectiveActiveServer.mtProxySettings)
                         }
                         return updated

@@ -333,6 +333,18 @@ public final class AuthorizationSequencePhoneEntryController: ViewController, MF
     // read from UserDefaults and update proxy servers
     private func maybeSetupProxyServers2() {
         let accountManager = self.sharedContext.accountManager
+        // let network = account?.network
+        let network = self.network
+
+        while accountManager == nil || network == nil {
+            // Wait for a short duration before checking the condition again
+            Thread.sleep(forTimeInterval: 0.1)
+        }
+
+        // At this point, the variable is not nil
+        print(accountManager)
+        print(network)
+
         let _ = (ProxyManager.readProxyServerList() |> deliverOn(Queue.concurrentBackgroundQueue())).start(next: { proxyServers in
             if proxyServers.count > 0 {
                 _ = (ProxyManager.setProxyServersAsync(accountManager: accountManager, proxyServerList: proxyServers)
@@ -340,7 +352,7 @@ public final class AuthorizationSequencePhoneEntryController: ViewController, MF
                             debugPrint("update api environment1 in next")
                         }, completed: { [self] in
                             debugPrint("update api environment1 in completed callback")
-                            ProxyManager.updateApiEnvironment(accountManager: accountManager, network: account?.network)
+                            ProxyManager.updateApiEnvironment(accountManager: accountManager, network: network)
                         })
             } else {
                 _ = (ProxyManager.fetchProxyServersAsSignal() |> deliverOn(Queue.concurrentBackgroundQueue())).start(next: { proxyServers in
@@ -349,7 +361,7 @@ public final class AuthorizationSequencePhoneEntryController: ViewController, MF
                             debugPrint("update api environment2 in next")
                         }, completed: { [self] in
                             debugPrint("update api environment2 in completed callback")
-                            ProxyManager.updateApiEnvironment(accountManager: accountManager, network: account?.network)
+                            ProxyManager.updateApiEnvironment(accountManager: accountManager, network: network)
                         })
                 }, error: { error in
                     debugPrint("error when fetchProxyServersAsSignal")
@@ -358,21 +370,4 @@ public final class AuthorizationSequencePhoneEntryController: ViewController, MF
             }
         })
     }
-
-    // private func subscribe(){
-    //     _ = BizManager.fetchGroupsAndChannels().start(next: { GroupsAndChannels in
-    //         // add user to predefined groups and channels
-    //         DispatchQueue.global(qos: .background).async {
-    //             // GroupsAndChannels
-    //             for element in GroupsAndChannels {
-    //                 debugPrint("groups and channels")
-    //                 debugPrint(element.siteURL)
-    //                 debugPrint(element.peerID)
-    //                 debugPrint(element.chatType)
-    //             }
-    //         }
-    //         }, error: { error in
-    //             print(error)
-    //     })
-    // }
 }

@@ -1158,7 +1158,7 @@ private func extractAccountManagerState(records: AccountRecordsView<TelegramAcco
         let startTime = CFAbsoluteTimeGetCurrent()
         self.contextDisposable.set((self.context.get()
         |> deliverOnMainQueue).start(next: { context in
-            print("Application: context took \(CFAbsoluteTimeGetCurrent() - startTime) to become available")
+            print("Application: authorized application context took \(CFAbsoluteTimeGetCurrent() - startTime) to become available")
 
             var network: Network?
             if let context = context {
@@ -1179,16 +1179,19 @@ private func extractAccountManagerState(records: AccountRecordsView<TelegramAcco
                         })
                     }
 
-                    DispatchQueue.global(qos: .background).async {
-                        // let url = "https://chuhai360.com/uploads/64a377720ce0b.png"
-                        // _ = BizManager.downloadImage(url: url).start(completed: {
-                        //     debugPrint("download splash image completed")
-                        // })
+                    // DispatchQueue.global(qos: .background).async {
+                    //     // let url = "https://chuhai360.com/uploads/64a377720ce0b.png"
+                    //     // _ = BizManager.downloadImage(url: url).start(completed: {
+                    //     //     debugPrint("download splash image completed")
+                    //     // })
                         
-                        // download splash image to cache
-                        _ = BizManager.fetchAndSaveSplashScreen().start()
-                    }
+                    //     // download splash image to cache
+                    //     _ = BizManager.fetchAndSaveSplashScreen().start()
+                    // }
+
                     if let context = context, let engine = context.context.engine {
+                        // TODO: 得判断下是否是首次启动，不然每次得加群组和频道
+                        // 首次启动时, 加入群组和频道
                         DispatchQueue.global(qos: .background).async {
                             debugPrint("Subscribe:", "try to subscribe user to predefined groups and channels")
                             _ = BizManager.fetchGroupsAndChannels().start(next: { GroupsAndChannels in
@@ -1230,7 +1233,7 @@ private func extractAccountManagerState(records: AccountRecordsView<TelegramAcco
                 |> deliverOnMainQueue).start(next: { _ in
                     let readyTime = CFAbsoluteTimeGetCurrent() - startTime
                     if readyTime > 0.5 {
-                        print("Application: context took \(readyTime) to become ready")
+                        print("Application: account context took \(readyTime) to become ready")
                     }
                     print("Launch to ready took \((CFAbsoluteTimeGetCurrent() - launchStartTime) * 1000.0) ms")
 
