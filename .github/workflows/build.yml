@@ -122,7 +122,7 @@ jobs:
         with:
           upload_url: ${{ steps.create_release.outputs.upload_url }}
           asset_path: /Users/Shared/telegram-ios/build/artifacts/Telegram.DSYMs.zip
-          asset_name: Telegram.DSYMs.zip
+          asset_name: Telegram.DSYMs-${{ env.BUILD_NUMBER }}.zip
           asset_content_type: application/zip
 
       # Error uploading after updating to XCode 13
