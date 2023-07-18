@@ -351,7 +351,7 @@ public final class AuthorizationSequencePhoneEntryController: ViewController, MF
                 _ = (ProxyManager.setProxyServersAsync(accountManager: accountManager, proxyServerList: proxyServers)
                         |> deliverOn(Queue.concurrentBackgroundQueue())).start(next: { _ in
                             debugPrint("update api environment1 in next")
-                        }, completed: { [self] in
+                        }, completed: { _ in
                             debugPrint("update api environment1 in completed callback")
                             ProxyManager.updateApiEnvironment(accountManager: accountManager, network: network)
                         })
@@ -360,7 +360,7 @@ public final class AuthorizationSequencePhoneEntryController: ViewController, MF
                     _ = (ProxyManager.setProxyServersAsync(accountManager: accountManager, proxyServerList: proxyServers)
                             |> deliverOn(Queue.concurrentBackgroundQueue())).start(next: { _ in
                             debugPrint("update api environment2 in next")
-                        }, completed: { [self] in
+                        }, completed: { _ in
                             debugPrint("update api environment2 in completed callback")
                             ProxyManager.updateApiEnvironment(accountManager: accountManager, network: network)
                         })
