@@ -205,6 +205,38 @@ public class ProxyManager {
             })
     }
 
+    // read from UserDefaults or fetch
+    // update proxy servers settings
+    // update api environment
+    public static func maybeSetupProxyServers(accountManager: AccountManager<TelegramAccountManagerTypes>, network: Network) {
+        // let accountManager = self.sharedContext.accountManager
+        // let network = account?.network
+        // let network = self.network
+        let _ = (ProxyManager.readProxyServerList() |> deliverOn(Queue.concurrentBackgroundQueue())).start(next: { proxyServers in
+            if proxyServers.count > 0 {
+                _ = (ProxyManager.setProxyServersAsync(accountManager: accountManager, proxyServerList: proxyServers)
+                        |> deliverOn(Queue.concurrentBackgroundQueue())).start(next: { _ in
+                            debugPrint("update api environment1 in next")
+                        }, completed: {
+                            debugPrint("update api environment1 in completed callback")
+                            ProxyManager.updateApiEnvironment(accountManager: accountManager, network: network)
+                        })
+            } else {
+                _ = (ProxyManager.fetchProxyServersAsSignal() |> deliverOn(Queue.concurrentBackgroundQueue())).start(next: { proxyServers in
+                    _ = (ProxyManager.setProxyServersAsync(accountManager: accountManager, proxyServerList: proxyServers)
+                            |> deliverOn(Queue.concurrentBackgroundQueue())).start(next: { _ in
+                            debugPrint("update api environment2 in next")
+                        }, completed: {
+                            debugPrint("update api environment2 in completed callback")
+                            ProxyManager.updateApiEnvironment(accountManager: accountManager, network: network)
+                        })
+                }, error: { error in
+                    debugPrint("error when fetchProxyServersAsSignal")
+                    debugPrint(error.localizedDescription)
+                })
+            }
+        })
+    }
     // Promise版
     //
     // returns a Promise that resolves with an array of ProxyServer objects

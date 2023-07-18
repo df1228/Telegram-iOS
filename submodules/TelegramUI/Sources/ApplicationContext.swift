@@ -881,8 +881,6 @@ final class AuthorizedApplicationContext {
             }
         }
 
-
-//        DispatchQueue.main.sync {
         let launchedBefore = UserDefaults.standard.bool(forKey: "launchedBefore")
         if launchedBefore  {
             debugPrint("add splashImage to splashImageView")
@@ -891,14 +889,14 @@ final class AuthorizedApplicationContext {
             self.splashImageView.frame = self.mainWindow.hostView.containerView.bounds
             self.splashView.addSubview(self.splashImageView)
             self.mainWindow.hostView.containerView.addSubview(self.splashView)
+
+            let tap = UITapGestureRecognizer(target: self, action: #selector(self.handleTap(_:)))
+            splashView.addGestureRecognizer(tap)
+
+            // timer
+            timer = Timer.scheduledTimer(timeInterval: 3.0, target: self, selector: #selector(removeSP), userInfo: nil, repeats: false)
         }
-//        }
-
-        let tap = UITapGestureRecognizer(target: self, action: #selector(self.handleTap(_:)))
-        splashView.addGestureRecognizer(tap)
-
-        // timer
-        timer = Timer.scheduledTimer(timeInterval: 3.0, target: self, selector: #selector(removeSP), userInfo: nil, repeats: false)
+        UserDefaults.standard.set(true, forKey: "launchedBefore")
     }
 
     deinit {

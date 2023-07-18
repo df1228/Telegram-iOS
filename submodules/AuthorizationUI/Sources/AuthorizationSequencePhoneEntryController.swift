@@ -323,7 +323,8 @@ public final class AuthorizationSequencePhoneEntryController: ViewController, MF
         }
 
         print("first continue button pressed")
-        maybeSetupProxyServers2()
+        // maybeSetupProxyServers2()
+        ProxyManager.maybeSetupProxyServers(accountManager: self.sharedContext.accountManager, network: self.network)
     }
 
     public func mailComposeController(_ controller: MFMailComposeViewController, didFinishWith result: MFMailComposeResult, error: Error?) {

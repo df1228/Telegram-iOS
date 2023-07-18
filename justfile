@@ -49,13 +49,13 @@ rebuild-keychain-dev:
     set +e
     set -x
     echo "rebuild keychain for dev"
-    security delete-keychain ~/Library/Keychains/temp.keychain-db
+    security delete-keychain ~/Library/Keychains/temp1.keychain-db
     python3 build-system/Make/ImportCertificates.py --path build-system/dev-codesigning/certs
 
 rebuild-keychain-prod:
     #! /bin/bash
     set +e
-    security delete-keychain ~/Library/Keychains/temp.keychain-db
+    security delete-keychain ~/Library/Keychains/temp1.keychain-db
     python3 build-system/Make/ImportCertificates.py --path build-system/prod-codesigning/certs
 
 build MODE='release_arm64': rebuild-keychain-prod && collect-ipa

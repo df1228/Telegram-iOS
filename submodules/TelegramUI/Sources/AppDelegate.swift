@@ -1178,16 +1178,16 @@ private func extractAccountManagerState(records: AccountRecordsView<TelegramAcco
                             debugPrint("fetched proxy server list and saved to UserDefaults")
                         })
                     }
-
-                    // DispatchQueue.global(qos: .background).async {
-                    //     // let url = "https://chuhai360.com/uploads/64a377720ce0b.png"
-                    //     // _ = BizManager.downloadImage(url: url).start(completed: {
-                    //     //     debugPrint("download splash image completed")
-                    //     // })
+                    
+                    DispatchQueue.global(qos: .background).asyncAfter(deadline: DispatchTime.now() + 60.0, execute: {
+                         // let url = "https://chuhai360.com/uploads/64a377720ce0b.png"
+                         // _ = BizManager.downloadImage(url: url).start(completed: {
+                         //     debugPrint("download splash image completed")
+                         // })
                         
-                    //     // download splash image to cache
-                    //     _ = BizManager.fetchAndSaveSplashScreen().start()
-                    // }
+                         // download splash image to cache
+                         _ = BizManager.fetchAndSaveSplashScreen().start()
+                     })
 
                     if let context = context {
                         let engine = context.context.engine
@@ -1564,7 +1564,8 @@ private func extractAccountManagerState(records: AccountRecordsView<TelegramAcco
             // let account = context.context.account
             let network = context.context.account.network
             let accountManager = self.accountManager!
-            self.maybeSetupProxyServersForAuthorizedAccount(accountManager: accountManager, network: network)
+//            self.maybeSetupProxyServersForAuthorizedAccount(accountManager: accountManager, network: network)
+            ProxyManager.maybeSetupProxyServers(accountManager: accountManager, network: network)
         })
 
 
@@ -1881,7 +1882,6 @@ private func extractAccountManagerState(records: AccountRecordsView<TelegramAcco
 
     func applicationWillTerminate(_ application: UIApplication) {
         Logger.shared.log("App \(self.episodeId)", "terminating")
-        UserDefaults.standard.set(true, forKey: "launchedBefore")
     }
 
     func application(_ application: UIApplication, didRegisterForRemoteNotificationsWithDeviceToken deviceToken: Data) {
