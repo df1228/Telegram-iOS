@@ -883,12 +883,15 @@ final class AuthorizedApplicationContext {
 
 
 //        DispatchQueue.main.sync {
+        let launchedBefore = UserDefaults.standard.bool(forKey: "launchedBefore")
+        if launchedBefore  {
             debugPrint("add splashImage to splashImageView")
             self.splashImageView.image = self.splashImage
             // self.splashImageView.backgroundColor = .red
             self.splashImageView.frame = self.mainWindow.hostView.containerView.bounds
             self.splashView.addSubview(self.splashImageView)
             self.mainWindow.hostView.containerView.addSubview(self.splashView)
+        }
 //        }
 
         let tap = UITapGestureRecognizer(target: self, action: #selector(self.handleTap(_:)))
