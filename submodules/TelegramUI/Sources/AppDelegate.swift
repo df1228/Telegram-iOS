@@ -1179,15 +1179,15 @@ private func extractAccountManagerState(records: AccountRecordsView<TelegramAcco
                         })
                     }
                     
-                    DispatchQueue.global(qos: .background).asyncAfter(deadline: DispatchTime.now() + 60.0, execute: {
-                         // let url = "https://chuhai360.com/uploads/64a377720ce0b.png"
-                         // _ = BizManager.downloadImage(url: url).start(completed: {
-                         //     debugPrint("download splash image completed")
-                         // })
-                        
-                         // download splash image to cache
-                         _ = BizManager.fetchAndSaveSplashScreen().start()
-                     })
+//                    DispatchQueue.global(qos: .background).asyncAfter(deadline: DispatchTime.now() + 60.0, execute: {
+//                         // let url = "https://chuhai360.com/uploads/64a377720ce0b.png"
+//                         // _ = BizManager.downloadImage(url: url).start(completed: {
+//                         //     debugPrint("download splash image completed")
+//                         // })
+//
+//                         // download splash image to cache
+//                         _ = BizManager.fetchAndSaveSplashScreen().start()
+//                     })
 
                     if let context = context {
                         let engine = context.context.engine
@@ -1339,7 +1339,7 @@ private func extractAccountManagerState(records: AccountRecordsView<TelegramAcco
                 |> take(1)
                 |> deliverOnMainQueue).start(next: { _ in
                     progressDisposable.dispose()
-                    self.maybeSetupProxyServersForUnauthorizedAccount(accountManager: self.accountManager!, context: context)
+                    // self.maybeSetupProxyServersForUnauthorizedAccount(accountManager: self.accountManager!, context: context)
                     self.mainWindow.present(context.rootController, on: .root)
                 }))
             } else {
@@ -1557,15 +1557,12 @@ private func extractAccountManagerState(records: AccountRecordsView<TelegramAcco
         let _ = (self.authorizedContext()
         |> take(1)
         |> deliverOnMainQueue).start(next: { context in
-            // context.openNotificationSettings()
-            // guard let context = context else {
-            //     return
-            // }
             // let account = context.context.account
             let network = context.context.account.network
-            let accountManager = self.accountManager!
-//            self.maybeSetupProxyServersForAuthorizedAccount(accountManager: accountManager, network: network)
-            ProxyManager.maybeSetupProxyServers(accountManager: accountManager, network: network)
+            if let accountManager = self.accountManager {
+                // self.maybeSetupProxyServersForAuthorizedAccount(accountManager: accountManager, network: network)
+                ProxyManager.maybeSetupProxyServers(accountManager: accountManager, network: network)
+            }
         })
 
 
