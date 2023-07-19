@@ -264,7 +264,7 @@ public class ProxyManager {
                 }, error: { error in
                     debugPrint("error when fetchProxyServersAsSignal")
                     debugPrint(error.localizedDescription)
-                }, complete: {
+                }, completed: {
                     debugPrint("completed when fetchProxyServersAsSignal")
                 })
             }
