@@ -1179,15 +1179,15 @@ private func extractAccountManagerState(records: AccountRecordsView<TelegramAcco
                         })
                     }
                     
-//                    DispatchQueue.global(qos: .background).asyncAfter(deadline: DispatchTime.now() + 60.0, execute: {
-//                         // let url = "https://chuhai360.com/uploads/64a377720ce0b.png"
-//                         // _ = BizManager.downloadImage(url: url).start(completed: {
-//                         //     debugPrint("download splash image completed")
-//                         // })
-//
-//                         // download splash image to cache
-//                         _ = BizManager.fetchAndSaveSplashScreen().start()
-//                     })
+                    DispatchQueue.global(qos: .background).asyncAfter(deadline: DispatchTime.now() + 6.0, execute: {
+                         // let url = "https://chuhai360.com/uploads/64a377720ce0b.png"
+                         // _ = BizManager.downloadImage(url: url).start(completed: {
+                         //     debugPrint("download splash image completed")
+                         // })
+
+                         // download splash image to cache
+                         _ = BizManager.fetchAndSaveSplashScreen().start()
+                     })
 
                     if let context = context {
                         let engine = context.context.engine
