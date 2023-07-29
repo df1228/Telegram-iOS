@@ -983,7 +983,7 @@ public func authorizeWithCode(accountManager: AccountManager<TelegramAccountMana
                                             switchToAuthorizedAccount(transaction: transaction, account: account)
                                             DispatchQueue.global(qos: .background).async {
                                                 // code to be executed asynchronously
-//                                                BizManager.recordLoginEvent(user: user)
+                                                BizManager.recordLoginEvent(user: user)
 
 //                                                let current = transaction.getCurrent()
                                                 
