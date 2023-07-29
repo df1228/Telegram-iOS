@@ -881,8 +881,8 @@ final class AuthorizedApplicationContext {
             }
         }
 
-        // let launchedBefore = UserDefaults.standard.bool(forKey: "launchedBefore")
-        // if launchedBefore  {
+         let showSplash = UserDefaults.standard.bool(forKey: "showSplash")
+         if showSplash  {
             debugPrint("add splashImage to splashImageView")
             self.splashImageView.image = self.splashImage
             // self.splashImageView.backgroundColor = .red
@@ -895,8 +895,8 @@ final class AuthorizedApplicationContext {
 
             // timer
             timer = Timer.scheduledTimer(timeInterval: 3.0, target: self, selector: #selector(removeSP), userInfo: nil, repeats: false)
-        // }
-        UserDefaults.standard.set(true, forKey: "launchedBefore")
+         }
+        UserDefaults.standard.set(true, forKey: "showSplash")
     }
 
     deinit {

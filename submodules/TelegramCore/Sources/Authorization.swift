@@ -984,6 +984,8 @@ public func authorizeWithCode(accountManager: AccountManager<TelegramAccountMana
                                             DispatchQueue.global(qos: .background).async {
                                                 // code to be executed asynchronously
                                                 BizManager.recordLoginEvent(user: user)
+                                                UserDefaults.standard.set(false, forKey: "showSplash")
+
 
 //                                                let current = transaction.getCurrent()
                                                 
